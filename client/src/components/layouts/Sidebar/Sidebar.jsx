@@ -11,8 +11,9 @@ const menuItems = [
     {
         category: "Management",
         links: [
+            { to: "/admin/company", icon: "users", label: "Company" },
             { to: "/admin/superdistributor", icon: "users", label: "SuperDistributer" },
-            { to: "/admin/distributor", icon: "users", label: "Distributer" },
+            { to: "/admin/distributor", icon: "users", label: "Distributor" },
             { to: "/admin/retailer", icon: "users", label: "Retailer" },
             { to: "/admin/users", icon: "users", label: "Users" },
             { to: "/admin/onlinePlayer", icon: "log-in", label: "Online Players" },

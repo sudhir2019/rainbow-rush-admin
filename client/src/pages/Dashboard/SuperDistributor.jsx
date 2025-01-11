@@ -21,8 +21,9 @@ const SuperDistributor = () => {
     //       });
     //     }
     //   }, [action]);
-
     if (action === "create") {
+
+
         return (
             <div className="row">
                 <div className="col-md-12 grid-margin stretch-card">
@@ -155,8 +156,6 @@ const SuperDistributor = () => {
             </div>
         );
     }
-
-
     if (action === "edit") {
         return (
             <div className="row">
@@ -268,9 +267,16 @@ const SuperDistributor = () => {
                             </div>
                             <div className="form-group d-flex">
                                 <label className="col-sm-2 offset-lg-1 text-right control-label mt-2"></label>
-                                <div className="col-sm-6">
-                                    <button type="submit" className="btn btn-primary">Credit Transfer</button>
-                                </div>
+                                <div className="col-sm-6" style={{display:"flex",gap:"10px"}}>
+                                <button type="submit" className="btn btn-primary">Credit Transfer</button>
+                                <button
+                                                type="button"
+                                                onClick={() => window.history.back()}
+                                                className="btn btn-light"
+                                            >
+                                                Cancel
+                                            </button>
+                            </div>
                             </div>
 
                         </div>
@@ -312,8 +318,15 @@ const SuperDistributor = () => {
                         </div>
                         <div className="form-group d-flex">
                             <label className="col-sm-2 offset-lg-1 text-right control-label mt-2"></label>
-                            <div className="col-sm-6">
+                            <div className="col-sm-6" style={{display:"flex",gap:"10px"}}>
                                 <button type="submit" className="btn btn-primary">Credit Transfer</button>
+                                <button
+                                                type="button"
+                                                onClick={() => window.history.back()}
+                                                className="btn btn-light"
+                                            >
+                                                Cancel
+                                            </button>
                             </div>
                         </div>
                     </form>

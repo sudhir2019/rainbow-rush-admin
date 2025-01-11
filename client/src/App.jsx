@@ -20,6 +20,7 @@ import Users from "./pages/Dashboard/Users";
 
 // Other Components
 import ToastContainers from "./components/Toast/ToastContainer";
+import Company from "./pages/Dashboard/Company";
 
 
 export default function App() {
@@ -47,9 +48,12 @@ export default function App() {
         ])}
         {renderRoutes({ path: "admin", component: <AdminLayout /> }, [
           { path: "dashboard", element: <Dashboard /> },
-          { path: "SuperDistributor", element: <SuperDistributor /> },
-          { path: "SuperDistributor/:action", element: <SuperDistributor /> },
+          { path: "company", element: <Company /> },
+          { path: "company/:action", element: <Company /> },
+          { path: "superDistributor", element: <SuperDistributor /> },
+          { path: "superDistributor/:action", element: <SuperDistributor /> },
           { path: "distributor", element: <Distributor /> },
+          { path: "distributor/:action", element: <Distributor /> },
           { path: "retailer", element: <Retailer /> },
           { path: "users", element: <Users /> },
           { path: "*", element: <Navigate to="/admin/dashboard" /> },
