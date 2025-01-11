@@ -21,6 +21,14 @@ import Users from "./pages/Dashboard/Users";
 // Other Components
 import ToastContainers from "./components/Toast/ToastContainer";
 import Company from "./pages/Dashboard/Company";
+import OnlinePlayers from "./pages/Dashboard/OnlinePlayers";
+import GameHistory from "./pages/Dashboard/GameHistory";
+import WinPercentage from "./pages/Dashboard/WinPercentage";
+import TurnOverReport from "./pages/Dashboard/TurnOverReport";
+import TransactionReport from "./pages/Dashboard/TransactionReport";
+import CommissionPayout from "./pages/Dashboard/CommissionPayout";
+import AdminCommissionReport from "./pages/Dashboard/AdminCommissionReport";
+import LogActivities from "./pages/Dashboard/LogActivities";
 
 
 export default function App() {
@@ -56,6 +64,15 @@ export default function App() {
           { path: "distributor/:action", element: <Distributor /> },
           { path: "retailer", element: <Retailer /> },
           { path: "users", element: <Users /> },
+          { path: "users/:action", element: <Users /> },
+          { path: "onlineplayers", element: <OnlinePlayers /> },
+          { path: "gamehistory", element: <GameHistory /> },
+          { path: "winpercentage", element: <WinPercentage /> },
+          { path: "turnoverreport", element: <TurnOverReport /> },
+          { path: "transactionreport", element: <TransactionReport /> },
+          { path: "commissionpayoutReport", element: <CommissionPayout /> },
+          { path: "admincommissionreport", element: <AdminCommissionReport /> },
+          { path: "logactivities", element: <LogActivities /> },
           { path: "*", element: <Navigate to="/admin/dashboard" /> },
         ])}
         {/* <Route

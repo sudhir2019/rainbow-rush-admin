@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import React,{ useEffect, useState} from "react";
 import PerfectScrollbar from "perfect-scrollbar";
 import ClipboardJS from "clipboard";
 import feather from "feather-icons";
 import { Tooltip } from "bootstrap";
 import '../../../css/app.css';
-import { Link, NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 const menuItems = [
     { category: "Main", links: [{ to: "/admin/dashboard", icon: "box", label: "Dashboard" }] },
@@ -32,7 +32,7 @@ const menuItems = [
             { to: "/admin/turnoverreport", icon: "inbox", label: "TurnOver Report" },
             { to: "/admin/transactionreport", icon: "briefcase", label: "Transaction Report" },
             { to: "/admin/commissionpayoutReport", icon: "briefcase", label: "Commission Payout Report" },
-            { to: "/admin/admincommissionreport", icon: "briefcase", label: "Admin Commission Report" },
+            { to: "/admin/adminCommissionReport", icon: "briefcase", label: "Admin Commission Report" },
         ],
     },
     {
@@ -50,7 +50,7 @@ const menuItems = [
             },
         ],
     },
-    { category: "Logs Activity", links: [{ to: "/admin/logactivities", icon: "inbox", label: "Logs" }] },
+    { category: "Logs Activity", links: [{ to: "logActivities.html", icon: "inbox", label: "Logs" }] },
 ];
 
 function Sidebar() {
@@ -117,11 +117,11 @@ function Sidebar() {
                 </div>
             </div>
             <div className="sidebar-body">
-                <ul className="nav" >
+                <ul className="nav">
                     {menuItems.map(({ category, links }, categoryIndex) => (
-                        <>
+                        <React.Fragment key={`category-${categoryIndex}`}>
                             {category && (
-                                <li key={`category-${categoryIndex}`} className="nav-item nav-category">{category}</li>
+                                <li className="nav-item nav-category">{category}</li>
                             )}
                             {links.map((link, linkIndex) => (
                                 <li key={`link-${categoryIndex}-${linkIndex}`} className="nav-item">
@@ -142,7 +142,6 @@ function Sidebar() {
                                         <NavLink
                                             to={link.to}
                                             className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
-                                            style={({ isActive }) => isActive ? { color: 'blue' } : {}}
                                         >
                                             <i className="link-icon" data-feather={link.icon}></i>
                                             <span className="link-title">{link.label}</span>
@@ -154,10 +153,13 @@ function Sidebar() {
                                         </a>
                                     )}
                                     {link.submenu && (
-                                        <div className={`collapse ${activeMenu === `${categoryIndex}-${linkIndex}` ? "show" : ""}`} onClick={()=>toggleSubmenu(linkIndex)}>
+                                        <div
+                                            className={`submenu ${activeMenu === `${categoryIndex}-${linkIndex}` ? "show" : ""}`}
+                                            style={{ display: activeMenu === `${categoryIndex}-${linkIndex}` ? "block" : "none" }}
+                                        >
                                             <ul className="nav sub-menu">
                                                 {link.submenu.map((sub, subIdx) => (
-                                                    <li key={`submenu-${categoryIndex}-${linkIndex}-${subIdx}`} className="nav-item" >
+                                                    <li key={`submenu-${categoryIndex}-${linkIndex}-${subIdx}`} className="nav-item">
                                                         <NavLink to={sub.href} className="nav-link">{sub.label}</NavLink>
                                                     </li>
                                                 ))}
@@ -166,7 +168,7 @@ function Sidebar() {
                                     )}
                                 </li>
                             ))}
-                        </>
+                        </React.Fragment>
                     ))}
                 </ul>
             </div>

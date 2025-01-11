@@ -7,6 +7,8 @@ import PerfectScrollbar from "perfect-scrollbar";
 import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'; // Import Bootstrap JS
 import favicon from '../../../assets/favicon.ico'
+
+
 function Navbar() {
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -18,6 +20,8 @@ function Navbar() {
     // Handle Dropdown toggle
     const toggleDropdown = () => {
         setDropdownOpen(!dropdownOpen);
+
+        // console.log(dropdownOpen);
     };
 
     // ClipboardJS functionality
@@ -62,10 +66,10 @@ function Navbar() {
                             <img src={favicon} alt="profile" />
                         </a>
                         {dropdownOpen && (
-                            <div className="dropdown-menu" aria-labelledby="profileDropdown">
+                            <div   className={`dropdown-menu ${dropdownOpen ? "show" : ""}`}  aria-labelledby="profileDropdown">
                                 <div className="dropdown-header d-flex flex-column align-items-center">
                                     <div className="figure mb-3">
-                                        <img src="" alt="" />
+                                        <img src={favicon} alt="" />
                                     </div>
                                     <div className="info text-center">
                                         <p className="name font-weight-bold mb-0">admin</p>
