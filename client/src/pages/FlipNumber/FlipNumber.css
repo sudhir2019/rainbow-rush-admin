@@ -1,0 +1,59 @@
+/* Update color variants with different top/bottom colors */
+.num.green:before {
+  background: linear-gradient(to bottom, #4caf50, #2e7d32);
+}
+.num.green:after {
+  background: linear-gradient(to bottom, #1b5e20, #004d40);
+}
+
+.num.red:before {
+  background: linear-gradient(to bottom, #ff5252, #d32f2f);
+}
+.num.red:after {
+  background: linear-gradient(to bottom, #b71c1c, #880e4f);
+}
+
+.num.purple:before {
+  background: linear-gradient(to bottom, #7c4dff, #512da8);
+}
+.num.purple:after {
+  background: linear-gradient(to bottom, #311b92, #1a237e);
+}
+
+/* Speed up animation */
+.nums-one .num {
+  animation-name: num-one;
+  animation-duration: 5s; /* Reduced from 10s */
+}
+
+/* Update delays for faster sequence */
+.nums-one .num:nth-of-type(1) {
+  animation-delay: 0s;
+}
+.nums-one .num:nth-of-type(2) {
+  animation-delay: 0.5s;
+}
+.nums-one .num:nth-of-type(3) {
+  animation-delay: 1s;
+}
+.nums-one .num:nth-of-type(4) {
+  animation-delay: 1.5s;
+}
+.nums-one .num:nth-of-type(5) {
+  animation-delay: 2s;
+}
+.nums-one .num:nth-of-type(6) {
+  animation-delay: 2.5s;
+}
+.nums-one .num:nth-of-type(7) {
+  animation-delay: 3s;
+}
+.nums-one .num:nth-of-type(8) {
+  animation-delay: 3.5s;
+}
+.nums-one .num:nth-of-type(9) {
+  animation-delay: 4s;
+}
+.nums-one .num:nth-of-type(10) {
+  animation-delay: 4.5s;
+}
