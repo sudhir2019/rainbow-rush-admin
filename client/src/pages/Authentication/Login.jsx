@@ -64,13 +64,7 @@ function Login() {
                                                 </div>
                                                 <div className="form-check form-check-flat form-check-primary">
                                                     <label className="form-check-label">
-                                                        <input
-                                                            type="checkbox"
-                                                            name="rememberMe"
-                                                            className="form-check-input"
-                                                            checked={formData.rememberMe}
-                                                            onChange={handleChange}
-                                                        />
+                                                        <input type="checkbox" className="form-check-input" />
                                                         Remember me
                                                     </label>
                                                 </div>
