@@ -103,7 +103,7 @@ function Sidebar() {
 
     // Function to handle the toggle of a submenu
     const toggleSubmenu = (menuId) => setActiveMenu(activeMenu === menuId ? null : menuId);
-
+    
     return (
         <nav className="sidebar">
             <div className="sidebar-header">
@@ -116,13 +116,13 @@ function Sidebar() {
             </div>
             <div className="sidebar-body">
                 <ul className="nav">
-                    {menuItems.map(({ category, links }, index) => (
+                    {menuItems.map(({ category, links },categoryIndex) => (
                         <>
                             {category && (
-                                <li key={`category-${category}`} className="nav-item nav-category">{category}</li>
+                                <li key={`category-${categoryIndex}`}className="nav-item nav-category">{category}</li>
                             )}
-                            {links.map((link, idx) => (
-                                <li key={`link-${category}-${link.label}`} className="nav-item ">
+                            {links.map((link,linkIndex) => (
+                                <li key={`link-${categoryIndex}-${linkIndex}`} className="nav-item ">
                                     {link.submenu ? (
                                         <a
                                             href={link.to}
@@ -137,6 +137,7 @@ function Sidebar() {
                                             <i className="link-arrow" data-feather="chevron-down"></i>
                                         </a>
                                     ) : link.to ? (
+                                       
                                         <li className={`nav-item ${active ? "active" : ""}`}>
                                             <NavLink
                                                 to={link.to}
@@ -157,7 +158,7 @@ function Sidebar() {
                                         <div className={`collapse ${activeMenu === category ? "show" : "hide"}`}>
                                             <ul className="nav sub-menu">
                                                 {link.submenu.map((sub, subIdx) => (
-                                                    <li key={`submenu-${subIdx}`} className="nav-item">
+                                                    <li key={`submenu-${categoryIndex}-${subIdx}`} className="nav-item">
                                                         <a href={sub.href} className="nav-link">{sub.label}</a>
                                                     </li>
                                                 ))}

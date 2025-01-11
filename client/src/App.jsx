@@ -21,6 +21,7 @@ import Users from "./pages/Dashboard/Users";
 // Other Components
 import ToastContainers from "./components/Toast/ToastContainer";
 
+
 export default function App() {
   const { isLoggedIn } = useSession();
 
@@ -46,7 +47,8 @@ export default function App() {
         ])}
         {renderRoutes({ path: "admin", component: <AdminLayout /> }, [
           { path: "dashboard", element: <Dashboard /> },
-          { path: "superdistributor", element: <SuperDistributor /> },
+          { path: "SuperDistributor", element: <SuperDistributor /> },
+          { path: "SuperDistributor/:action", element: <SuperDistributor /> },
           { path: "distributor", element: <Distributor /> },
           { path: "retailer", element: <Retailer /> },
           { path: "users", element: <Users /> },
