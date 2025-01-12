@@ -34,7 +34,7 @@ function Login() {
                                             <a href="#" className="noble-ui-logo d-block mb-2">
                                                 Welcome <span>RainbowRush Casino</span>
                                             </a>
-                                            <h5 className="text-muted font-weight-normal mb-4">
+                                            <h5 className="font-semiboldt text-base text-gray-500 mb-4">
                                                 Welcome back! Log in to your account.
                                             </h5>
                                             <form onSubmit={handleSubmit}>
@@ -62,11 +62,17 @@ function Login() {
                                                         onChange={handleChange}
                                                     />
                                                 </div>
-                                                <div className="form-check form-check-flat form-check-primary">
-                                                    <label className="form-check-label">
+                                                {/* <div className="form-check form-check-flat form-check-primary">
                                                         <input type="checkbox" className="form-check-input" />
+                                                    <label className="form-check-label">
                                                         Remember me
                                                     </label>
+                                                </div> */}
+                                                <div className="flex items-start">
+                                                    <div className="flex items-center h-5">
+                                                        <input id="terms" type="checkbox" value="" className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800" required />
+                                                    </div>
+                                                    <label htmlFor="terms" className="ms-2 text-blue-600 hover:underline dark:text-blue-500">Remember me</label>
                                                 </div>
                                                 <div className="col-md-12 p-0 d-flex">
                                                     <div className="col-md-6 p-0">
@@ -86,8 +92,8 @@ function Login() {
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
 

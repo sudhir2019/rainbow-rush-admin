@@ -13,9 +13,10 @@ function AdminLayout() {
     useEffect(() => {
         const handleLoadComplete = () => setLoading(false);
         const timer = setTimeout(handleLoadComplete, 2000); // Simulate loading time
-
         return () => clearTimeout(timer); // Cleanup
     }, []);
+
+
     return (
         <div className="main-wrapper" id="app">
             <Sidebar />
@@ -23,7 +24,9 @@ function AdminLayout() {
                 <Navbar />
                 <div className="page-content">
                     {loading ? (
-                        <Loader />
+                        <div className="flex justify-center items-center h-full">
+                            <Loader />
+                        </div>
                     ) : (
                         <Outlet />
                     )}

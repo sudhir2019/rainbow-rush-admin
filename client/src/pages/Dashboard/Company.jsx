@@ -301,7 +301,7 @@ const Company = () => {
                             <div className="row mb-2">
                                 <div className="col-sm-6">
                                     <div className="form-group">
-                                        <label for="exampleInputPassword2" className="col-sm-3 col-form-label pl-0">Status :</label>
+                                        <label htmlFor="exampleInputPassword2" className="col-sm-3 col-form-label pl-0">Status :</label>
                                         <div className="form-check form-check-inline">
                                             <label className="form-check-label">
                                                 <input type="radio" className="form-check-input" name="status" value="true" checked="" />Active
