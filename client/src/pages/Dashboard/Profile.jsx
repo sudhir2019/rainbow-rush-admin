@@ -1,4 +1,3 @@
-import React from 'react'
 
 function Profile() {
     return (
@@ -11,7 +10,7 @@ function Profile() {
                             <div className="row">
                                 <div className="col-sm-6">
                                     <div className="form-group">
-                                        <label for="exampleInputUsername2" className="control-label">Username</label>
+                                        <label htmlFor="exampleInputUsername2" className="control-label">Username</label>
                                         <input type="text" className="form-control" readOnly="" id="exampleInputUsername2" name="user_name" value="admin" />
                                     </div>
                                 </div>
@@ -35,35 +34,35 @@ function Profile() {
                                 <input type="hidden" name="_token" value="6FW3yn1jblSSOhv8rgILM71bqXKFPvNpGyyvxtod" />          <div className="row">
                                     <div className="col-sm-12">
                                         <div className="form-group">
-                                            <label for="exampleInputUsername2" className="control-label">Old Password</label>
+                                            <label htmlFor="exampleInputUsername2" className="control-label">Old Password</label>
                                             <input className="form-control" type="text" name="opass" placeholder="Enter Your old password" value="" />
                                         </div>
                                     </div>
                                 </div>
-                                    <div className="row">
-                                        <div className="col-sm-12">
-                                            <div className="form-group">
-                                                <label className="control-label">New Password</label>
-                                                <input className="form-control" type="text" name="npass" placeholder="Enter Your new password" value="" />
-                                            </div>
+                                <div className="row">
+                                    <div className="col-sm-12">
+                                        <div className="form-group">
+                                            <label className="control-label">New Password</label>
+                                            <input className="form-control" type="text" name="npass" placeholder="Enter Your new password" value="" />
                                         </div>
                                     </div>
-                                    <div className="row">
-                                        <div className="col-sm-12">
-                                            <div className="form-group">
-                                                <label className="control-label">Confirm Password</label>
-                                                <input className="form-control" type="text" name="cpass" placeholder="Enter Your confirm password" value="" />
-                                            </div>
+                                </div>
+                                <div className="row">
+                                    <div className="col-sm-12">
+                                        <div className="form-group">
+                                            <label className="control-label">Confirm Password</label>
+                                            <input className="form-control" type="text" name="cpass" placeholder="Enter Your confirm password" value="" />
                                         </div>
                                     </div>
-                                    <div className="row">
-                                        <div className="col-sm-6">
-                                            <div className="form-group" style={{display:"flex", flexDirection:"row",gap:"5px"}}>
-                                                <button type="submit" className="btn btn-primary ">Change Password</button>
-                                                <button className="btn btn-light">Cancel</button>
-                                            </div>
+                                </div>
+                                <div className="row">
+                                    <div className="col-sm-6">
+                                        <div className="form-group" style={{ display: "flex", flexDirection: "row", gap: "5px" }}>
+                                            <button type="submit" className="btn btn-primary ">Change Password</button>
+                                            <button className="btn btn-light">Cancel</button>
                                         </div>
                                     </div>
+                                </div>
                             </form>
                         </div>
                     </div>

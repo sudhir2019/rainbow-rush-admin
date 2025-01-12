@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
+import { NavLink } from "react-router-dom";
 import PerfectScrollbar from "perfect-scrollbar";
 import ClipboardJS from "clipboard";
 import feather from "feather-icons";
 import { Tooltip } from "bootstrap";
-import '../../../css/app.css';
-import { Link, NavLink } from "react-router-dom";
 
 const menuItems = [
     { category: "Main", links: [{ to: "/admin/dashboard", icon: "box", label: "Dashboard" }] },
@@ -55,7 +54,6 @@ const menuItems = [
 
 function Sidebar() {
     const [activeMenu, setActiveMenu] = useState(null);
-
     useEffect(() => {
         // Enable feather icons
         feather.replace();
@@ -154,7 +152,7 @@ function Sidebar() {
                                         </a>
                                     )}
                                     {link.submenu && (
-                                        <div className={`collapse ${activeMenu === `${categoryIndex}-${linkIndex}` ? "show" : ""}`} onClick={()=>toggleSubmenu(linkIndex)}>
+                                        <div className={`collapse ${activeMenu === `${categoryIndex}-${linkIndex}` ? "show" : ""}`} onClick={() => toggleSubmenu(linkIndex)}>
                                             <ul className="nav sub-menu">
                                                 {link.submenu.map((sub, subIdx) => (
                                                     <li key={`submenu-${categoryIndex}-${linkIndex}-${subIdx}`} className="nav-item" >

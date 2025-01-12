@@ -6,6 +6,7 @@ import Loader from '../components/Loader/Loader';
 import Sidebar from '../components/layouts/Sidebar/Sidebar';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
 function AdminLayout() {
     const [loading, setLoading] = useState(true);
 
@@ -15,19 +16,18 @@ function AdminLayout() {
 
         return () => clearTimeout(timer); // Cleanup
     }, []);
-
     return (
         <div className="main-wrapper" id="app">
             <Sidebar />
             <div className="page-wrapper">
                 <Navbar />
-                <main className="page-content">
+                <div className="page-content">
                     {loading ? (
                         <Loader />
                     ) : (
                         <Outlet />
                     )}
-                </main >
+                </div>
                 <Footer />
             </div>
         </div>

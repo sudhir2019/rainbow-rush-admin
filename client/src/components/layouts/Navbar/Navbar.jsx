@@ -46,7 +46,7 @@ function Navbar() {
     }, []);
     return (
         <nav className="navbar dark">
-            <a href="#" className="sidebar-toggler not-active">
+            <a href="#" className="sidebar-toggler">
                 <i data-feather="menu"></i>
             </a>
             <div className="navbar-content">
@@ -66,7 +66,7 @@ function Navbar() {
                             <img src={favicon} alt="profile" />
                         </a>
                         {dropdownOpen && (
-                            <div   className={`dropdown-menu ${dropdownOpen ? "show" : ""}`}  aria-labelledby="profileDropdown">
+                            <div className={`dropdown-menu ${dropdownOpen ? "show" : ""}`} aria-labelledby="profileDropdown">
                                 <div className="dropdown-header d-flex flex-column align-items-center">
                                     <div className="figure mb-3">
                                         <img src={favicon} alt="" />
