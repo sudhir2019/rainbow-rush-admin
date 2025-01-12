@@ -3,35 +3,36 @@ import PerfectScrollbar from "perfect-scrollbar";
 import ClipboardJS from "clipboard";
 import feather from "feather-icons";
 import { Tooltip } from "bootstrap";
-import '../../../css/app.css'
-import { NavLink } from "react-router-dom";
+import '../../../css/app.css';
+import { Link, NavLink } from "react-router-dom";
 
 const menuItems = [
     { category: "Main", links: [{ to: "/admin/dashboard", icon: "box", label: "Dashboard" }] },
     {
         category: "Management",
         links: [
+            { to: "/admin/company", icon: "users", label: "Company" },
             { to: "/admin/superdistributor", icon: "users", label: "SuperDistributer" },
-            { to: "/admin/distributor", icon: "users", label: "Distributer" },
+            { to: "/admin/distributor", icon: "users", label: "Distributor" },
             { to: "/admin/retailer", icon: "users", label: "Retailer" },
             { to: "/admin/users", icon: "users", label: "Users" },
-            { to: "/admin/onlinePlayer", icon: "log-in", label: "Online Players" },
+            { to: "/admin/onlineplayers", icon: "log-in", label: "Online Players" },
         ],
     },
     {
         category: "Game",
         links: [
-            { to: "/admin/gameHistory", icon: "inbox", label: "Game History" },
-            { to: "/admin/winPercentage", icon: "inbox", label: "Win Percentage" },
+            { to: "/admin/gamehistory", icon: "inbox", label: "Game History" },
+            { to: "/admin/winpercentage", icon: "inbox", label: "Win Percentage" },
         ],
     },
     {
         category: "Reports",
         links: [
-            { to: "/admin/turnOverReport", icon: "inbox", label: "TurnOver Report" },
-            { to: "/admin/transactionReport", icon: "briefcase", label: "Transaction Report" },
-            { to: "/admin/commissionPayoutReport", icon: "briefcase", label: "Commission Payout Report" },
-            { to: "/admin/adminCommissionReport", icon: "briefcase", label: "Admin Commission Report" },
+            { to: "/admin/turnoverreport", icon: "inbox", label: "TurnOver Report" },
+            { to: "/admin/transactionreport", icon: "briefcase", label: "Transaction Report" },
+            { to: "/admin/commissionpayoutReport", icon: "briefcase", label: "Commission Payout Report" },
+            { to: "/admin/admincommissionreport", icon: "briefcase", label: "Admin Commission Report" },
         ],
     },
     {
@@ -39,21 +40,22 @@ const menuItems = [
         links: [
             {
                 to: "#", icon: "download", label: "Live Result", submenu: [
-                    { href: "liveResult/LiveResult12one.html", label: "Lucky 12 one" },
-                    { href: "liveResult/LiveResult12two.html", label: "Lucky 12 two" },
-                    { href: "liveResult/LiveResult12three.html", label: "Lucky 12 coupon" },
-                    { href: "liveResult/LiveResult16.html", label: "Lucky 16" },
-                    { href: "liveResult/LiveResultTripleChanse.html", label: "Triple Chance" },
-                    { href: "liveResult/LiveResultRoulette.html", label: "GK Roulette-36" },
+                    { href: "/admin/liveResult/LiveResult12one", label: "Lucky 12 one" },
+                    { href: "/admin/liveResult/LiveResult12two", label: "Lucky 12 two" },
+                    { href: "/admin/liveResult/LiveResult12three", label: "Lucky 12 coupon" },
+                    { href: "/admin/liveResult/LiveResult16", label: "Lucky 16" },
+                    { href: "/admin/liveResult/LiveResultTripleChanse", label: "Triple Chance" },
+                    { href: "/admin/liveResult/LiveResultRoulette", label: "GK Roulette-36" },
                 ]
             },
         ],
     },
-    { category: "Logs Activity", links: [{ href: "logActivities.html", icon: "inbox", label: "Logs" }] },
+    { category: "Logs Activity", links: [{ to: "/admin/logactivities", icon: "inbox", label: "Logs" }] },
 ];
 
 function Sidebar() {
-    const [active, setActive] = useState(false);
+    const [activeMenu, setActiveMenu] = useState(null);
+
     useEffect(() => {
         // Enable feather icons
         feather.replace();
@@ -99,10 +101,10 @@ function Sidebar() {
         };
     }, []);
 
-    const [activeMenu, setActiveMenu] = useState(null);
-
     // Function to handle the toggle of a submenu
-    const toggleSubmenu = (menuId) => setActiveMenu(activeMenu === menuId ? null : menuId);
+    const toggleSubmenu = (menuId) => {
+        setActiveMenu(activeMenu === menuId ? null : menuId); // Toggle visibility of submenu
+    };
 
     return (
         <nav className="sidebar">
@@ -115,21 +117,21 @@ function Sidebar() {
                 </div>
             </div>
             <div className="sidebar-body">
-                <ul className="nav">
-                    {menuItems.map(({ category, links }, index) => (
+                <ul className="nav" >
+                    {menuItems.map(({ category, links }, categoryIndex) => (
                         <>
                             {category && (
-                                <li key={`category-${category}`} className="nav-item nav-category">{category}</li>
+                                <li key={`category-${categoryIndex}`} className="nav-item nav-category">{category}</li>
                             )}
-                            {links.map((link, idx) => (
-                                <li key={`link-${category}-${link.label}`} className="nav-item ">
+                            {links.map((link, linkIndex) => (
+                                <li key={`link-${categoryIndex}-${linkIndex}`} className="nav-item">
                                     {link.submenu ? (
                                         <a
                                             href={link.to}
                                             className="nav-link"
                                             onClick={(e) => {
                                                 e.preventDefault();
-                                                toggleSubmenu(category);
+                                                toggleSubmenu(`${categoryIndex}-${linkIndex}`); // Use unique key
                                             }}
                                         >
                                             <i className="link-icon" data-feather={link.icon}></i>
@@ -137,16 +139,14 @@ function Sidebar() {
                                             <i className="link-arrow" data-feather="chevron-down"></i>
                                         </a>
                                     ) : link.to ? (
-                                        <li className={`nav-item ${active ? "active" : ""}`}>
-                                            <NavLink
-                                                to={link.to}
-                                                className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
-                                                style={({ isActive }) => isActive ? { color: 'blue' } : {}}
-                                            >
-                                                <i className="link-icon" data-feather={link.icon}></i>
-                                                <span className="link-title">{link.label}</span>
-                                            </NavLink>
-                                        </li>
+                                        <NavLink
+                                            to={link.to}
+                                            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+                                            style={({ isActive }) => isActive ? { color: 'blue' } : {}}
+                                        >
+                                            <i className="link-icon" data-feather={link.icon}></i>
+                                            <span className="link-title">{link.label}</span>
+                                        </NavLink>
                                     ) : (
                                         <a href={link.href} className="nav-link">
                                             <i className="link-icon" data-feather={link.icon}></i>
@@ -154,23 +154,23 @@ function Sidebar() {
                                         </a>
                                     )}
                                     {link.submenu && (
-                                        <div className={`collapse ${activeMenu === category ? "show" : "hide"}`}>
+                                        <div className={`collapse ${activeMenu === `${categoryIndex}-${linkIndex}` ? "show" : ""}`} onClick={()=>toggleSubmenu(linkIndex)}>
                                             <ul className="nav sub-menu">
                                                 {link.submenu.map((sub, subIdx) => (
-                                                    <li key={`submenu-${subIdx}`} className="nav-item">
-                                                        <a href={sub.href} className="nav-link">{sub.label}</a>
+                                                    <li key={`submenu-${categoryIndex}-${linkIndex}-${subIdx}`} className="nav-item" >
+                                                        <NavLink to={sub.href} className="nav-link">{sub.label}</NavLink>
                                                     </li>
                                                 ))}
                                             </ul>
                                         </div>
                                     )}
-                                </li >
+                                </li>
                             ))}
                         </>
                     ))}
                 </ul>
             </div>
-        </nav >
+        </nav>
     );
 }
 
