@@ -29,6 +29,7 @@ import TransactionReport from "./pages/Dashboard/TransactionReport";
 import CommissionPayout from "./pages/Dashboard/CommissionPayout";
 import AdminCommissionReport from "./pages/Dashboard/AdminCommissionReport";
 import LogActivities from "./pages/Dashboard/LogActivities";
+import Profile from "./pages/Dashboard/Profile";
 
 
 export default function App() {
@@ -52,6 +53,7 @@ export default function App() {
         ])}
         {renderRoutes({ path: "auth", component: <AuthLayout /> }, [
           { path: "login", element: <Login /> },
+          { path: "logout", element: <Login /> },
           { path: "signup", element: <Signup /> },
         ])}
         {renderRoutes({ path: "admin", component: <AdminLayout /> }, [
@@ -73,6 +75,7 @@ export default function App() {
           { path: "commissionpayoutReport", element: <CommissionPayout /> },
           { path: "admincommissionreport", element: <AdminCommissionReport /> },
           { path: "logactivities", element: <LogActivities /> },
+          { path: "profile", element: <Profile /> },
           { path: "*", element: <Navigate to="/admin/dashboard" /> },
         ])}
         {/* <Route
