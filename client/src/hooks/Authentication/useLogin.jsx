@@ -31,13 +31,11 @@ export default function useLogin() {
             // Navigate based on roles
             setTimeout(() => {
                 if (response.roles.some((role) => role.name === "admin")) {
-                    navigate("/dashboard");
+                    navigate("/admin/dashboard");
                 } else if (response.roles.some((role) => role.name === "user")) {
                     navigate("/");
-                } else if (response.roles.some((role) => role.name === "customer")) {
-                    navigate("/profile");
                 } else {
-                    navigate("/login");
+                    navigate("/auth/login");
                 }
             }, 1000);
         } catch (error) {

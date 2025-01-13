@@ -18,11 +18,11 @@ function AdminLayout() {
 
 
     return (
-        <div className="main-wrapper" id="app">
+        <div className="main-wrapper h-screen" id="app">
             <Sidebar />
             <div className="page-wrapper">
                 <Navbar />
-                <div className="page-content">
+                <div className="page-content overflow-auto">
                     {loading ? (
                         <div className="flex justify-center items-center h-full">
                             <Loader />

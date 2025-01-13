@@ -1,25 +1,18 @@
-import { useState } from "react";
+
+import React from "react";
+import useLogin from "../../hooks/Authentication/useLogin"; // Import the custom hook
 
 function Login() {
-    const [formData, setFormData] = useState({
-        user_name: "",
-        password: "",
-        rememberMe: false,
-    });
-
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData({
-            ...formData,
-            [name]: type === "checkbox" ? checked : value,
-        });
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // API call or form submission logic goes here
-        console.log("Form Submitted", formData);
-    };
+    const {
+        register,
+        isLoading,
+        handleSubmit,
+        errors,
+        Errors,
+        onSubmit,
+        successMessage,
+        serverError,
+    } = useLogin(); // Destructure values from the custom hook
 
     return (
         <div className="main-wrapper" id="app">
@@ -37,53 +30,90 @@ function Login() {
                                             <h5 className="font-semiboldt text-base text-gray-500 mb-4">
                                                 Welcome back! Log in to your account.
                                             </h5>
-                                            <form onSubmit={handleSubmit}>
+
+                                            <form onSubmit={handleSubmit(onSubmit)}>
                                                 <div className="form-group">
-                                                    <label htmlFor="user_name">User Name</label>
+                                                    <label htmlFor="userEmail">Email</label>
                                                     <input
-                                                        type="text"
-                                                        name="user_name"
+                                                        type="email"
+                                                        name="userEmail"
+                                                        id="userEmail"
                                                         className="form-control"
-                                                        id="user_name"
-                                                        placeholder="User Name"
-                                                        value={formData.user_name}
-                                                        onChange={handleChange}
+                                                        placeholder="Enter your email"
+                                                        {...register("userEmail", {
+                                                            required: "Email is required",
+                                                            pattern: {
+                                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                                                message: "Invalid email format",
+                                                            },
+                                                        })}
                                                     />
+                                                    {errors.userEmail && (
+                                                        <p className="text-red-500">{errors.userEmail.message}</p>
+                                                    )}
                                                 </div>
                                                 <div className="form-group">
-                                                    <label htmlFor="password">Password</label>
+                                                    <label htmlFor="userPassword">Password</label>
                                                     <input
                                                         type="password"
-                                                        name="password"
+                                                        name="userPassword"
+                                                        id="userPassword"
                                                         className="form-control"
-                                                        id="password"
-                                                        placeholder="Password"
-                                                        value={formData.password}
-                                                        onChange={handleChange}
+                                                        placeholder="Enter your password"
+                                                        {...register("userPassword", {
+                                                            required: "Password is required",
+                                                            minLength: {
+                                                                value: 6,
+                                                                message: "Password must be at least 6 characters",
+                                                            },
+                                                        })}
                                                     />
+                                                    {errors.userPassword && (
+                                                        <p className="text-red-500">{errors.userPassword.message}</p>
+                                                    )}
                                                 </div>
-                                                {/* <div className="form-check form-check-flat form-check-primary">
-                                                        <input type="checkbox" className="form-check-input" />
-                                                    <label className="form-check-label">
-                                                        Remember me
-                                                    </label>
-                                                </div> */}
-                                                <div className="flex items-start">
-                                                    <div className="flex items-center h-5">
-                                                        <input id="terms" type="checkbox" value="" className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800" required />
+                                                <div className="flex flex-col items-start mt-4">
+                                                    <div className="flex items-center">
+                                                        <div className="flex items-center h-5">
+                                                            <input
+                                                                id="rememberMe"
+                                                                name="rememberMe"
+                                                                type="checkbox"
+                                                                className="w-4 h-4 border border-gray-300 rounded bg-gray-50"
+                                                                {...register("rememberMe", {
+                                                                    required: "Remember Me is required",
+                                                                },
+                                                                )}
+                                                            />
+                                                        </div>
+                                                        <label
+                                                            htmlFor="rememberMe"
+                                                            className="ms-2 mt-2 text-blue-600 hover:underline"
+                                                        >
+                                                            Remember me
+                                                        </label>
                                                     </div>
-                                                    <label htmlFor="terms" className="ms-2 text-blue-600 hover:underline dark:text-blue-500">Remember me</label>
+                                                    {errors.rememberMe && (
+                                                        <p className="text-red-500">{errors.rememberMe.message}</p>
+                                                    )}
                                                 </div>
-                                                <div className="col-md-12 p-0 d-flex">
+                                                <div className="col-md-12 p-0 d-flex mt-4">
                                                     <div className="col-md-6 p-0">
                                                         <button
                                                             type="submit"
                                                             className="btn btn-primary mr-2 mb-2 mb-md-0"
+                                                            disabled={isLoading}
                                                         >
-                                                            Login
+                                                            {isLoading ? "Logging in..." : "Login"}
                                                         </button>
                                                     </div>
                                                 </div>
+                                                {successMessage && (
+                                                    <p className="p-2 text-green-500">{successMessage}</p>
+                                                )}
+                                                {serverError && (
+                                                    <p className="p-2 text-red-500">{serverError}</p>
+                                                )}
                                             </form>
                                         </div>
                                     </div>
@@ -92,8 +122,8 @@ function Login() {
                         </div>
                     </div>
                 </div>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }
 
