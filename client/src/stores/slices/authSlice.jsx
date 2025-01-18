@@ -17,7 +17,7 @@ import { clearToken, setToken, clearAuthData } from "../../utils/authUtils";
 const initialState = {
     isLoading: false,
     isLoggedIn: false,
-    user: null, // No user data in local storage
+    authUser: null, // No user data in local storage
     token: "",
     roles: [],
     serverError: null,
@@ -71,7 +71,7 @@ const authSlice = createSlice({
                 state.isLoading = false;
                 state.isLoggedIn = true;
                 state.token = token;
-                state.user = user;
+                state.authUser = user;
                 state.roles = roles;
                 setToken(token); // Only save token locally
             })
@@ -89,7 +89,7 @@ const authSlice = createSlice({
                 state.isLoading = false;
                 state.isLoggedIn = true;
                 state.token = token;
-                state.user = user;
+                state. authUser= user;
                 state.roles = user.roles.map((role) => role.name);
                 state.isAdmin = state.roles.includes("admin");
                 state.isModerator = state.roles.includes("moderator");

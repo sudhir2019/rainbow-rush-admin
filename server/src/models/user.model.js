@@ -34,12 +34,6 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
-    roles: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Role",
-      },
-    ],
     profilePicture: {
       type: String,
       default:
@@ -53,9 +47,8 @@ const userSchema = new Schema(
       default: false,
     },
     userStatus: {
-      type: String,
-      default: "active",
-      enum: ["active", "inactive", "banned"],
+      type: Boolean,
+      default: true,
     },
     refId: {
       type: String,
@@ -64,10 +57,46 @@ const userSchema = new Schema(
     referredBy: {
       type: String,
     },
+    note: {
+      type: String,
+      default: "Initial State",
+    },
+    Commission: {
+      type: String,
+      default: "Initial State",
+    },
+
+    bankAccountNumber: {
+      type: String,
+    },
+    bankName: {
+      type: String,
+    },
+    bankAccountHolderName: {
+      type: String,
+    },
+    bankIfscCode: {
+      type: String,
+    },
+    bankBranchName: {
+      type: String,
+    },
+    roles: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Role",
+      },
+    ],
     wallet: [
       {
         type: Schema.Types.ObjectId,
         ref: "Wallet",
+      },
+    ],
+    userLogs: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "UserLog",
       },
     ],
     profileState: {
@@ -112,7 +141,7 @@ userSchema.pre("save", async function (next) {
 // Static Methods for password encryption and comparison
 userSchema.statics.encryptPassword = async (password) => {
   try {
-    if (!password || password.length < 6) {
+    if (!password || password.length < 3) {
       throw new Error("Password is too weak. Must be at least 6 characters.");
     }
     const salt = await bcrypt.genSalt(10);

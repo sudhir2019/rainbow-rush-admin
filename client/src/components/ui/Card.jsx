@@ -6,14 +6,14 @@ function Card({ title, value, icon, link }) {
             <div className="card card-outline-primary">
                 <a href={link}>
                     <div className="card-body">
-                        <div className="row">
+                        <div className="flex justify-center items-center">
                             <div className="col-md-8">
                                 <h6 className="card-title mb-1">{title}</h6>
-                                <h3 className="mb-1">{value}</h3>
+                                <h3 className="mb-1 font-semibold text-2xl">{value}</h3>
                             </div>
-                            <div className="col-md-4 mt-1">
-                                <h1 className="text-right mr-3">
-                                    <i data-feather={icon}></i>
+                            <div className="col-md-2">
+                                <h1 className="text-right">
+                                    {icon}
                                 </h1>
                             </div>
                         </div>

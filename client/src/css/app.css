@@ -51,7 +51,30 @@ html {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
+/* --------- */
+/*Scrollbar   */
+/* --------- */
 
+::-webkit-scrollbar {
+  width: 7px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #192850;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: rgba(123, 121, 216, 0.959);
+  border-radius: 12px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(130, 141, 235, 0.911);
+  border-radius: 12px;
+}
 article, aside, figcaption, figure, footer, header, hgroup, main, nav, section {
   display: block;
 }

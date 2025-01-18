@@ -3,13 +3,14 @@ import themeReducer from './slices/themeSlice'; // Ensure this points to the cor
 import appReducer from './slices/appSlice'; // Ensure this path is correct
 import authReducer from './slices/authSlice'
 import usersReducer from './slices/userSlice'
-
+import walletReducer from './slices/walletSlice'
 // Create a Redux store containing our reducers.
 export const store = configureStore({
     reducer: {
         app: appReducer,
         theme: themeReducer,
         auth: authReducer,
+        wallets: walletReducer,
         users: usersReducer,
     },
 });

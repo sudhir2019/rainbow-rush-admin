@@ -6,17 +6,11 @@ import Loader from '../components/Loader/Loader';
 import Sidebar from '../components/layouts/Sidebar/Sidebar';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-
+import useFetchAllUsers from '../hooks/admin/users/useFetchAllUsers';
+import useFetchAllWallets from '../hooks/admin/wallets/useFetchAllWallets';
 function AdminLayout() {
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const handleLoadComplete = () => setLoading(false);
-        const timer = setTimeout(handleLoadComplete, 2000); // Simulate loading time
-        return () => clearTimeout(timer); // Cleanup
-    }, []);
-
-
+    const { users, loading, error } = useFetchAllUsers();
+  const{wallets, isWalletLoading, walletwalletError, walletMessage}=  useFetchAllWallets();
     return (
         <div className="main-wrapper h-screen" id="app">
             <Sidebar />

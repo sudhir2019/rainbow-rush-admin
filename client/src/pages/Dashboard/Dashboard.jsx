@@ -1,8 +1,11 @@
 import Card from '../../components/ui/Card';
-import useFetchAllUsers from '../../hooks/admin/users/useFetchAllUsers';
+import { UsersRound, Receipt } from 'lucide-react';
+import { useSelector } from "react-redux";
+import CardSkeleton from '../../components/Loader/DashboardCardSkeleton';  // Import the skeleton loader
 
 function Dashboard() {
-    const { users, loading, error } = useFetchAllUsers();
+
+    const { users, loading, error } = useSelector((state) => state.users);
     return (
         <div>
             <div className="d-flex justify-content-between align-items-center flex-wrap grid-margin">
@@ -10,9 +13,21 @@ function Dashboard() {
                     <h4 className="mb-3 mb-md-0">Welcome to Dashboard</h4>
                 </div>
             </div>
+
             <div className="row">
-                <Card title="Users" value={users.length} icon="user-plus" link="users.html" />
-                <Card title="Game Bet" value="69917" icon="inbox" link="GameBet.html" />
+                {/* Users Card */}
+                {loading ? (
+                    <CardSkeleton />
+                ) : (
+                    <Card title="Users" value={users.length} icon={<UsersRound className='h-12 w-12' />} link="users.html" />
+                )}
+
+                {/* Game Bet Card */}
+                {loading ? (
+                    <CardSkeleton />
+                ) : (
+                    <Card title="Game Bet" value="69917" icon={<Receipt className='h-12 w-12' />} link="GameBet.html" />
+                )}
             </div>
         </div>
     );

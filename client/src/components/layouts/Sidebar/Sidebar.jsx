@@ -152,10 +152,13 @@ function Sidebar() {
                                         </a>
                                     )}
                                     {link.submenu && (
-                                        <div className={`collapse ${activeMenu === `${categoryIndex}-${linkIndex}` ? "show" : ""}`} onClick={() => toggleSubmenu(linkIndex)}>
+                                        <div
+                                            className={`submenu ${activeMenu === `${categoryIndex}-${linkIndex}` ? "show" : ""}`}
+                                            style={{ display: activeMenu === `${categoryIndex}-${linkIndex}` ? "block" : "none" }}
+                                        >
                                             <ul className="nav sub-menu">
                                                 {link.submenu.map((sub, subIdx) => (
-                                                    <li key={`submenu-${categoryIndex}-${linkIndex}-${subIdx}`} className="nav-item" >
+                                                    <li key={`submenu-${categoryIndex}-${linkIndex}-${subIdx}`} className="nav-item">
                                                         <NavLink to={sub.href} className="nav-link">{sub.label}</NavLink>
                                                     </li>
                                                 ))}

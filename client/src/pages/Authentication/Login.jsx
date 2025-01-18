@@ -17,10 +17,10 @@ function Login() {
     return (
         <div className="main-wrapper" id="app">
             <div className="page-wrapper full-page">
-                <div className="page-content d-flex align-items-center justify-content-center">
-                    <div className="row w-100 mx-0 auth-page">
+                <div className="page-content d-flex justify-content-center ">
+                    <div className="row w-full mx-0 auth-page">
                         <div className="col-md-8 col-xl-6 mx-auto">
-                            <div className="card">
+                            <div className="card border-blue-600 ">
                                 <div className="row">
                                     <div className="col-md-12">
                                         <div className="auth-form-wrapper px-4 py-5">
@@ -32,7 +32,7 @@ function Login() {
                                             </h5>
 
                                             <form onSubmit={handleSubmit(onSubmit)}>
-                                                <div className="form-group">
+                                                <div className="form-group relative">
                                                     <label htmlFor="userEmail">Email</label>
                                                     <input
                                                         type="email"
@@ -49,10 +49,10 @@ function Login() {
                                                         })}
                                                     />
                                                     {errors.userEmail && (
-                                                        <p className="text-red-500">{errors.userEmail.message}</p>
+                                                        <p className="absolute right-3 top-19 p-1 text-red-500">{errors.userEmail.message}</p>
                                                     )}
                                                 </div>
-                                                <div className="form-group">
+                                                <div className="form-group relative">
                                                     <label htmlFor="userPassword">Password</label>
                                                     <input
                                                         type="password"
@@ -69,10 +69,10 @@ function Login() {
                                                         })}
                                                     />
                                                     {errors.userPassword && (
-                                                        <p className="text-red-500">{errors.userPassword.message}</p>
+                                                        <p className="absolute right-3 top-19 p-1 text-red-500">{errors.userPassword.message}</p>
                                                     )}
                                                 </div>
-                                                <div className="flex flex-col items-start mt-4">
+                                                <div className="flex flex-col items-start mt-4 relative">
                                                     <div className="flex items-center">
                                                         <div className="flex items-center h-5">
                                                             <input
@@ -94,10 +94,10 @@ function Login() {
                                                         </label>
                                                     </div>
                                                     {errors.rememberMe && (
-                                                        <p className="text-red-500">{errors.rememberMe.message}</p>
+                                                        <p className="absolute top-9 text-red-500">{errors.rememberMe.message}</p>
                                                     )}
                                                 </div>
-                                                <div className="col-md-12 p-0 d-flex mt-4">
+                                                <div className="col-md-12 p-0 d-flex mt-4 relative">
                                                     <div className="col-md-6 p-0">
                                                         <button
                                                             type="submit"
@@ -107,13 +107,14 @@ function Login() {
                                                             {isLoading ? "Logging in..." : "Login"}
                                                         </button>
                                                     </div>
+                                                    {successMessage && (
+                                                        <p className="absolute left-20 pt-1 text-green-500">{successMessage}</p>
+                                                    )}
+                                                    {serverError && (
+                                                        <p className="absolute left-20 pt-1 text-red-500">{serverError}</p>
+                                                    )}
                                                 </div>
-                                                {successMessage && (
-                                                    <p className="p-2 text-green-500">{successMessage}</p>
-                                                )}
-                                                {serverError && (
-                                                    <p className="p-2 text-red-500">{serverError}</p>
-                                                )}
+
                                             </form>
                                         </div>
                                     </div>

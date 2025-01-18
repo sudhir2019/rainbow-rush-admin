@@ -8,6 +8,9 @@ const {
   createUser,
   updateUserRoleById,
   updateProfileById,
+  updateUserByIdDashboard,
+  deleteUserById,
+  toggleUserStatus,
 } = require("../controllers/users.controller");
 
 const { verifyToken, isAdmin } = require("../middlewares/authJwt");
@@ -66,6 +69,7 @@ router.put(
   [verifyToken, checkIsValidUpdate, uploadProduct.single("img")],
   updateProfileById
 );
+router.put("/admin/:id", [verifyToken], updateUserByIdDashboard);
 
 router.put(
   "/role/:id",
@@ -84,5 +88,9 @@ router.post(
   ],
   createUser
 );
+
+router.delete("/:id", [verifyToken, isAdmin], deleteUserById);
+
+router.post("/:id/:action", [verifyToken], toggleUserStatus);
 
 module.exports = router;

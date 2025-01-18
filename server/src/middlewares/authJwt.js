@@ -48,6 +48,7 @@ async function isModerator(req, res, next) {
 
 async function isAdmin(req, res, next) {
     try {
+        
         const user = await User.findById(req.userId);
         const roles = await Role.find({ _id: { $in: user.roles } });
         for (let i = 0; i < roles.length; i++) {

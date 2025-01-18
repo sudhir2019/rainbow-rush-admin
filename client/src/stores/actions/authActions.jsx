@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { POST, GET } from "../../utils/http";
 import { handleError } from "../../utils/error";
-
+import { getToken } from "../../utils/authUtils"; // Importing the getToken utility function
 // Async Thunks
 export const signUpAsync = createAsyncThunk(
     "auth/signUp",
@@ -54,7 +54,8 @@ export const getSessionAsync = createAsyncThunk(
     "auth/getSession",
     async (_, { rejectWithValue }) => {
         try {
-            const { response, json } = await GET("auth/session");
+            const token = getToken(); // Retrieve token from authUtils
+            const { response, json } = await GET("auth/session", token);
             if (response.status === 200) {
                 return json;
             }

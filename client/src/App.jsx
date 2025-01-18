@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import useSession from "./hooks/Authentication/useSession";
 
+
 // Components
 import Home from "./pages/Home/Home";
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -34,7 +35,6 @@ import Profile from "./pages/Dashboard/Profile";
 
 export default function App() {
   const { isLoggedIn } = useSession();
-
   // Function to render routes
   const renderRoutes = (layout, routes) => (
     <Route path={layout.path} element={layout.component}>
@@ -60,8 +60,8 @@ export default function App() {
           { path: "dashboard", element: <Dashboard /> },
           { path: "company", element: <Company /> },
           { path: "company/:action", element: <Company /> },
-          { path: "superDistributor", element: <SuperDistributor /> },
-          { path: "superDistributor/:action", element: <SuperDistributor /> },
+          { path: "superdistributor", element: <SuperDistributor /> },
+          { path: "superdistributor/:action/:any", element: <SuperDistributor /> },
           { path: "distributor", element: <Distributor /> },
           { path: "distributor/:action", element: <Distributor /> },
           { path: "retailer", element: <Retailer /> },
@@ -78,10 +78,10 @@ export default function App() {
           { path: "profile", element: <Profile /> },
           { path: "*", element: <Navigate to="/admin/dashboard" /> },
         ])}
-        {/* <Route
+        <Route
           path="*"
           element={<Navigate to={isLoggedIn ? "/admin/dashboard" : "/auth/login"} />}
-        /> */}
+        />
       </Routes>
       <ToastContainers />
     </BrowserRouter>

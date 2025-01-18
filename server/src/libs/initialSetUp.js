@@ -1,31 +1,10 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 require("dotenv").config({ path: ".env" });
-const { encrypt } = require("../utils/encryptionAndDecryption");
 const { User } = require("../models/user.model");
 const Wallet = require("../models/wallet.model");
 const { Role } = require("../models/roles.model");
-const { Fee, defaultFees } = require("../models/fees.model");
 
-// const createRoles = async () => {
-//   try {
-//     const count = await Role.estimatedDocumentCount({ timeout: 30000 }); // Increase the timeout to 30 seconds
-//     if (count > 0) return;
-
-//     const rolesToCreate = [
-//       "superdistributer",
-//       "distributer",
-//       "retailer",
-//       "admin",
-//       "user",
-//     ].map((name) => ({ name }));
-//     const createdRoles = await Role.create(rolesToCreate);
-
-//     // console.log("Roles Created!");
-//   } catch (err) {
-//     console.error("Error creating roles:", err);
-//   }
-// };
 const createRoles = async () => {
   try {
     const existingRoles = await Role.find().select("name").lean();
@@ -96,9 +75,6 @@ const createUserIfNotExists = async (userData) => {
     });
     const wallet = await Wallet.create({
       userId: newUser._id,
-      balance: encrypt("0.00"),
-      bonus: encrypt("0.00"),
-      currency: encrypt("INR"),
     });
 
     // Save the new user to the database
@@ -187,28 +163,6 @@ const createUser = async () => {
   }
 };
 
-const seedDefaultFees = async () => {
-  try {
-    const existingFees = await Fee.find({});
-    if (existingFees.length === 0) {
-      const adminUser = await User.findOne({ email: "admin@localhost.com" });
-      const createdBy = adminUser ? adminUser._id : null;
-
-      const feesWithCreator = defaultFees.map((fee) => ({
-        ...fee,
-        createdBy,
-      }));
-
-      await Fee.insertMany(feesWithCreator);
-      // console.log("Default fees added successfully.");
-    } else {
-      // console.log("Default fees already exist.");
-    }
-  } catch (error) {
-    console.error("Error seeding default fees:", error.message);
-  }
-};
-
 // Create all users
 const createAllUsers = async () => {
   await createSuperDistributer();
@@ -216,7 +170,6 @@ const createAllUsers = async () => {
   await createRetailer();
   await createAdmin();
   await createUser();
-  await seedDefaultFees();
 };
 module.exports = {
   createRoles,

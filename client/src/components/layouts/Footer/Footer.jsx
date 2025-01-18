@@ -8,7 +8,7 @@ function Footer() {
                 All rights reserved.
             </p>
             <p className="text-muted text-center text-md-left mb-0 d-none d-md-block">
-                Handcrafted With <i className="mb-1 text-primary ml-1 icon-small" data-feather="heart"></i>
+                Handcrafted With <span className="mb-1 text-primary ml-1 icon-small" data-feather="heart"></span>
             </p>
         </footer>
     );

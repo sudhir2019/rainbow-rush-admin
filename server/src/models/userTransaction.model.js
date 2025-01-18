@@ -1,103 +1,51 @@
 const mongoose = require("mongoose");
-const { encrypt, decrypt } = require("../utils/encryptionAndDecryption"); // Assuming these functions are defined in utils
 const Schema = mongoose.Schema;
 
-// Helper functions to encrypt the default values
-const defaultAmount = encrypt("0.00"); // Encrypted default value for amount
-const defaultCurrency = encrypt("INR"); // Encrypted default value for currency
-const defaultTxStatus = "pending"; // Default value for txnStatus
+const UserTransactionSchema = new Schema(
+  {
+    userId: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User", // Reference to the User model
+        required: true,
+      },
+    ],
+    toUserId: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User", // Reference to the User model
+        required: true,
+      },
+    ],
+    amount: {
+      type: Number,
+      required: true,
+    },
+    transactionType: {
+      type: String,
+      enum: ["transfer", "credit", "debit", "deposit", "withdrawal"], // Example types
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["pending", "completed", "failed"],
+      default: "pending",
+    },
+    transactionMessage: {
+      type: String,
+      required: true,
+    },
+  },
+  {
+    timestamps: true, // Automatically adds `createdAt` and `updatedAt` fields
+    strict: true, // Ensures only fields defined in the schema are stored
+  }
+);
 
-const UserTransactionSchema = new Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-  txId: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  narration: {
-    type: String,
-  },
-  amount: {
-    type: String, // Store encrypted amount as a string
-    required: true,
-    default: defaultAmount, // Default encrypted amount
-    set: (value) => encrypt(value), // Encrypt before saving
-    get: (value) => decrypt(value), // Decrypt when retrieving
-  },
-  balanceAfter: {
-    type: Number,
-    // required: true,
-  },
-  txnType: {
-    type: String,
-    required: true,
-  },
-  currency: {
-    type: String, // Store encrypted currency as a string
-    required: true,
-    default: defaultCurrency, // Default encrypted currency (e.g., USD)
-    set: (value) => encrypt(value), // Encrypt before saving
-    get: (value) => decrypt(value), // Decrypt when retrieving
-  },
-  txnStatus: {
-    type: String,
-    default: defaultTxStatus, // Default transaction status
-  },
-  txCategory: {
-    type: String,
-  },
-  paymentMethod: {
-    type: String,
-  },
-  paymentDetails: {
-    upiId: {
-      type: String,
-    },
-    transactionReference: {
-      type: String,
-    },
-  },
-  subscriptionDetails: {
-    plan: {
-      type: String,
-    },
-    duration: {
-      type: String,
-    },
-    startDate: {
-      type: Date,
-    },
-    endDate: {
-      type: Date,
-    },
-  },
-  membershipDetails: {
-    type: {
-      type: String,
-    },
-    validity: {
-      type: String,
-    },
-    startDate: {
-      type: Date,
-    },
-    endDate: {
-      type: Date,
-    },
-  },
-  created_at: {
-    type: Date,
-    default: Date.now,
-  },
-  updated_at: {
-    type: Date,
-    default: Date.now,
-  },
-});
+// Add indexes for performance
+UserTransactionSchema.index({ userId: 1 });
+UserTransactionSchema.index({ status: 1 });
+UserTransactionSchema.index({ transactionType: 1 });
 
 const UserTransaction = mongoose.model(
   "UserTransaction",

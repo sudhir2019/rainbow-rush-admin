@@ -14,6 +14,7 @@ require("dotenv").config({ path: ".env" });
 // Importing and using various routes
 const authRouter = require("./routers/auth.routes.js");
 const usersRouter = require("./routers/users.routes.js");
+const walletRouter = require("./routers/wallet.routes.js");
 
 // Middleware for parsing URL-encoded and JSON request bodies
 app.use(express.json({ limit: "10mb" }));
@@ -55,5 +56,7 @@ if (process.env.NODE_ENV === "production") {
 app.use("/api/auth", authRouter);
 
 app.use("/api/users", usersRouter);
+
+app.use("/api/wallet", walletRouter);
 
 module.exports = app;

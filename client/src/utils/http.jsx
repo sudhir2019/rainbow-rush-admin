@@ -20,7 +20,8 @@ async function POST(url, info, token, type) {
 }
 
 // PUT Request
-async function PUT(url, info, token, type) {
+async function PUT(url, userId, token, type) {
+    console.log(token)
     try {
         const headers = {
             Authorization: `Bearer ${token}`,
@@ -31,12 +32,13 @@ async function PUT(url, info, token, type) {
             headers["Content-Type"] = "application/json";
         }
 
-        const response = await api.put(url, info, { headers });
+        const response = await api.put(url, userId, { headers });
         return { response: response, json: response.data };
     } catch (error) {
         return { response: error.response, json: error.response?.data || {} };
     }
 }
+
 
 // DELETE Request
 async function DELETE(url, token) {

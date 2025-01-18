@@ -1,47 +1,62 @@
 const { User } = require("../models/user.model");
 const { Role } = require("../models/roles.model");
+const Wallet = require("../models/wallet.model");
+const UserLog = require("../models/userLog.model");
+const ReferTransaction = require("../models/referTransaction.model");
+const UserTransaction = require("../models/userTransaction.model");
 const { cloudinary } = require("../configs/cloudinary");
 const path = require("path");
 // Get all users
 async function getAllUsers(req, res) {
-  const { search, profileState, page = 1, limit = 10 } = req.query;
+  const { search, profileState, page = 1, limit = 10, role } = req.query;
 
   try {
-    // Base query object
     let query = {};
 
-    // Apply search functionality (search by name, email, or mobile)
+    // Apply search functionality
     if (search) {
       query.$or = [
-        { name: { $regex: search, $options: "i" } }, // Case-insensitive search by name
-        { email: { $regex: search, $options: "i" } }, // Case-insensitive search by email
-        { mobile: { $regex: search, $options: "i" } }, // Case-insensitive search by mobile
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { mobile: { $regex: search, $options: "i" } },
       ];
     }
 
-    // If profileState is provided in the query, add it to the filter
+    // Apply profileState filter
     if (profileState) {
       query.profileState = profileState;
+    }
+
+    // Apply role-based filter
+    if (role) {
+      const roleDocument = await Role.findOne({ name: role });
+      if (!roleDocument) {
+        return res.status(404).json({
+          success: false,
+          message: `Role "${role}" not found.`,
+        });
+      }
+      query.roles = roleDocument._id; // Filter users by role ID
     }
 
     // Apply pagination
     const skip = (page - 1) * limit;
 
-    // Fetch users with population, search, and pagination
-    const users = await User.find(query)
-      .populate("roles") // Populate the roles field
-      .skip(skip)
-      .limit(parseInt(limit));
+    // Fetch users
+    const users = await User.find()
+      .populate("roles")
+      .populate("wallet")
+      .populate("userLogs")
+      .exec();
 
-    // Handle case where no users are found
     if (users.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "No users found.",
+        message: "No users found for the given criteria.",
       });
     }
 
-    // Get total count of users matching the query (for pagination)
+    // Get total count for pagination
     const totalCount = await User.countDocuments(query);
 
     return res.status(200).json({
@@ -66,7 +81,11 @@ async function getAllUsers(req, res) {
 const getUserById = async (req, res) => {
   try {
     const id = req.params.id?.replace(/^:/, "");
-    const user = await User.findById(id, { password: 0 }).populate("roles");
+    const user = await User.findById(id, { password: 0 })
+      .populate("roles") // Populates the 'roles' field (Role model)
+      .populate("wallet") // Populates the 'wallet' field (Wallet model)
+      .populate("userLogs") // Populates the 'userLogs' field (UserLog model)
+      .exec();
 
     return res.status(200).json({ successful: true, data: user });
   } catch (error) {
@@ -110,16 +129,28 @@ async function updateUserRoleById(req, res) {
 // Create user
 const createUser = async (req, res) => {
   try {
-    const { firstName, lastName, email, mobile, password, roles } = req.body;
+    const { username, firstName, lastName, email, mobile, password, roles } =
+      req.body;
 
     const rolesFound = await Role.find({ name: { $in: roles } });
     const user = new User({
-      name: req.body.userName || `${firstName} ${lastName}`,
+      name: req.body.userFullName || `${firstName} ${lastName}`,
       email,
       mobile,
       password: await User.encryptPassword(password),
       roles: rolesFound.map((role) => role._id),
     });
+
+    if (email && !username) {
+      const emailLocalPart = email.split("@")[0];
+      user.username = emailLocalPart.toLowerCase(); // Convert to lowercase for consistency
+    }
+    const wallet = await Wallet.create({
+      userId: user._id,
+    });
+
+    // Save the new user to the database
+    user.wallet = wallet._id;
 
     const savedUser = await user.save();
 
@@ -232,193 +263,43 @@ async function updateProfileById(req, res) {
   }
 }
 
-// Function to upload Aadhaar and PAN verification details
-async function uploadVerificationDetails(req, res) {
-  const { aadharNo, panNo } = req.body;
+// Update
+const updateUserByIdDashboard = async (req, res) => {
   const userId = req.params.id?.replace(/^:/, "");
+  const { Commission, note, userStatus } = req.body;
 
   try {
-    // Find the user by ID
+    // Find user by username (assuming username is unique)
     const user = await User.findById(userId);
-
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
-
-    // Ensure both Aadhaar and PAN images are provided
-    if (!req.files || !req.files.aadharImage || !req.files.panImage) {
-      return res.status(400).json({
-        success: false,
-        message: "Both Aadhaar and PAN images are required",
-      });
-    }
-
-    // Upload Aadhaar image to Cloudinary
-    const aadharImageUpload = await cloudinary.uploader.upload(
-      req.files.aadharImage[0].path
-    );
-
-    // Upload PAN image to Cloudinary
-    const panImageUpload = await cloudinary.uploader.upload(
-      req.files.panImage[0].path
-    );
-
-    // Update the user's details with the uploaded images and numbers
-    user.aadharImage = aadharImageUpload.secure_url;
-    user.aadharImage_id = aadharImageUpload.public_id;
-    user.panImage = panImageUpload.secure_url;
-    user.panImage_id = panImageUpload.public_id;
-    user.aadharNo = aadharNo || null;
-    user.panNo = panNo || null;
-
-    // Set the initial verification status to "pending" for both Aadhaar and PAN
-    user.aadharVerify = "pending";
-    user.panVerify = "pending";
-
-    // Profile state remains "uncompleted" until both verifications are completed
-    user.profileState = "uncompleted";
-
-    await user.save();
-
-    return res.status(200).json({
-      success: true,
-      message: "Aadhaar and PAN details uploaded successfully",
-      data: {
-        aadharImage: user.aadharImage,
-        panImage: user.panImage,
-        aadharNo: user.aadharNo,
-        panNo: user.panNo,
-        aadharVerify: user.aadharVerify,
-        panVerify: user.panVerify,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Error uploading details" });
-  }
-}
-
-// Verification function - Admin only
-async function verifyDetails(req, res) {
-  const { userId, aadharVerify, panVerify } = req.body;
-
-  try {
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
-
-    // Handle Aadhaar verification status and image upload
-    if (aadharVerify !== undefined) {
-      if (aadharVerify === "accepted") {
-        // Accept Aadhaar verification: Set verification status to accepted
-        user.aadharVerify = "accepted";
-      } else if (aadharVerify === "rejected") {
-        // Reject Aadhaar verification: Set verification status to filed and remove image
-        user.aadharVerify = "filed";
-        user.aadharImage = null; // Remove the image if rejected
-      }
-    }
-
-    // Handle PAN verification status and image upload
-    if (panVerify !== undefined) {
-      if (panVerify === "accepted") {
-        // Accept PAN verification: Set verification status to accepted
-        user.panVerify = "accepted";
-      } else if (panVerify === "rejected") {
-        // Reject PAN verification: Set verification status to filed and remove image
-        user.panVerify = "filed";
-        user.panImage = null; // Remove the image if rejected
-      }
-    }
-
-    // Determine profile state based on Aadhaar and PAN verification status
-    let profileState = "uncompleted";
-    if (user.aadharVerify === "accepted" && user.panVerify === "accepted") {
-      profileState = "completed";
-    }
-    user.profileState = profileState;
-
-    // Save the updated user data
-    await user.save();
-
-    return res.status(200).json({
-      success: true,
-      message: "Verification statuses updated successfully",
-      data: {
-        aadharVerify: user.aadharVerify,
-        panVerify: user.panVerify,
-        aadharImage: user.aadharImage,
-        panImage: user.panImage,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Error verifying details" });
-  }
-}
-// Function to update user status (active, inactive, banned)
-async function updateUserStatus(req, res) {
-  const { userId, userStatus } = req.body;
-
-  // Input validation
-  if (!userId) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid or missing userId.",
-    });
-  }
-
-  if (!["active", "inactive", "banned"].includes(userStatus)) {
-    return res.status(400).json({
-      success: false,
-      message:
-        "Invalid user status. Valid values are 'active', 'inactive', or 'banned'.",
-    });
-  }
-
-  try {
-    // Find user by ID and update status
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { userStatus },
-      { new: true, runValidators: true } // Ensure we return the updated document and validate the change
-    );
-
-    // If user is not found, return 404
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: "Superdistributor user not found",
       });
     }
 
+    // Update the fields (commission, note, status)
+    user.Commission = Commission || user.Commission;
+    user.note = note || user.note;
+    user.userStatus = userStatus || user.userStatus;
+
+    // Save the updated user
+    await user.save();
+
     return res.status(200).json({
       success: true,
-      message: `User status updated to ${userStatus}`,
-      data: {
-        userId: user._id,
-        userStatus: user.userStatus,
-      },
+      message: "Superdistributor updated successfully",
+      data: user,
     });
   } catch (error) {
-    console.error("Error updating user status:", error);
+    console.error("Error updating Superdistributor:", error);
     return res.status(500).json({
       success: false,
-      message: "Error updating user status",
-      error: error.message || "Internal server error",
+      message: "Internal Server Error. Could not update Superdistributor.",
     });
   }
-}
+};
+
 // Controller to delete a user by ID
 async function deleteUserById(req, res) {
   const userId = req.params.id?.replace(/^:/, "");
@@ -436,21 +317,16 @@ async function deleteUserById(req, res) {
     // Delete associated images from Cloudinary
     const imageDeletionPromises = [];
 
-    // Delete profile image from Cloudinary if it exists
     if (user.profilePicture_id) {
       imageDeletionPromises.push(
         deleteImageFromCloudinary(user.profilePicture_id)
       );
     }
-
-    // Delete Aadhaar image from Cloudinary if it exists
     if (user.aadharImage_id) {
       imageDeletionPromises.push(
         deleteImageFromCloudinary(user.aadharImage_id)
       );
     }
-
-    // Delete PAN image from Cloudinary if it exists
     if (user.panImage_id) {
       imageDeletionPromises.push(deleteImageFromCloudinary(user.panImage_id));
     }
@@ -458,7 +334,19 @@ async function deleteUserById(req, res) {
     // Wait for all image deletions to complete
     await Promise.all(imageDeletionPromises);
 
-    // Perform the user deletion
+    // Delete associated records
+    const deletionPromises = [
+      UserLog.deleteMany({ userId }), // Delete user logs
+      Wallet.deleteOne({ userId }), // Delete wallet
+      UserTransaction.deleteMany({ userId }), // Delete user transactions
+      ReferTransaction.deleteMany({
+        $or: [{ referredBy: userId }, { referredUser: userId }],
+      }), // Delete referral transactions
+    ];
+
+    await Promise.all(deletionPromises);
+
+    // Delete the user
     const deletedUser = await User.findByIdAndDelete(userId);
     if (!deletedUser) {
       return res.status(500).json({
@@ -470,7 +358,7 @@ async function deleteUserById(req, res) {
     // Return success response
     return res.status(200).json({
       success: true,
-      message: "User and associated data deleted successfully",
+      message: "User and all associated data deleted successfully",
     });
   } catch (error) {
     console.error("Error occurred during user deletion:", error);
@@ -498,14 +386,67 @@ async function deleteImageFromCloudinary(publicId) {
   }
 }
 
+// Controller to activate or deactivate a user based on action
+async function toggleUserStatus(req, res) {
+  const userId = req.params.id?.replace(/^:/, "");
+  const action = req.params.action; // Expecting "activate" or "deactivate" in the URL
+
+  try {
+    // Find the user by ID
+    const user = await User.findById(userId);
+
+    // If user doesn't exist
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Handle the action (activate or deactivate)
+    if (action === "activate") {
+      user.userStatus = true; // Set user status to active
+    } else if (action === "deactivate") {
+      user.userStatus = false; // Set user status to inactive
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid action. Use 'activate' or 'deactivate'.",
+      });
+    }
+
+    // Save the updated user
+    await user.save();
+    //Get All Usres 
+    const users = await User.find();
+    // Return success response
+    return res.status(200).json({
+      success: true,
+      message: `User ${action}d successfully`,
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        status: user.userStatus,
+      },
+      users: users,
+    });
+  } catch (error) {
+    console.error(`Error occurred during user ${action}:`, error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+}
+
 module.exports = {
-  verifyDetails,
-  uploadVerificationDetails,
   getAllUsers,
   getUserById,
   createUser,
   updateUserRoleById,
   updateProfileById,
-  updateUserStatus,
   deleteUserById,
+  toggleUserStatus,
+  updateUserByIdDashboard,
 };

@@ -5,12 +5,18 @@ import {
     createUserAsync,
     updateUserProfileAsync,
     deleteUserAsync,
+    updateUserDashboardAsync,
+    activateUserAsync,
 } from "../actions/userAction";
 
 
-const initialState = {
+let initialState = {
     isLoading: false,
     isLoggedIn: false,
+    admins: [],
+    superdistributers: [],
+    distributers: [],
+    retailers: [],
     users: [],
     user: null,
     error: null,
@@ -37,8 +43,19 @@ const usersSlice = createSlice({
                 state.isLoading = true;
             })
             .addCase(fetchAllUsersAsync.fulfilled, (state, action) => {
+                const { data } = action.payload;
+                console.log(data);
                 state.isLoading = false;
-                state.users = action.payload;
+                // Categorize users by their roles
+                // Categorize the users by their roles
+                // Categorize users by their roles using `name` inside `roles` array
+                state.admins = data.filter(user => user.roles.some(role => role.name === 'admin'));
+                state.superdistributers = data.filter(user => user.roles.some(role => role.name === 'superdistributer'));
+                state.distributers = data.filter(user => user.roles.some(role => role.name === 'distributer'));
+                state.retailers = data.filter(user => user.roles.some(role => role.name === 'retailer'));
+                state.user = data.filter(user => user.roles.some(role => role.name === 'user')); // Filter users with 'user' role
+                state.users = data;  // All users
+                // Optionally, keep all users in a general list as well
                 state.error = null;
             })
             .addCase(fetchAllUsersAsync.rejected, (state, action) => {
@@ -77,6 +94,21 @@ const usersSlice = createSlice({
                 state.error = action.payload;
             });
 
+        // Update user Dashboard
+        builder
+            .addCase(updateUserDashboardAsync.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(updateUserDashboardAsync.fulfilled, (state, action) => {
+                console.log(action.payload)
+                state.isLoading = false;
+                state.message = 'Profile updated successfully';
+                state.error = null;
+            })
+            .addCase(updateUserDashboardAsync.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+            });
         // Update user profile
         builder
             .addCase(updateUserProfileAsync.pending, (state) => {
@@ -92,7 +124,6 @@ const usersSlice = createSlice({
                 state.isLoading = false;
                 state.error = action.payload;
             });
-
         // Delete user
         builder
             .addCase(deleteUserAsync.pending, (state) => {
@@ -108,6 +139,24 @@ const usersSlice = createSlice({
                 state.isLoading = false;
                 state.error = action.payload;
             });
+
+        // Activate user
+        builder
+            .addCase(activateUserAsync.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(activateUserAsync.fulfilled, (state, action) => {
+                const { users, data } = action.payload;
+                console.log(data)
+                state.isLoading = false;
+                state.users = users;
+                state.error = null;
+            })
+            .addCase(activateUserAsync.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+            });
+
     },
 });
 

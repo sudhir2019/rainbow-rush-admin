@@ -201,9 +201,11 @@ async function getSession(req, res) {
     const decoded = jwt.verify(cookieToken, process.env.JWT_SECRET_KEY);
 
     // Find user by ID
-    const user = await User.findById(decoded.id, { password: 0 }).populate(
-      "roles"
-    );
+    const user = await User.findById(decoded.id, { password: 0 })
+      .populate("roles") // Populates the 'roles' field (Role model)
+      .populate("wallet") // Populates the 'wallet' field (Wallet model)
+      .populate("userLogs") // Populates the 'userLogs' field (UserLog model)
+      .exec();
 
     if (!user) {
       // Log activity when no user is found
@@ -386,9 +388,11 @@ async function login(req, res) {
     }
 
     // Check if the user exists in the main User collection
-    const userFound = await User.findOne({ email: req.body.email }).populate(
-      "roles"
-    );
+    const userFound = await User.findOne({ email: req.body.email })
+      .populate("roles") // Populates the 'roles' field (Role model)
+      .populate("wallet") // Populates the 'wallet' field (Wallet model)
+      .populate("userLogs") // Populates the 'userLogs' field (UserLog model)
+      .exec();
 
     if (!userFound) {
       // Log activity for not finding the user
@@ -418,6 +422,10 @@ async function login(req, res) {
 
     // Log successful login
     await logUserActivity(req, userFound._id, "Login Successful", null);
+    // Set the user as logged in
+    userFound.isLoggedIn = true;
+
+    await userFound.save(); // Save the user's login status
 
     const oneDayInSeconds = 86400;
 
@@ -439,6 +447,7 @@ async function login(req, res) {
     });
   } catch (error) {
     // Respond with an error message
+    console.log(error);
     return res.status(500).json({ message: error });
   }
 }
@@ -454,6 +463,12 @@ async function logout(req, res) {
       });
     }
     if (req.body.userId) {
+      const user = await User.findById(req.body.userId);
+      if (user) {
+        // Set the user as logged out
+        user.isLoggedIn = false;
+        await user.save(); // Save the updated login statu
+      }
       // Log the successful logout
       await logUserActivity(req, req.body.userId, "Logout Successful", null);
       // Clear the session token cookie
