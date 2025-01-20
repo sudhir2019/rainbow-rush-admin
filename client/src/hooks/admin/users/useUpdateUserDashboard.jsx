@@ -12,10 +12,10 @@ const useUpdateUserDashboard = (id) => {
 
     const [showMessage, setShowMessage] = useState(false);
 
-    const onSubmit = async (data) => {
+    const onSubmit = async (userData) => {
         try {
             // Dispatching the updateUserDashboardAsync action with data and ID
-            await dispatch(updateUserDashboardAsync({ data, id })).unwrap(); // Use unwrap to access the resolved value or error
+            await dispatch(updateUserDashboardAsync({ userData, id })).unwrap(); // Use unwrap to access the resolved value or error
             // Handle success (maybe show a success message or redirect)
         } catch (error) {
             console.error("Error updating user dashboard:", error);

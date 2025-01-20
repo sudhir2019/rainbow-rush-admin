@@ -153,10 +153,16 @@ const createUser = async (req, res) => {
     user.wallet = wallet._id;
 
     const savedUser = await user.save();
-
+    // Fetch users
+    const users = await User.find()
+      .populate("roles")
+      .populate("wallet")
+      .populate("userLogs")
+      .exec();
     return res.status(201).json({
       success: true,
-      data: {
+      data: users,
+      dataUser: {
         id: savedUser._id,
         username: savedUser.username,
         mobile: savedUser.mobile,
@@ -267,7 +273,6 @@ async function updateProfileById(req, res) {
 const updateUserByIdDashboard = async (req, res) => {
   const userId = req.params.id?.replace(/^:/, "");
   const { Commission, note, userStatus } = req.body;
-
   try {
     // Find user by username (assuming username is unique)
     const user = await User.findById(userId);
@@ -285,11 +290,15 @@ const updateUserByIdDashboard = async (req, res) => {
 
     // Save the updated user
     await user.save();
-
+    const users = await User.find()
+      .populate("roles")
+      .populate("wallet")
+      .populate("userLogs")
+      .exec();
     return res.status(200).json({
       success: true,
       message: "Superdistributor updated successfully",
-      data: user,
+      data: users,
     });
   } catch (error) {
     console.error("Error updating Superdistributor:", error);
@@ -322,14 +331,6 @@ async function deleteUserById(req, res) {
         deleteImageFromCloudinary(user.profilePicture_id)
       );
     }
-    if (user.aadharImage_id) {
-      imageDeletionPromises.push(
-        deleteImageFromCloudinary(user.aadharImage_id)
-      );
-    }
-    if (user.panImage_id) {
-      imageDeletionPromises.push(deleteImageFromCloudinary(user.panImage_id));
-    }
 
     // Wait for all image deletions to complete
     await Promise.all(imageDeletionPromises);
@@ -343,7 +344,6 @@ async function deleteUserById(req, res) {
         $or: [{ referredBy: userId }, { referredUser: userId }],
       }), // Delete referral transactions
     ];
-
     await Promise.all(deletionPromises);
 
     // Delete the user
@@ -354,11 +354,16 @@ async function deleteUserById(req, res) {
         message: "Failed to delete user",
       });
     }
-
+    const users = await User.find()
+    .populate("roles")
+    .populate("wallet")
+    .populate("userLogs")
+    .exec();
     // Return success response
     return res.status(200).json({
       success: true,
       message: "User and all associated data deleted successfully",
+      data: users,
     });
   } catch (error) {
     console.error("Error occurred during user deletion:", error);
@@ -417,19 +422,32 @@ async function toggleUserStatus(req, res) {
 
     // Save the updated user
     await user.save();
-    //Get All Usres 
-    const users = await User.find();
+    //Get All Usres
+    // Populate roles and wallet data for all users
+    const users = await User.find()
+      .populate("roles")
+      .populate("wallet")
+      .populate("userLogs")
+      .exec();
+    // Filter users to include only active users
+    const activeUsers = users.filter((user) => user.userStatus);
+
+    // Get all user logs
+    const userLogs = await UserLog.find({ userId: userId }).exec();
+
     // Return success response
     return res.status(200).json({
       success: true,
       message: `User ${action}d successfully`,
-      data: {
+      dataUser: {
         id: user._id,
         name: user.name,
         email: user.email,
         status: user.userStatus,
       },
-      users: users,
+      data: users,
+      userLogs: userLogs,
+      activeUsers: activeUsers,
     });
   } catch (error) {
     console.error(`Error occurred during user ${action}:`, error);

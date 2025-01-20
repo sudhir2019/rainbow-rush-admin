@@ -44,7 +44,6 @@ const usersSlice = createSlice({
             })
             .addCase(fetchAllUsersAsync.fulfilled, (state, action) => {
                 const { data } = action.payload;
-                console.log(data);
                 state.isLoading = false;
                 // Categorize users by their roles
                 // Categorize the users by their roles
@@ -84,8 +83,14 @@ const usersSlice = createSlice({
                 state.isLoading = true;
             })
             .addCase(createUserAsync.fulfilled, (state, action) => {
+                const { data } = action.payload;
                 state.isLoading = false;
-                state.users.push(action.payload);
+                state.admins = data.filter(user => user.roles.some(role => role.name === 'admin'));
+                state.superdistributers = data.filter(user => user.roles.some(role => role.name === 'superdistributer'));
+                state.distributers = data.filter(user => user.roles.some(role => role.name === 'distributer'));
+                state.retailers = data.filter(user => user.roles.some(role => role.name === 'retailer'));
+                state.user = data.filter(user => user.roles.some(role => role.name === 'user')); // Filter users with 'user' role
+                state.users = data;
                 state.message = 'User created successfully';
                 state.error = null;
             })
@@ -100,9 +105,15 @@ const usersSlice = createSlice({
                 state.isLoading = true;
             })
             .addCase(updateUserDashboardAsync.fulfilled, (state, action) => {
-                console.log(action.payload)
+                const { data } = action.payload;
                 state.isLoading = false;
                 state.message = 'Profile updated successfully';
+                state.admins = data.filter(user => user.roles.some(role => role.name === 'admin'));
+                state.superdistributers = data.filter(user => user.roles.some(role => role.name === 'superdistributer'));
+                state.distributers = data.filter(user => user.roles.some(role => role.name === 'distributer'));
+                state.retailers = data.filter(user => user.roles.some(role => role.name === 'retailer'));
+                state.user = data.filter(user => user.roles.some(role => role.name === 'user')); // Filter users with 'user' role
+                state.users = data;
                 state.error = null;
             })
             .addCase(updateUserDashboardAsync.rejected, (state, action) => {
@@ -130,8 +141,14 @@ const usersSlice = createSlice({
                 state.isLoading = true;
             })
             .addCase(deleteUserAsync.fulfilled, (state, action) => {
+                const { data } = action.payload;
                 state.isLoading = false;
-                state.users = state.users.filter((user) => user.id !== action.payload.id);
+                state.admins = data.filter(user => user.roles.some(role => role.name === 'admin'));
+                state.superdistributers = data.filter(user => user.roles.some(role => role.name === 'superdistributer'));
+                state.distributers = data.filter(user => user.roles.some(role => role.name === 'distributer'));
+                state.retailers = data.filter(user => user.roles.some(role => role.name === 'retailer'));
+                state.user = data.filter(user => user.roles.some(role => role.name === 'user')); // Filter users with 'user' role
+                state.users = data;  // All users
                 state.message = 'User deleted successfully';
                 state.error = null;
             })
@@ -146,10 +163,14 @@ const usersSlice = createSlice({
                 state.isLoading = true;
             })
             .addCase(activateUserAsync.fulfilled, (state, action) => {
-                const { users, data } = action.payload;
-                console.log(data)
+                const { data } = action.payload;
                 state.isLoading = false;
-                state.users = users;
+                state.admins = data.filter(user => user.roles.some(role => role.name === 'admin'));
+                state.superdistributers = data.filter(user => user.roles.some(role => role.name === 'superdistributer'));
+                state.distributers = data.filter(user => user.roles.some(role => role.name === 'distributer'));
+                state.retailers = data.filter(user => user.roles.some(role => role.name === 'retailer'));
+                state.user = data.filter(user => user.roles.some(role => role.name === 'user')); // Filter users with 'user' role
+                state.users = data;  // All users
                 state.error = null;
             })
             .addCase(activateUserAsync.rejected, (state, action) => {

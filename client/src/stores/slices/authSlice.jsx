@@ -23,9 +23,10 @@ const initialState = {
     serverError: null,
     redirectUrl: "",
     isAdmin: false,
-    isModerator: false,
+    isSuperdistributers: false,
+    isDistributers: false,
+    isRetailers:false,
     isUser: false,
-    isCustomer: false,
     session: null,
     isVerificationSuccessful: false,
     confirmationEmailSent: false,
@@ -73,7 +74,11 @@ const authSlice = createSlice({
                 state.token = token;
                 state.authUser = user;
                 state.roles = roles;
-                setToken(token); // Only save token locally
+                state.isAdmin = state.roles.includes("admin");
+                state.isUser = state.roles.includes("user");
+                state.isSuperdistributers= state.roles.includes("superdistributer");
+                state.isDistributers= state.roles.includes("distributer");
+                state.isRetailers= state.roles.includes("retailer");
             })
             .addCase(loginAsync.rejected, (state, action) => {
                 state.isLoading = false;
@@ -89,12 +94,14 @@ const authSlice = createSlice({
                 state.isLoading = false;
                 state.isLoggedIn = true;
                 state.token = token;
-                state. authUser= user;
+                state.authUser= user;
                 state.roles = user.roles.map((role) => role.name);
                 state.isAdmin = state.roles.includes("admin");
-                state.isModerator = state.roles.includes("moderator");
                 state.isUser = state.roles.includes("user");
-                state.isCustomer = state.roles.includes("customer");
+                state.isSuperdistributers= state.roles.includes("superdistributer");
+                state.isDistributers= state.roles.includes("distributer");
+                state.isRetailers= state.roles.includes("retailer");
+
             })
             .addCase(getSessionAsync.rejected, (state) => {
                 state.isLoading = false;

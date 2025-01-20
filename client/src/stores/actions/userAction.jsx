@@ -81,7 +81,7 @@ export const updateUserDashboardAsync = createAsyncThunk(
     async ({ userData, id }, { rejectWithValue }) => { // Ensure we destructure properly here
         try {
             const token = getToken(); // Retrieve token from authUtils
-            const { response, json } = await PUT(`users/admin/${id}`, userData, token); // Fixed the URL format
+            const { response, json } = await PUT(`users/admin/${id}`, userData, token, "json"); // Fixed the URL format
 
             // Successful response
             if (response.status === 200) {
@@ -94,17 +94,12 @@ export const updateUserDashboardAsync = createAsyncThunk(
         }
     }
 );
-
 export const activateUserAsync = createAsyncThunk(
     'users/:id/:action',
-    async ({ userId, action, lolginId }, { rejectWithValue }) => {
-        console.log(`Dispatching ${action} for user ${userId}`);
+    async ({ userId, action }, { rejectWithValue }) => {
         const token = getToken();
-        const url = `users/:${userId}/${action}`; // Correct URL construction
         try {
-            const { response, json } = await POST(url, lolginId, token); // Adjust `info` if backend requires it
-            console.log(response)
-            console.log(json)
+            const { response, json } = await PUT(`users/:${userId}/${action}`, { status: action }, token, "json"); // Adjust `info` if backend requires it
             if (response.status === 200) {
                 return response.data;
             }
@@ -114,8 +109,6 @@ export const activateUserAsync = createAsyncThunk(
         }
     }
 );
-
-
 export const deleteUserAsync = createAsyncThunk(
     'users/delete',
     async (userId, { rejectWithValue }) => {

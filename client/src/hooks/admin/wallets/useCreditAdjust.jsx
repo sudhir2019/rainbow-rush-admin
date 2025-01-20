@@ -15,7 +15,7 @@ export default function useCreditTransfer(id) {
     const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
     // Fetch states from Redux
-    const { user } = useSelector((state) => state.auth); // Assuming user is stored in auth state
+    const { authUser } = useSelector((state) => state.auth); // Assuming user is stored in auth state
     const { wallet, isWalletLoading, walletError, walletMessage } = useSelector((state) => state.wallets);
 
     const [showMessage, setShowMessage] = useState(false);
@@ -26,7 +26,7 @@ export default function useCreditTransfer(id) {
      */
     const onSubmit = async (data) => {
         const requestData = {
-            userId: user._id,
+            userId: authUser._id,
             password: data.password,
             adjustAmount: parseFloat(data.transferAmount),
             transactionType: data.transactionType || "credit",

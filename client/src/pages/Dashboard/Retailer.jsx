@@ -1,161 +1,214 @@
-
+import { useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import Add from "../../components/ActionModel/Add";
+import Edit from "../../components/ActionModel/Edit";
+import CreditTransfer from "../../components/ActionModel/CreditTransfer";
+import CreditAdjust from "../../components/ActionModel/CreditAdjust";
+import Modal from "../../components/ActionModel/Modal";
+import useActivateUser from '../../hooks/admin/users/useActivateUser';
+import useDeleteUser from '../../hooks/admin/users/useDeleteUser';
 export default function Retailer() {
-    return (
-        <div className="row">
-            <div className="col-md-12 grid-margin stretch-card">
-                <div className="card">
-                    <div className="card-header d-flex justify-content-between mb-2">
-                        <b>Retailer</b>
-                        <a href="Retailer/add.html" className="btn btn-primary btn-md">Add Retailer</a>
-                    </div>
-                    <div className="card-body">
-                        <div className="table-responsive">
-                            <table className="table table-bordered data-table" id="example">
-                                <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>UserName</th>
-                                        <th>Refer Name</th>
-                                        <th>Unique Id</th>
-                                        <th>Points</th>
-                                        <th>Date & time</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <th scope="row">1</th>
-                                        <td>Retailer-1<a href="Retailer/66d19154aad0fa49660b8be5.html"><i className='far fa-eye'></i></a></td>
-                                        <td>admin</td>
-                                        <td>super_000000011</td>
-                                        <td>0</td>
-                                        <td>2024-09-04 05:33:32 PM</td>
-                                        <td>
-                                            <div className="btn-group">
-                                                <a href="Retailer/66d19154aad0fa49660b8be5/edit.html"
-                                                    type="button"
-                                                    className="btn btn-outline-info" >
-                                                    <i className="fas fa-edit"></i>
-                                                </a>
+    const { action, any } = useParams();
+    const { retailers, distributers, loading, error } = useSelector((state) => state.users);
+    const { wallets, isWalletLoading, walletwalletError, walletMessage } = useSelector((state) => state.wallets);
+    const { activateUser, isLoading } = useActivateUser();
+    const { deleteUser, users, message } = useDeleteUser();
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalContent, setModalContent] = useState(null);
+    const [modalTitle, setModalTitle] = useState("");
+    const [onConfirmAction, setOnConfirmAction] = useState(null);
+    const openModal = (content, title, onConfirm) => {
+        setModalContent(content);
+        setModalTitle(title);
+        setOnConfirmAction(() => onConfirm);
+        setModalVisible(true);
+    };
 
-                                                <a href="Retailer/66d19154aad0fa49660b8be5/transfercredit"
-                                                    className="btn btn-outline-success"  >
-                                                    <i className="fas fa-arrow-up"></i>
-                                                </a>
+    const closeModal = () => {
+        setModalVisible(false);
+        setOnConfirmAction(null);
+    };
 
-                                                <a href="Retailer/66d19154aad0fa49660b8be5/adjustcredit"
-                                                    className="btn btn-outline-warning"
-                                                >
-                                                    <i className="fas fa-arrow-down"></i>
-                                                </a>
+    const handleActivateDeactivate = async (userId, isActive) => {
+        const action = isActive ? "deactivate" : "activate";
+        try {
+            await activateUser(userId, action);
+        } catch (error) {
+            console.error(`Failed to ${action} user:`, error);
+        } finally {
+            closeModal();
+        }
+    };
 
-                                                <a href=""
-                                                    className="btn btn-outline-success"
-                                                >
-                                                    <i className="fa fa-times-circle"></i>
-                                                </a>
 
-                                                <a href=""
+    const handleDelete = async (userId) => {
+        try {
+            await deleteUser(userId);
+        } catch (error) {
+            console.error(`Failed to ${userId} user:`, error);
+        } finally {
+            closeModal();
+        }
+    };
 
-                                                    className="btn btn-outline-danger delete-confirm"
-                                                >
-                                                    <i className="fas fa-trash"></i>
-                                                </a>
-                                            </div>
+    if (action === "edit") {
+        return <Edit userType={"Retailer"} userDetails={any} />;
+    }
+    if (action === "credittransfer") {
+        return <CreditTransfer userType={"Retailer"} userDetails={any} />;
+    }
+    if (action === "creditadjust") {
+        return <CreditAdjust userType={"Retailer"} userDetails={any} />;
+    }
 
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">2</th>
-                                        <td>Retailer-2<a href="Retailer/66d19154aad0fa49660b8be5.html"><i className='far fa-eye'></i></a></td>
-                                        <td>admin</td>
-                                        <td>super_000000011</td>
-                                        <td>0</td>
-                                        <td>2024-09-04 05:33:32 PM</td>
-                                        <td>
-                                            <div className="btn-group">
-                                                <a href="Retailer/66d19154aad0fa49660b8be5/edit.html"
-                                                    type="button"
-                                                    className="btn btn-outline-info" >
-                                                    <i className="fas fa-edit"></i>
-                                                </a>
+    if (action === "create") {
+        return <Add userType={"Retailer"} refe={distributers}/>;
+    }
 
-                                                <a href="Retailer/66d19154aad0fa49660b8be5/transfercredit"
-                                                    className="btn btn-outline-success"  >
-                                                    <i className="fas fa-arrow-up"></i>
-                                                </a>
+    if (action === undefined || action === null) {
+        return (
+            <div className="row relative">
+                <div className="col-md-12 grid-margin stretch-card">
+                    <div className="card">
+                        <div className="card-header d-flex justify-content-between mb-2">
+                            <b>Retailers</b>
+                            <Link to={`create/retailer`} className="btn btn-primary btn-md">
+                                Add Retailer
+                            </Link>
+                        </div>
+                        <div className="card-body">
+                            <div className="table-responsive">
+                                <table className="table table-bordered data-table" id="example">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>UserName</th>
+                                            <th>Refer ID</th>
+                                            <th>Unique Id</th>
+                                            <th>Points</th>
+                                            <th>Date & Time</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {retailers.map((retailer, index) => {
+                                            const hasRetailersRole = retailer.roles.some(
+                                                (role) => role.name === "retailer"
+                                            );
+                                            if (hasRetailersRole) {
+                                                return (
+                                                    <tr key={index}>
+                                                        <th scope="row">{index + 1}</th>
+                                                        <td>{retailer.username}</td>
+                                                        <td>{retailer.refId}</td>
+                                                        <td>{retailer.username}</td>
+                                                        {retailer.wallet.map((point, walletIndex) => {
+                                                            const matchingWallet = wallets.find((wallet) => wallet._id === point._id); // Find the matching wallet
+                                                            if (matchingWallet) {
+                                                                return (
+                                                                    <td className="p-2" key={`${walletIndex}-${matchingWallet._id}`}>
+                                                                        {matchingWallet.individualCredit}
+                                                                    </td>
+                                                                );
+                                                            }
+                                                            return 0.0//return null if no matching wallet is found
+                                                        })}
 
-                                                <a href="Retailer/66d19154aad0fa49660b8be5/adjustcredit"
-                                                    className="btn btn-outline-warning"
-                                                >
-                                                    <i className="fas fa-arrow-down"></i>
-                                                </a>
+                                                        <td>{new Date(retailer.createdAt).toLocaleString()}</td>
+                                                        <td>
+                                                            <div className="btn-group">
+                                                                <Link to={`edit/${retailer._id}`}
+                                                                    type="button"
+                                                                    className="btn btn-outline-info" >
+                                                                    <i className="fas fa-edit"></i>
+                                                                </Link>
+                                                                <Link to={`credittransfer/${retailer._id}`}
+                                                                    type="button"
+                                                                    className="btn btn-outline-success"  >
+                                                                    <i className="fas fa-arrow-up"></i>
+                                                                </Link>
 
-                                                <a href=""
-                                                    className="btn btn-outline-success"
-                                                >
-                                                    <i className="fa fa-times-circle"></i>
-                                                </a>
+                                                                <Link to={`creditadjust/${retailer._id}`}
+                                                                    type="button"
+                                                                    className="btn btn-outline-warning"
+                                                                >
+                                                                    <i className="fas fa-arrow-down"></i>
+                                                                </Link>
+                                                                {/* <Link
+                                                                    to=""
+                                                                    className="btn btn-outline-success"
+                                                                    onClick={handleCancel}
+                                                                >
+                                                                    <i className="fa fa-times-circle"></i>
+                                                                </Link> */}
+                                                                {/* Activate Link */}
 
-                                                <a href=""
-
-                                                    className="btn btn-outline-danger delete-confirm"
-                                                >
-                                                    <i className="fas fa-trash"></i>
-                                                </a>
-                                            </div>
-
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">3</th>
-                                        <td>Retailer-3<a href="Retailer/66d19154aad0fa49660b8be5.html"><i className='far fa-eye'></i></a></td>
-                                        <td>admin</td>
-                                        <td>super_000000011</td>
-                                        <td>0</td>
-                                        <td>2024-09-04 05:33:32 PM</td>
-                                        <td>
-                                            <div className="btn-group">
-                                                <a href="Retailer/66d19154aad0fa49660b8be5/edit.html"
-                                                    type="button"
-                                                    className="btn btn-outline-info" >
-                                                    <i className="fas fa-edit"></i>
-                                                </a>
-
-                                                <a href="Retailer/66d19154aad0fa49660b8be5/transfercredit"
-                                                    className="btn btn-outline-success"  >
-                                                    <i className="fas fa-arrow-up"></i>
-                                                </a>
-
-                                                <a href="Retailer/66d19154aad0fa49660b8be5/adjustcredit"
-                                                    className="btn btn-outline-warning"
-                                                >
-                                                    <i className="fas fa-arrow-down"></i>
-                                                </a>
-
-                                                <a href=""
-                                                    className="btn btn-outline-success"
-                                                >
-                                                    <i className="fa fa-times-circle"></i>
-                                                </a>
-
-                                                <a href=""
-
-                                                    className="btn btn-outline-danger delete-confirm"
-                                                >
-                                                    <i className="fas fa-trash"></i>
-                                                </a>
-                                            </div>
-
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                                                                {retailer.userStatus ? (
+                                                                    // Render Deactivate Link if userStatus is true (active)
+                                                                    <Link
+                                                                        to="#"
+                                                                        className="btn btn-outline-secondary"
+                                                                        onClick={() =>
+                                                                            openModal(
+                                                                                `Are you sure you want to deactivate ${retailer.name}?`,
+                                                                                'Deactivate Confirmation',
+                                                                                () => handleActivateDeactivate(retailer._id, true)
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <i className="fa fa-times-circle"></i>
+                                                                    </Link>
+                                                                ) : (
+                                                                    // Render Activate Link if userStatus is false (inactive)
+                                                                    <Link
+                                                                        to="#"
+                                                                        className="btn btn-outline-primary"
+                                                                        onClick={() =>
+                                                                            openModal(
+                                                                                `Are you sure you want to activate ${retailer.name}?`,
+                                                                                'Activate Confirmation',
+                                                                                () => handleActivateDeactivate(retailer._id, false)
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <i className="fas fa-toggle-on"></i>
+                                                                    </Link>
+                                                                )}
+                                                                <Link
+                                                                    to="#"
+                                                                    className="btn btn-outline-danger delete-confirm"
+                                                                    onClick={() =>
+                                                                        openModal(
+                                                                            `Are you sure you want to  Delete ${retailer.name}?`,
+                                                                            'Delete Confirmation',
+                                                                            () => handleDelete(retailer._id)
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <i className="fas fa-trash"></i>
+                                                                </Link>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            }
+                                            return null;
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
+                <Modal
+                    show={modalVisible}
+                    onClose={closeModal}
+                    title={modalTitle}
+                    onConfirm={onConfirmAction}>
+                    {modalContent}
+                </Modal>
             </div>
-        </div>
-
-    )
-}
+        );
+    }
+};

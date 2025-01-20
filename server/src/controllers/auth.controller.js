@@ -184,12 +184,17 @@ async function sendConfirmationEmail(req, res) {
 // Get user session information
 async function getSession(req, res) {
   try {
+    const { token } = req.body;
     // Get the session token from the cookie
-    const cookieToken = getCookieValueByName(
-      req.cookies,
-      process.env.SESSION_TOKEN
-    );
-
+    let cookieToken = token;
+    console.log("cookieToken1:-", cookieToken);
+    if (!cookieToken) {
+      console.log("cookieToken2:-", cookieToken);
+      cookieToken = getCookieValueByName(
+        req.cookies,
+        process.env.SESSION_TOKEN || "session-token" // Fallback to default if undefined
+      );
+    }
     if (!cookieToken) {
       // Log activity when no session token is found
       return res
@@ -199,7 +204,6 @@ async function getSession(req, res) {
 
     // Verify the session token
     const decoded = jwt.verify(cookieToken, process.env.JWT_SECRET_KEY);
-
     // Find user by ID
     const user = await User.findById(decoded.id, { password: 0 })
       .populate("roles") // Populates the 'roles' field (Role model)
@@ -427,16 +431,19 @@ async function login(req, res) {
 
     await userFound.save(); // Save the user's login status
 
-    const oneDayInSeconds = 86400;
+    const twoDaysInSeconds = 86400 * 2; // 1 day in seconds
 
     // Generate a JWT token for the user's session
     const token = jwt.sign({ id: userFound._id }, process.env.JWT_SECRET_KEY, {
-      expiresIn: oneDayInSeconds,
+      expiresIn: twoDaysInSeconds, // Token expiration (2 days)
     });
 
     // Set the token as a cookie
-    res.cookie(process.env.SESSION_TOKEN, token, {
-      expire: oneDayInSeconds + Date.now(),
+    res.cookie(process.env.SESSION_TOKEN || "session-token", token, {
+      maxAge: twoDaysInSeconds * 1000, // Cookie expiration in milliseconds (2 days)
+      httpOnly: true, // Prevent client-side access
+      secure: process.env.NODE_ENV === "production", // Send only over HTTPS in production
+      sameSite: "Strict", // Protect against CSRF
     });
 
     // Respond with user information, roles, and token

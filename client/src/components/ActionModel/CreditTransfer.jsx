@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import useCreditTransfer from "../../hooks/admin/wallets/useCreditTransfer"; // Adjust path as necessary
 import useFetchWalletById from "../../hooks/admin/wallets/useFetchWalletById";
+import MessageComponent from "./MessageComponent";
 export default function CreditTransfer({ userType }) {
     const { users, loading, error } = useSelector((state) => state.users);
     const [user, setUser] = useState({});
@@ -13,7 +14,6 @@ export default function CreditTransfer({ userType }) {
         handleSubmit,
         onSubmit,
         isLoading,
-        message,
         error: formError,
         errors,
     } = useCreditTransfer(any);
@@ -36,8 +36,6 @@ export default function CreditTransfer({ userType }) {
                         <h6>Credit Transfer</h6>
                     </div>
                     <div className="card-body">
-                        {message && <div className="alert alert-success">{message}</div>}
-                        {formError && <div className="alert alert-danger">{formError}</div>}
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <div className="form-group d-flex">
                                 <div className="col-sm-3 offset-lg-3">
@@ -101,6 +99,7 @@ export default function CreditTransfer({ userType }) {
                                 </div>
                             </div>
                         </form>
+                        <MessageComponent />
                     </div>
                 </div>
             </div>

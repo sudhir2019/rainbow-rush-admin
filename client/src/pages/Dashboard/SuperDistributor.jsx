@@ -7,11 +7,13 @@ import CreditTransfer from "../../components/ActionModel/CreditTransfer";
 import CreditAdjust from "../../components/ActionModel/CreditAdjust";
 import Modal from "../../components/ActionModel/Modal";
 import useActivateUser from '../../hooks/admin/users/useActivateUser';
+import useDeleteUser from '../../hooks/admin/users/useDeleteUser';
 const SuperDistributor = () => {
     const { action, any } = useParams();
     const { superdistributers, loading, error } = useSelector((state) => state.users);
     const { wallets, isWalletLoading, walletwalletError, walletMessage } = useSelector((state) => state.wallets);
     const { activateUser, isLoading } = useActivateUser();
+    const { deleteUser, users, message } = useDeleteUser();
     const [modalVisible, setModalVisible] = useState(false);
     const [modalContent, setModalContent] = useState(null);
     const [modalTitle, setModalTitle] = useState("");
@@ -29,7 +31,7 @@ const SuperDistributor = () => {
     };
 
     const handleActivateDeactivate = async (userId, isActive) => {
-        const action = isActive ? "activate" : "deactivate";
+        const action = isActive ? "deactivate" : "activate";
         try {
             await activateUser(userId, action);
         } catch (error) {
@@ -40,11 +42,14 @@ const SuperDistributor = () => {
     };
 
 
-    const handleDelete = () => {
-        openModal(
-            <p>Are you sure you want to delete this item? This action cannot be undone.</p>,
-            "Delete Confirmation"
-        );
+    const handleDelete = async (userId) => {
+        try {
+            await deleteUser(userId);
+        } catch (error) {
+            console.error(`Failed to ${userId} user:`, error);
+        } finally {
+            closeModal();
+        }
     };
 
     if (action === "edit") {
@@ -86,7 +91,7 @@ const SuperDistributor = () => {
                                             <th>Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody className="overflow-y h-9">
                                         {superdistributers.map((superDistributer, index) => {
                                             const hasSuperDistributerRole = superDistributer.roles.some(
                                                 (role) => role.name === "superdistributer"
@@ -173,7 +178,13 @@ const SuperDistributor = () => {
                                                                 <Link
                                                                     to="#"
                                                                     className="btn btn-outline-danger delete-confirm"
-                                                                    onClick={handleDelete}
+                                                                    onClick={() =>
+                                                                        openModal(
+                                                                            `Are you sure you want to  Delete ${superDistributer.name}?`,
+                                                                            'Delete Confirmation',
+                                                                            () => handleDelete(superDistributer._id)
+                                                                        )
+                                                                    }
                                                                 >
                                                                     <i className="fas fa-trash"></i>
                                                                 </Link>

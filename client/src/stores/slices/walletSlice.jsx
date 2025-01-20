@@ -14,10 +14,10 @@ const walletSlice = createSlice({
     name: "wallet",
     initialState,
     reducers: {
-        clearWalletMessage: (state) => {
+        clearWalletMessage(state) {
             state.walletMessage = null;
         },
-        clearWalletError: (state) => {
+        clearWalletError(state) {
             state.walletError = null;
         },
     },

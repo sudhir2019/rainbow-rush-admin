@@ -1,5 +1,20 @@
 import api from './axiosInstance';
 
+// GET Request
+async function GET(url, token) {
+    try {
+        const headers = {
+            Authorization: token ? `Bearer ${token}` : undefined,
+            Accept: "application/json",
+        };
+
+        const response = await api.get(url, { headers });
+        return { response: response, json: response.data };
+    } catch (error) {
+        return { response: error.response, json: error.response?.data || {} };
+    }
+}
+
 // POST Request
 async function POST(url, info, token, type) {
     try {
@@ -20,8 +35,7 @@ async function POST(url, info, token, type) {
 }
 
 // PUT Request
-async function PUT(url, userId, token, type) {
-    console.log(token)
+async function PUT(url, info, token, type) {
     try {
         const headers = {
             Authorization: `Bearer ${token}`,
@@ -32,38 +46,7 @@ async function PUT(url, userId, token, type) {
             headers["Content-Type"] = "application/json";
         }
 
-        const response = await api.put(url, userId, { headers });
-        return { response: response, json: response.data };
-    } catch (error) {
-        return { response: error.response, json: error.response?.data || {} };
-    }
-}
-
-
-// DELETE Request
-async function DELETE(url, token) {
-    try {
-        const headers = {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-        };
-
-        const response = await api.delete(url, { headers });
-        return { response: response, json: response.data };
-    } catch (error) {
-        return { response: error.response, json: error.response?.data || {} };
-    }
-}
-
-// GET Request
-async function GET(url, token) {
-    try {
-        const headers = {
-            Authorization: token ? `Bearer ${token}` : undefined,
-            Accept: "application/json",
-        };
-
-        const response = await api.get(url, { headers });
+        const response = await api.put(url, info, { headers });
         return { response: response, json: response.data };
     } catch (error) {
         return { response: error.response, json: error.response?.data || {} };
@@ -88,5 +71,21 @@ async function PATCH(url, info, token, type) {
         return { response: error.response, json: error.response?.data || {} };
     }
 }
+
+// DELETE Request
+async function DELETE(url, token) {
+    try {
+        const headers = {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+        };
+
+        const response = await api.delete(url, { headers });
+        return { response: response, json: response.data };
+    } catch (error) {
+        return { response: error.response, json: error.response?.data || {} };
+    }
+}
+
 
 export { POST, PUT, DELETE, GET, PATCH };

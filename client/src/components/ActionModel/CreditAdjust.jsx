@@ -1,10 +1,9 @@
-import React from "react";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import useCreditAdjust from "../../hooks/admin/wallets/useCreditAdjust"; // Adjust path as necessary
 import useFetchWalletById from "../../hooks/admin/wallets/useFetchWalletById";
-
+import MessageComponent from "./MessageComponent";
 
 export default function CreditAdjust({ userType }) {
     const { users, loading, error } = useSelector((state) => state.users);
@@ -16,8 +15,6 @@ export default function CreditAdjust({ userType }) {
         handleSubmit,
         onSubmit,
         isWalletLoading,
-        walletMessage,
-        walletError,
         errors,
     } = useCreditAdjust(any);
 
@@ -39,10 +36,6 @@ export default function CreditAdjust({ userType }) {
                         <h6>Credit Adjust</h6>
                     </div>
                     <div className="card-body">
-                        {/* Display success or error messages */}
-                        {walletMessage && <div className="alert alert-success">{walletMessage}</div>}
-                        {walletError && <div className="alert alert-danger">{walletError}</div>}
-
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <div className="form-group d-flex">
                                 <div className="col-sm-3 offset-lg-3">
@@ -113,6 +106,7 @@ export default function CreditAdjust({ userType }) {
                                 </div>
                             </div>
                         </form>
+                        <MessageComponent />
                     </div>
                 </div>
             </div>

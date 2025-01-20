@@ -12,8 +12,6 @@ export default function useActivateUser() {
 
     // Redux state for global handling (optional)
     const { user, status } = useSelector((state) => state.users);
-    const { authUser } = useSelector((state) => state.auth);
-    const lolginId = authUser._id;
     // Callback function to activate the user
     const activateUser = useCallback(
         async (userId, action) => {
@@ -21,11 +19,9 @@ export default function useActivateUser() {
             setIsLoading(true);
             setError(null);
             setSuccessMessage(null);
-            console.log(userId);
 
             try {
-                const response = await dispatch(activateUserAsync({ userId, action, lolginId })).unwrap();
-                console.log('API Response:', response);
+                const response = await dispatch(activateUserAsync({ userId, action })).unwrap();
                 setSuccessMessage(`User ${userId} has been successfully ${action}d.`);
                 return response;
             } catch (err) {

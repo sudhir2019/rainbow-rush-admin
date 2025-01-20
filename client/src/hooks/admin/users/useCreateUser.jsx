@@ -37,21 +37,12 @@ const useCreateUser = (userType = "User") => {
             await dispatch(
                 createUserAsync({ ...data, role: userType })
             ).unwrap();
-            alert("User created successfully!");
             reset(); // Reset form fields
-            const { users } = userFetchAllUsers();
         } catch (err) {
             console.error("Error creating user:", err);
-        } finally {
-            clearMessages();
         }
     };
 
-    // Clear success and error messages
-    const clearMessages = () => {
-        dispatch(clearMessage());
-        dispatch(clearError());
-    };
 
     return {
         register,

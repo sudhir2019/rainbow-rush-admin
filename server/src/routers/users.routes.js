@@ -91,6 +91,6 @@ router.post(
 
 router.delete("/:id", [verifyToken, isAdmin], deleteUserById);
 
-router.post("/:id/:action", [verifyToken], toggleUserStatus);
+router.put("/:id/:action", [verifyToken], toggleUserStatus);
 
 module.exports = router;

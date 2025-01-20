@@ -1,17 +1,82 @@
-import React from 'react'
-import { Link, useParams } from 'react-router-dom'
-
+import { useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import Add from "../../components/ActionModel/Add";
+import Edit from "../../components/ActionModel/Edit";
+import CreditTransfer from "../../components/ActionModel/CreditTransfer";
+import CreditAdjust from "../../components/ActionModel/CreditAdjust";
+import Modal from "../../components/ActionModel/Modal";
+import useActivateUser from '../../hooks/admin/users/useActivateUser';
+import useDeleteUser from '../../hooks/admin/users/useDeleteUser';
 export default function Distributor() {
-    const { action } = useParams();
-    // console.log(action);
-    if (action === undefined) {
+    const { action, any } = useParams();
+    const { distributers, superdistributers, loading, error } = useSelector((state) => state.users);
+    const { wallets, isWalletLoading, walletwalletError, walletMessage } = useSelector((state) => state.wallets);
+    const { activateUser, isLoading } = useActivateUser();
+    const { deleteUser, users, message } = useDeleteUser();
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalContent, setModalContent] = useState(null);
+    const [modalTitle, setModalTitle] = useState("");
+    const [onConfirmAction, setOnConfirmAction] = useState(null);
+    const openModal = (content, title, onConfirm) => {
+        setModalContent(content);
+        setModalTitle(title);
+        setOnConfirmAction(() => onConfirm);
+        setModalVisible(true);
+    };
+
+    const closeModal = () => {
+        setModalVisible(false);
+        setOnConfirmAction(null);
+    };
+
+    const handleActivateDeactivate = async (userId, isActive) => {
+        const action = isActive ? "deactivate" : "activate";
+        try {
+            await activateUser(userId, action);
+        } catch (error) {
+            console.error(`Failed to ${action} user:`, error);
+        } finally {
+            closeModal();
+        }
+    };
+
+
+    const handleDelete = async (userId) => {
+        try {
+            await deleteUser(userId);
+        } catch (error) {
+            console.error(`Failed to ${userId} user:`, error);
+        } finally {
+            closeModal();
+        }
+    };
+
+    if (action === "edit") {
+        return <Edit userType={"Distributer"} userDetails={any} />;
+    }
+    if (action === "credittransfer") {
+        return <CreditTransfer userType={"Distributer"} userDetails={any} />;
+    }
+    if (action === "creditadjust") {
+        return <CreditAdjust userType={"Distributer"} userDetails={any} />;
+    }
+
+    if (action === "create") {
+        return <Add userType={"Distributer"} refe={superdistributers} />;
+    }
+
+    if (action === undefined || action === null) {
         return (
-            <div className="row">
+
+            <div className="row relative">
                 <div className="col-md-12 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-header d-flex justify-content-between mb-2">
                             <b>Distributer</b>
-                            <Link to="create" className="btn btn-primary btn-md">Add Distributer</Link>
+                            <Link to={`create/distributer`} className="btn btn-primary btn-md">
+                                Add Distributer
+                            </Link>
                         </div>
                         <div className="card-body">
                             <div className="table-responsive">
@@ -20,431 +85,131 @@ export default function Distributor() {
                                         <tr>
                                             <th>No</th>
                                             <th>UserName</th>
-                                            <th>Refer Name</th>
+                                            <th>Refer ID</th>
                                             <th>Unique Id</th>
                                             <th>Points</th>
-                                            <th>Date & time</th>
+                                            <th>Date & Time</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <th scope="row">1</th>
-                                            <td>Distributer <a href="Distributer/66c31869d962b47f8d03d083.html"><i className='far fa-eye'></i></a></td>
-                                            <td>admin</td>
-                                            <td>super_000000011</td>
-                                            <td>0</td>
-                                            <td>2024-09-04 05:33:32 PM</td>
-                                            <td>
-                                                <div className="btn-group">
-                                                    <Link to="edit"
-                                                        type="button"
-                                                        className="btn btn-outline-info" >
-                                                        <i className="fas fa-edit"></i>
-                                                    </Link>
+                                        {distributers.map((distributer, index) => {
+                                            const hasDistributersRole = distributer.roles.some(
+                                                (role) => role.name === "distributer"
+                                            );
+                                            if (hasDistributersRole) {
+                                                return (
+                                                    <tr key={index}>
+                                                        <th scope="row">{index + 1}</th>
+                                                        <td>{distributer.username}</td>
+                                                        <td>{distributer.refId}</td>
+                                                        <td>{distributer.username}</td>
+                                                        {distributer.wallet.map((point, walletIndex) => {
+                                                            const matchingWallet = wallets.find((wallet) => wallet._id === point._id); // Find the matching wallet
+                                                            if (matchingWallet) {
+                                                                return (
+                                                                    <td className="p-2" key={`${walletIndex}-${matchingWallet._id}`}>
+                                                                        {matchingWallet.individualCredit}
+                                                                    </td>
+                                                                );
+                                                            }
+                                                            return 0.0//return null if no matching wallet is found
+                                                        })}
 
-                                                    <Link to="transfercredit"
-                                                        className="btn btn-outline-success"  >
-                                                        <i className="fas fa-arrow-up"></i>
-                                                    </Link>
+                                                        <td>{new Date(distributer.createdAt).toLocaleString()}</td>
+                                                        <td>
+                                                            <div className="btn-group">
+                                                                <Link to={`edit/${distributer._id}`}
+                                                                    type="button"
+                                                                    className="btn btn-outline-info" >
+                                                                    <i className="fas fa-edit"></i>
+                                                                </Link>
+                                                                <Link to={`credittransfer/${distributer._id}`}
+                                                                    type="button"
+                                                                    className="btn btn-outline-success"  >
+                                                                    <i className="fas fa-arrow-up"></i>
+                                                                </Link>
 
-                                                    <Link to="adjustcredit"
-                                                        className="btn btn-outline-warning"
-                                                    >
-                                                        <i className="fas fa-arrow-down"></i>
-                                                    </Link>
+                                                                <Link to={`creditadjust/${distributer._id}`}
+                                                                    type="button"
+                                                                    className="btn btn-outline-warning"
+                                                                >
+                                                                    <i className="fas fa-arrow-down"></i>
+                                                                </Link>
+                                                                {/* <Link
+                                                                    to=""
+                                                                    className="btn btn-outline-success"
+                                                                    onClick={handleCancel}
+                                                                >
+                                                                    <i className="fa fa-times-circle"></i>
+                                                                </Link> */}
+                                                                {/* Activate Link */}
 
-                                                    <a href=""
-                                                        className="btn btn-outline-success"
-                                                    >
-                                                        <i className="fa fa-times-circle"></i>
-                                                    </a>
-
-                                                    <a href=""
-
-                                                        className="btn btn-outline-danger delete-confirm"
-                                                    >
-                                                        <i className="fas fa-trash"></i>
-                                                    </a>
-                                                </div>
-
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">2</th>
-                                            <td>Distributer-2 <a href="Distributer/66c31869d962b47f8d03d083.html"><i className='far fa-eye'></i></a></td>
-                                            <td>admin</td>
-                                            <td>super_000000011</td>
-                                            <td>0</td>
-                                            <td>2024-09-04 05:33:32 PM</td>
-                                            <td>
-                                                <div className="btn-group">
-                                                    <a href="Distributer/66c31869d962b47f8d03d083/edit.html"
-                                                        type="button"
-                                                        className="btn btn-outline-info" >
-                                                        <i className="fas fa-edit"></i>
-                                                    </a>
-
-                                                    <a href="Distributer/66c31869d962b47f8d03d083/transfercredit"
-                                                        className="btn btn-outline-success"  >
-                                                        <i className="fas fa-arrow-up"></i>
-                                                    </a>
-
-                                                    <a href="Distributer/66c31869d962b47f8d03d083/adjustcredit"
-                                                        className="btn btn-outline-warning"
-                                                    >
-                                                        <i className="fas fa-arrow-down"></i>
-                                                    </a>
-
-                                                    <a href=""
-                                                        className="btn btn-outline-success"
-                                                    >
-                                                        <i className="fa fa-times-circle"></i>
-                                                    </a>
-
-                                                    <a href=""
-
-                                                        className="btn btn-outline-danger delete-confirm"
-                                                    >
-                                                        <i className="fas fa-trash"></i>
-                                                    </a>
-                                                </div>
-
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">3</th>
-                                            <td>Distributer-3 <a href="Distributer/66c31869d962b47f8d03d083.html"><i className='far fa-eye'></i></a></td>
-                                            <td>admin</td>
-                                            <td>super_000000011</td>
-                                            <td>0</td>
-                                            <td>2024-09-04 05:33:32 PM</td>
-                                            <td>
-                                                <div className="btn-group">
-                                                    <a href="Distributer/66c31869d962b47f8d03d083/edit.html"
-                                                        type="button"
-                                                        className="btn btn-outline-info" >
-                                                        <i className="fas fa-edit"></i>
-                                                    </a>
-
-                                                    <a href="Distributer/66c31869d962b47f8d03d083/transfercredit"
-                                                        className="btn btn-outline-success"  >
-                                                        <i className="fas fa-arrow-up"></i>
-                                                    </a>
-
-                                                    <a href="Distributer/66c31869d962b47f8d03d083/adjustcredit"
-                                                        className="btn btn-outline-warning"
-                                                    >
-                                                        <i className="fas fa-arrow-down"></i>
-                                                    </a>
-
-                                                    <a href=""
-                                                        className="btn btn-outline-success"
-                                                    >
-                                                        <i className="fa fa-times-circle"></i>
-                                                    </a>
-
-                                                    <a href=""
-
-                                                        className="btn btn-outline-danger delete-confirm"
-                                                    >
-                                                        <i className="fas fa-trash"></i>
-                                                    </a>
-                                                </div>
-
-                                            </td>
-                                        </tr>
+                                                                {distributer.userStatus ? (
+                                                                    // Render Deactivate Link if userStatus is true (active)
+                                                                    <Link
+                                                                        to="#"
+                                                                        className="btn btn-outline-secondary"
+                                                                        onClick={() =>
+                                                                            openModal(
+                                                                                `Are you sure you want to deactivate ${distributer.name}?`,
+                                                                                'Deactivate Confirmation',
+                                                                                () => handleActivateDeactivate(distributer._id, true)
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <i className="fa fa-times-circle"></i>
+                                                                    </Link>
+                                                                ) : (
+                                                                    // Render Activate Link if userStatus is false (inactive)
+                                                                    <Link
+                                                                        to="#"
+                                                                        className="btn btn-outline-primary"
+                                                                        onClick={() =>
+                                                                            openModal(
+                                                                                `Are you sure you want to activate ${distributer.name}?`,
+                                                                                'Activate Confirmation',
+                                                                                () => handleActivateDeactivate(distributer._id, false)
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <i className="fas fa-toggle-on"></i>
+                                                                    </Link>
+                                                                )}
+                                                                <Link
+                                                                    to="#"
+                                                                    className="btn btn-outline-danger delete-confirm"
+                                                                    onClick={() =>
+                                                                        openModal(
+                                                                            `Are you sure you want to  Delete ${distributer.name}?`,
+                                                                            'Delete Confirmation',
+                                                                            () => handleDelete(distributer._id)
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <i className="fas fa-trash"></i>
+                                                                </Link>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            }
+                                            return null;
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
+                <Modal
+                    show={modalVisible}
+                    onClose={closeModal}
+                    title={modalTitle}
+                    onConfirm={onConfirmAction}>
+                    {modalContent}
+                </Modal>
             </div>
-
-
-        )
+        );
     }
-
-    if (action === "create") {
-        return (
-            <div className="row">
-                <div className="col-md-12 grid-margin stretch-card">
-                    <div className="card">
-                        <div className="card-body">
-                            <h6 className="card-title">Add Distributer</h6>
-                            <form className="forms-sample" method="post" action="../Distributer">
-                                <input type="hidden" name="_token" value="YSgMhxcTwDkTktHlDonU3bhbsdde42lvR5fkjxpZ" />                        <div className="row">
-                                    <div className="col-sm-6">
-                                        <div className="form-group">
-                                            <label>User Name :</label>
-                                            <input type="text" className="form-control" name="user_name" value="" autocomplete="off" />
-                                        </div>
-                                    </div>
-                                    <div className="col-sm-6">
-                                        <div className="form-group">
-                                            <label>Password :</label>
-                                            <input type="text" className="form-control" name="password" value="" autocomplete="off" />
-                                        </div>
-                                    </div>
-                                    <div className="col-sm-6">
-                                        <div className="form-group">
-                                            <label>Reference :</label>
-                                            <select className="form-control" name="refferal_id" id="refferal_id">
-                                                <option selected="" disabled="">Select Super Distributer</option>
-                                                <option value="66585f1745c592e98605fd19">punesd</option>
-                                                <option value="66585f3fb72918110f0cc338">Khandalasd</option>
-                                                <option value="6696650876d23cf39002e218">snsinga001</option>
-                                                <option value="66c22f32bce28d04e205b642">emirates</option>
-                                                <option value="66d84c94df109e0af4057bf4">bkpatil</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div className="col-sm-6">
-                                        <div className="form-group">
-                                            <label>Note :</label>
-                                            <input type="text" className="form-control" name="note" value="" autocomplete="off" />
-                                        </div>
-                                    </div>
-                                    <div className="col-sm-6">
-                                        <div className="form-group">
-                                            <label>Commission :</label>
-                                            <input type="text" className="form-control" name="commission" value="" autocomplete="off" />
-                                            <div id="commssion"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="row mb-2">
-                                    <div className="col-sm-6">
-                                        <div className="form-group">
-                                            <label for="exampleInputPassword2" className="col-sm-3 col-form-label pl-0">Status :</label>
-                                            <div className="form-check form-check-inline">
-                                                <label className="form-check-label">
-                                                    <input type="radio" className="form-check-input" name="status" value="true" checked="" />Active
-                                                    <i className="input-frame"></i></label>
-                                            </div>
-                                            <div className="form-check form-check-inline">
-                                                <label className="form-check-label">
-                                                    <input type="radio" className="form-check-input" name="status" value="false" />Deactive
-                                                    <i className="input-frame"></i></label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="row">
-                                    <div className="col-sm-6">
-                                        <div className="form-group">
-                                            <button type="submit" className="btn btn-primary mr-2">Submit</button>
-                                            <button
-                                                type="button"
-                                                onClick={() => window.history.back()}
-                                                className="btn btn-light"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
-    if (action === "edit") {
-        return (
-            <div className="row">
-                <div className="col-md-12 grid-margin stretch-card">
-                    <div className="card">
-                        <div className="card-body">
-                            <h6 className="card-title">Edit Distributer</h6>
-                            <form className="forms-sample" method="post" action="../../Distributer/66c31869d962b47f8d03d083">
-                                <input type="hidden" name="_token" value="mSiRWcrtPaqPmLnSxuogDJQLYqhCLNfEnkxHJM6K" />
-                                <input type="hidden" name="_method" value="PUT" />
-                                <div className="row">
-                                    <div className="col-sm-6">
-                                        <div className="form-group">
-                                            <label>User Name :</label>
-                                            <input type="text" className="form-control" name="user_name" readOnly="" value="india" autoComplete="off" />
-                                        </div>
-                                    </div>
-                                    <div className="col-sm-6">
-                                        <div className="form-group">
-                                            <label>Password :</label>
-                                            <input type="text" className="form-control" name="password" value="123123" autoComplete="off" />
-                                        </div>
-                                    </div>
-                                    <input type="hidden" className="form-control" name="refferal_id" value="62174b0b9360000054002472" autoComplete="off" />
-                                    <div className="col-sm-6">
-                                        <div className="form-group">
-                                            <label>Commission :</label>
-                                            <input type="text" className="form-control" name="commission" value="0" autoComplete="off" />
-                                        </div>
-                                    </div>
-                                    <div className="col-sm-6">
-                                        <div className="form-group">
-                                            <label>Note :</label>
-                                            <input type="text" className="form-control" name="note" value="Savera Group" autoComplete="off" />
-                                        </div>
-                                    </div>
-                                    <div className="col-sm-6">
-                                        <div className="form-group">
-                                            <label>Reference :</label>
-                                            <select className="form-control" name="refferal_id" id="refferal_id">
-                                                <option selected="" disabled="">Select Super Distributer</option>
-                                                <option value="66585f1745c592e98605fd19">punesd</option>
-                                                <option value="66585f3fb72918110f0cc338">Khandalasd</option>
-                                                <option value="6696650876d23cf39002e218">snsinga001</option>
-                                                <option value="66c22f32bce28d04e205b642" selected="">emirates</option>
-                                                <option value="66d84c94df109e0af4057bf4">bkpatil</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="row mb-2">
-                                    <div className="col-sm-6">
-                                        <div className="form-group">
-                                            <label for="exampleInputPassword2" className="col-sm-3 col-form-label pl-0">Status :</label>
-                                            <div className="form-check form-check-inline">
-                                                <label className="form-check-label">
-                                                    <input type="radio" className="form-check-input" name="status" value="true" checked="" />Active
-                                                    <i className="input-frame"></i></label>
-                                            </div>
-                                            <div className="form-check form-check-inline">
-                                                <label className="form-check-label">
-                                                    <input type="radio" className="form-check-input" name="status" value="false" />Deactive
-                                                    <i className="input-frame"></i></label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="row">
-                                    <div className="col-sm-6">
-                                        <div className="form-group">
-                                            <button type="submit" className="btn btn-primary mr-2">Submit</button>
-                                            <button
-                                                type="button"
-                                                onClick={() => window.history.back()}
-                                                className="btn btn-light"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
-    if (action === "transfercredit") {
-        return (
-            <div className="row">
-                <div className="col-md-12 grid-margin stretch-card">
-                    <div className="card">
-                        <div className="card-header">
-                            <h6>Credit Transfer</h6>
-                        </div>
-                        <div className="card-body">
-
-                            <form method="post" action="transfercredit" >
-                                <input type="hidden" name="_token" value="mSiRWcrtPaqPmLnSxuogDJQLYqhCLNfEnkxHJM6K" />                        <div className="form-group d-flex">
-                                    <div className="col-sm-3 offset-lg-3">
-                                        <h4 className="breadcrumb bg-light">User: india</h4><br />
-                                        <h4 className="breadcrumb bg-light">Credits: 217.00</h4><br />
-                                        <h4 className="breadcrumb bg-light">Hierarchy Credit: 53,785.00</h4>
-                                    </div>
-                                </div>
-                                <div className="form-group d-flex">
-                                    <label className="col-sm-2 offset-lg-1 text-right control-label mt-2">Amount to Transfer</label>
-                                    <div className="col-sm-6">
-                                        <input type="number" className="form-control ui-autocomplete-input " id="exampleInputUsername1" value="" name="amount" autoComplete="off" />
-                                        <input type="hidden" value="66c31869d962b47f8d03d083" name="id" autoComplete="off" />
-                                    </div>
-                                </div>
-                                <div className="form-group d-flex">
-                                    <label className="col-sm-2 offset-lg-1 text-right control-label mt-2">Password</label>
-                                    <div className="col-sm-6">
-                                        <input type="password" className="form-control ui-autocomplete-input " id="exampleInputUsername1" value="" name="password" autoComplete="off" />
-                                    </div>
-                                </div>
-                                <div className="form-group d-flex">
-                                    <label className="col-sm-2 offset-lg-1 text-right control-label mt-2"></label>
-                                    <div className="col-sm-6" style={{ display: "flex", gap: "10px" }}>
-                                        <button type="submit" className="btn btn-primary">Credit Transfer</button>
-                                        <button
-                                            type="button"
-                                            onClick={() => window.history.back()}
-                                            className="btn btn-light"
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
-
-    if (action === "adjustcredit") {
-        return (
-            <div className="row">
-                <div className="col-md-12 grid-margin stretch-card">
-                    <div className="card">
-                        <div className="card-header">
-                            <h6>Credit Adjust</h6>
-                        </div>
-                        <div className="card-body">
-
-                            <form method="post" action="../../Distributer/66c31869d962b47f8d03d083/adjustcredit">
-                                <input type="hidden" name="_token" value="mSiRWcrtPaqPmLnSxuogDJQLYqhCLNfEnkxHJM6K" />                        <div className="form-group d-flex">
-                                    <div className="col-sm-3 offset-lg-3">
-                                        <h4 className="breadcrumb bg-light">User: india</h4><br />
-                                        <h4 className="breadcrumb bg-light">Credits: 217.00</h4><br />
-                                        <h4 className="breadcrumb bg-light">Hierarchy Credit: 52,816.00</h4>
-                                    </div>
-                                </div>
-                                <div className="form-group d-flex">
-                                    <label className="col-sm-2 offset-lg-1 text-right control-label mt-2">Amount to Transfer</label>
-                                    <div className="col-sm-6">
-                                        <input type="number" className="form-control ui-autocomplete-input " id="exampleInputUsername1" value="" name="amount" autoComplete="off" />
-                                        <input type="hidden" value="66c31869d962b47f8d03d083" name="id" autoComplete="off" />
-                                    </div>
-                                </div>
-                                <div className="form-group d-flex">
-                                    <label className="col-sm-2 offset-lg-1 text-right control-label mt-2">Password</label>
-                                    <div className="col-sm-6">
-                                        <input type="password" className="form-control ui-autocomplete-input " id="exampleInputUsername1" value="" name="password" autoComplete="off" />
-                                    </div>
-                                </div>
-                                <div className="form-group d-flex">
-                                    <label className="col-sm-2 offset-lg-1 text-right control-label mt-2"></label>
-                                    <div className="col-sm-6" style={{ display: "flex", gap: "10px" }}>
-                                        <button type="submit" className="btn btn-primary">Credit Transfer</button>
-                                        <button
-                                            type="button"
-                                            onClick={() => window.history.back()}
-                                            className="btn btn-light"
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
-}
+};

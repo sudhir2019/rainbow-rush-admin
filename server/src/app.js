@@ -25,16 +25,23 @@ app.use(cookieParser());
 
 // Enable CORS for all origins in development mode
 // Configure CORS middleware to allow access from all origins
-if (process.env.NODE_ENV === "development") {
-  app.use(
-    cors({
-      exposedHeaders: ["Cookie", "Authorization"], // Expose specific headers
-      credentials: true, // Allow credentials (e.g., cookies)
-      origin: process.env.ACCESS_CONTROL_ALLOW_ORIGIN, // Allow access from all origins
-    })
-  );
-}
+const isDevelopment = process.env.NODE_ENV === "development";
 
+// Define allowed origins
+const allowedOrigins = isDevelopment
+  ? [process.env.ACCESS_CONTROL_ALLOW_ORIGIN || "http://localhost:5173"]
+  : ["http://localhost:3000"]; // Replace with your production domain
+
+// Configure CORS middleware
+const corsOptions = {
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  exposedHeaders: ["Cookie", "Authorization"],
+  credentials: true, // Allow credentials (cookies, Authorization headers, etc.)
+};
+
+app.use(cors(corsOptions));
 // HTTP request logger middleware (Morgan) with "tiny" format
 app.use(morgan("tiny"));
 

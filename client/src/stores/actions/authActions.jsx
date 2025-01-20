@@ -1,8 +1,8 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { POST, GET } from "../../utils/http";
 import { handleError } from "../../utils/error";
-import { getToken } from "../../utils/authUtils"; // Importing the getToken utility function
-// Async Thunks
+import { getCookie } from "../../utils/authUtils"; // Importing the getToken utility function
+
 export const signUpAsync = createAsyncThunk(
     "auth/signUp",
     async (userData, { rejectWithValue }) => {
@@ -17,8 +17,6 @@ export const signUpAsync = createAsyncThunk(
         }
     }
 );
-
-// Thunk for email token validation
 export const validateEmailTokenAsync = createAsyncThunk(
     "auth/validateEmailToken",
     async (token, { rejectWithValue }) => {
@@ -33,7 +31,6 @@ export const validateEmailTokenAsync = createAsyncThunk(
         }
     }
 );
-
 export const loginAsync = createAsyncThunk(
     "auth/login",
     async (credentials, { rejectWithValue }) => {
@@ -49,13 +46,12 @@ export const loginAsync = createAsyncThunk(
         }
     }
 )
-
 export const getSessionAsync = createAsyncThunk(
     "auth/getSession",
     async (_, { rejectWithValue }) => {
         try {
-            const token = getToken(); // Retrieve token from authUtils
-            const { response, json } = await GET("auth/session", token);
+            const token = getCookie('session-token'); // Retrieve token from cookies
+            const { response, json } = await POST("auth/session", { token });
             if (response.status === 200) {
                 return json;
             }
@@ -65,7 +61,6 @@ export const getSessionAsync = createAsyncThunk(
         }
     }
 );
-
 export const sendResetPasswordEmailAsync = createAsyncThunk(
     "auth/sendResetPasswordEmail",
     async (email, { rejectWithValue }) => {
@@ -81,7 +76,6 @@ export const sendResetPasswordEmailAsync = createAsyncThunk(
         }
     }
 );
-
 export const resetPasswordAsync = createAsyncThunk(
     "auth/resetPassword",
     async ({ token, newPassword, confirmPassword }, { rejectWithValue }) => {
@@ -97,7 +91,6 @@ export const resetPasswordAsync = createAsyncThunk(
         }
     }
 );
-
 export const sendConfirmationEmailAsync = createAsyncThunk(
     "auth/sendConfirmationEmail",
     async (email, { rejectWithValue }) => {
@@ -111,8 +104,6 @@ export const sendConfirmationEmailAsync = createAsyncThunk(
         }
     }
 );
-
-
 export const logoutAsync = createAsyncThunk(
     "auth/logout",
     async (_, { rejectWithValue }) => {

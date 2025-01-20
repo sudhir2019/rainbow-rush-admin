@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import useUpdateUserDashboard from "../../hooks/admin/users/useUpdateUserDashboard";
+import MessageComponent from "./MessageComponent";
 
 export default function Edit({ userType }) {
     const { users, loading, error } = useSelector((state) => state.users);
@@ -50,28 +51,11 @@ export default function Edit({ userType }) {
                     <div className="card-body">
                         <h6 className="card-title">Edit {userType || "User"}</h6>
 
-                        {/* Success Message */}
-                        {message && <div className="alert alert-success">{message}</div>}
+                        {/* Success Message*/}
+                        {/* {message && <div className="alert alert-success">{message}</div>} */}
 
                         {/* Error Message */}
-                        {formError && <div className="alert alert-danger">{formError}</div>}
-
-                        {/* Validation Errors */}
-                        {errors?.Commission && (
-                            <div className="alert alert-danger">
-                                Commission is required
-                            </div>
-                        )}
-                        {errors?.note && (
-                            <div className="alert alert-danger">
-                                Note is required
-                            </div>
-                        )}
-                        {errors?.userStatus && (
-                            <div className="alert alert-danger">
-                                Please select a status
-                            </div>
-                        )}
+                        {/* {formError && <div className="alert alert-danger">{formError}</div>} */}
 
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <div className="row">
@@ -156,10 +140,34 @@ export default function Edit({ userType }) {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Conditional Reference Field */}
+                                {(userType === "Distributer" || userType === "Retailer" || userType === "User") && (
+                                    <div className="col-sm-6">
+                                        <div className="form-group">
+                                            <label>Reference:</label>
+                                            <select
+                                                className="form-control"
+                                                name="reference"
+                                                value={user.reference || ""}
+                                                {...register("reference", { required: true })}
+                                                onChange={handleInputChange}
+                                            >
+                                                <option value="">Select Reference</option>
+                                                {/* Add dynamic options here */}
+                                                <option value="1">Reference 1</option>
+                                                <option value="2">Reference 2</option>
+                                            </select>
+                                            {errors.reference && (
+                                                <div className="alert alert-danger">Reference is required</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <div className="row">
                                 <div className="col-sm-6">
-                                    <button type="submit" className="btn btn-primary mr-2" >
+                                    <button type="submit" className="btn btn-primary mr-2">
                                         {isLoading ? "Updating..." : "Submit"}
                                     </button>
                                     <button
@@ -172,6 +180,7 @@ export default function Edit({ userType }) {
                                 </div>
                             </div>
                         </form>
+                        <MessageComponent />
                     </div>
                 </div>
             </div>

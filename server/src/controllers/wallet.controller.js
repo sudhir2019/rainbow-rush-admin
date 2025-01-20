@@ -256,8 +256,18 @@ async function creditAdjust(req, res) {
       }
       senderWallet.individualCredit -= adjustAmount;
       receiverWallet.individualCredit += adjustAmount;
+      receiverWallet.hierarchyCredit += adjustAmount;
     } else if (transactionType === "credit") {
+      if (receiverWallet.individualCredit < adjustAmount) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(400).json({
+          success: false,
+          message: "Insufficient balance in receiver's wallet",
+        });
+      }
       senderWallet.individualCredit += adjustAmount;
+      senderWallet.hierarchyCredit += adjustAmount;
       receiverWallet.individualCredit -= adjustAmount;
     } else {
       await session.abortTransaction();

@@ -3,9 +3,6 @@ import { POST, PUT, GET, DELETE } from "../../utils/http";
 import { handleError } from "../../utils/error";
 import { getToken } from "../../utils/authUtils"; // Importing the getToken utility function
 
-
-
-// Async Thunks
 export const fetchWalletsAsync = createAsyncThunk(
     "wallet/fetchWalletsAsync",
     async (_, { rejectWithValue }) => {
@@ -22,7 +19,6 @@ export const fetchWalletsAsync = createAsyncThunk(
         }
     }
 );
-
 export const fetchWalletsById = createAsyncThunk(
     "wallet/fetchWalletsById",
     async (userId, { rejectWithValue }) => {
@@ -42,6 +38,7 @@ export const fetchWalletsById = createAsyncThunk(
 export const creditTransferAsync = createAsyncThunk(
     'wallet/creditTransfer',
     async (data, { rejectWithValue }) => {
+        console.log(data)
         try {
             const token = getToken(); // Retrieve token from authUtils
             const { response, json } = await POST("wallet/creditTransfer", data, token);
@@ -55,7 +52,6 @@ export const creditTransferAsync = createAsyncThunk(
         }
     }
 );
-
 export const creditAdjustAsync = createAsyncThunk(
     'wallet/creditAdjust',
     async (data, { rejectWithValue }) => {
@@ -87,7 +83,6 @@ export const updateWallet = createAsyncThunk(
         }
     }
 );
-
 export const createWallet = createAsyncThunk(
     "wallet/createWallet",
     async (data, { rejectWithValue }) => {
@@ -104,7 +99,6 @@ export const createWallet = createAsyncThunk(
         }
     }
 );
-
 export const deleteWallet = createAsyncThunk(
     "wallet/deleteWallet",
     async (id, { rejectWithValue }) => {

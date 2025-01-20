@@ -9,7 +9,6 @@ export const getToken = () => {
     // First, try to retrieve the token from localStorage
     const token = localStorage.getItem(TOKEN_KEY);
     if (token) return token;
-
     // Fallback to cookies if the token isn't in localStorage
     return getCookie(TOKEN_KEY);
 };
@@ -48,6 +47,7 @@ export const clearAuthData = () => {
  */
 export const getCookie = (name) => {
     const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+    if (!match) return null;
     return match ? decodeURIComponent(match[2]) : null;
 };
 
