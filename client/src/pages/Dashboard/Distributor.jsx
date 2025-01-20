@@ -53,7 +53,7 @@ export default function Distributor() {
     };
 
     if (action === "edit") {
-        return <Edit userType={"Distributer"} userDetails={any} />;
+        return <Edit userType={"Distributer"} userDetails={any} refe={superdistributers} />;
     }
     if (action === "credittransfer") {
         return <CreditTransfer userType={"Distributer"} userDetails={any} />;

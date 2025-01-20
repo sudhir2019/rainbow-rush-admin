@@ -10,7 +10,7 @@ import useActivateUser from '../../hooks/admin/users/useActivateUser';
 import useDeleteUser from '../../hooks/admin/users/useDeleteUser';
 const SuperDistributor = () => {
     const { action, any } = useParams();
-    const { superdistributers, loading, error } = useSelector((state) => state.users);
+    const { superdistributers,admins, loading, error } = useSelector((state) => state.users);
     const { wallets, isWalletLoading, walletwalletError, walletMessage } = useSelector((state) => state.wallets);
     const { activateUser, isLoading } = useActivateUser();
     const { deleteUser, users, message } = useDeleteUser();
@@ -53,7 +53,7 @@ const SuperDistributor = () => {
     };
 
     if (action === "edit") {
-        return <Edit userType={"Superdistributer"} userDetails={any} />;
+        return <Edit userType={"Superdistributer"} userDetails={any} refe={admins}/>;
     }
     if (action === "credittransfer") {
         return <CreditTransfer userType={"Superdistributer"} userDetails={any} />;
@@ -63,7 +63,7 @@ const SuperDistributor = () => {
     }
 
     if (action === "create") {
-        return <Add userType={"Superdistributer"} />;
+        return <Add userType={"Superdistributer"} refe={admins}/>;
     }
 
     if (action === undefined || action === null) {

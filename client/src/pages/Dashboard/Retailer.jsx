@@ -53,7 +53,7 @@ export default function Retailer() {
     };
 
     if (action === "edit") {
-        return <Edit userType={"Retailer"} userDetails={any} />;
+        return <Edit userType={"Retailer"} userDetails={any} refe={distributers} />;
     }
     if (action === "credittransfer") {
         return <CreditTransfer userType={"Retailer"} userDetails={any} />;
@@ -63,7 +63,7 @@ export default function Retailer() {
     }
 
     if (action === "create") {
-        return <Add userType={"Retailer"} refe={distributers}/>;
+        return <Add userType={"Retailer"} refe={distributers} />;
     }
 
     if (action === undefined || action === null) {

@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import useUpdateUserDashboard from "../../hooks/admin/users/useUpdateUserDashboard";
 import MessageComponent from "./MessageComponent";
 
-export default function Edit({ userType }) {
+export default function Edit({ userType, refe }) {
     const { users, loading, error } = useSelector((state) => state.users);
     const [user, setUser] = useState({});
     const { any } = useParams();
@@ -148,18 +148,18 @@ export default function Edit({ userType }) {
                                             <label>Reference:</label>
                                             <select
                                                 className="form-control"
-                                                name="reference"
-                                                value={user.reference || ""}
-                                                {...register("reference", { required: true })}
-                                                onChange={handleInputChange}
+                                                {...register("reference", { required: "Reference is required" })}
+                                                disabled={loading}
                                             >
                                                 <option value="">Select Reference</option>
-                                                {/* Add dynamic options here */}
-                                                <option value="1">Reference 1</option>
-                                                <option value="2">Reference 2</option>
+                                                {refe.map((ref, index) => (
+                                                    <option key={index} value={ref._id}>
+                                                        {ref.username}
+                                                    </option>
+                                                ))}
                                             </select>
                                             {errors.reference && (
-                                                <div className="alert alert-danger">Reference is required</div>
+                                                <p className="text-danger">{errors.reference.message}</p>
                                             )}
                                         </div>
                                     </div>

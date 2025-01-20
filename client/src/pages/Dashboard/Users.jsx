@@ -53,7 +53,7 @@ export default function Users() {
     };
 
     if (action === "edit") {
-        return <Edit userType={"User"} userDetails={any} />;
+        return <Edit userType={"User"} userDetails={any} refe={retailers} />;
     }
     if (action === "credittransfer") {
         return <CreditTransfer userType={"User"} userDetails={any} />;
