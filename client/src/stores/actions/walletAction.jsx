@@ -1,13 +1,14 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { POST, PUT, GET, DELETE } from "../../utils/http";
 import { handleError } from "../../utils/error";
-import { getToken } from "../../utils/authUtils"; // Importing the getToken utility function
 
 export const fetchWalletsAsync = createAsyncThunk(
     "wallet/fetchWalletsAsync",
-    async (_, { rejectWithValue }) => {
+    async (_, { getState, rejectWithValue }) => {
         try {
-            const token = getToken(); // Retrieve token from authUtils
+            // Log the full state to check the structure
+            const state = getState();  // Log the entire state to confirm it's accessible
+            const { token } = state.auth;
             const { response, json } = await GET(`wallet/`, token);
             // Successful response
             if (response.status === 200) {
@@ -21,9 +22,11 @@ export const fetchWalletsAsync = createAsyncThunk(
 );
 export const fetchWalletsById = createAsyncThunk(
     "wallet/fetchWalletsById",
-    async (userId, { rejectWithValue }) => {
+    async (userId, { getState, rejectWithValue }) => {
         try {
-            const token = getToken(); // Retrieve token from authUtils
+            // Log the full state to check the structure
+            const state = getState();  // Log the entire state to confirm it's accessible
+            const { token } = state.auth;
             const { response, json } = await GET(`wallet/:${userId}`, token);
             // Successful response
             if (response.status === 200) {
@@ -37,10 +40,11 @@ export const fetchWalletsById = createAsyncThunk(
 );
 export const creditTransferAsync = createAsyncThunk(
     'wallet/creditTransfer',
-    async (data, { rejectWithValue }) => {
-        console.log(data)
+    async (data, { getState, rejectWithValue }) => {
         try {
-            const token = getToken(); // Retrieve token from authUtils
+            // Log the full state to check the structure
+            const state = getState();  // Log the entire state to confirm it's accessible
+            const { token } = state.auth;
             const { response, json } = await POST("wallet/creditTransfer", data, token);
             // Successful response
             if (response.status === 200) {
@@ -54,9 +58,11 @@ export const creditTransferAsync = createAsyncThunk(
 );
 export const creditAdjustAsync = createAsyncThunk(
     'wallet/creditAdjust',
-    async (data, { rejectWithValue }) => {
+    async (data, { getState, rejectWithValue }) => {
         try {
-            const token = getToken(); // Retrieve token from authUtils
+            // Log the full state to check the structure
+            const state = getState();  // Log the entire state to confirm it's accessible
+            const { token } = state.auth;
             const { response, json } = await POST("wallet/creditAdjust", data, token);
             if (response.status === 200) {
                 return json;
@@ -69,9 +75,11 @@ export const creditAdjustAsync = createAsyncThunk(
 );
 export const updateWallet = createAsyncThunk(
     "wallet/updateWallet",
-    async ({ id, data }, { rejectWithValue }) => {
+    async ({ id, data }, { getState, rejectWithValue }) => {
         try {
-            const token = getToken(); // Retrieve token from authUtils
+            // Log the full state to check the structure
+            const state = getState();  // Log the entire state to confirm it's accessible
+            const { token } = state.auth;
             const { response, json } = await PUT(`wallet/${id}`, data, token);
             // Successful response
             if (response.status === 200) {
@@ -85,9 +93,11 @@ export const updateWallet = createAsyncThunk(
 );
 export const createWallet = createAsyncThunk(
     "wallet/createWallet",
-    async (data, { rejectWithValue }) => {
+    async (data, { getState, rejectWithValue }) => {
         try {
-            const token = getToken(); // Retrieve token from authUtils
+            // Log the full state to check the structure
+            const state = getState();  // Log the entire state to confirm it's accessible
+            const { token } = state.auth;
             const { response, json } = await POST("wallet/", data, token);
             // Successful response
             if (response.status === 201) {
@@ -101,9 +111,11 @@ export const createWallet = createAsyncThunk(
 );
 export const deleteWallet = createAsyncThunk(
     "wallet/deleteWallet",
-    async (id, { rejectWithValue }) => {
+    async (id, { getState, rejectWithValue }) => {
         try {
-            const token = getToken(); // Retrieve token from authUtils
+            // Log the full state to check the structure
+            const state = getState();  // Log the entire state to confirm it's accessible
+            const { token } = state.auth;
             const { response, json } = await DELETE(`wallet/${id}`, token);
             // Successful response
             if (response.status === 200) {

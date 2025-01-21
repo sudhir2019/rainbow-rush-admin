@@ -7,7 +7,6 @@ const useCreateUser = (userType = "User") => {
     const userRole = userType ? userType.replace(/\s+/g, '').toLowerCase() : "user";
     const dispatch = useDispatch();
     const { loading, message, error } = useSelector((state) => state.users);
-
     // Initialize useForm with validation rules
     const {
         register,

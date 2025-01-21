@@ -1,7 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { POST, GET } from "../../utils/http";
 import { handleError } from "../../utils/error";
-import { getCookie } from "../../utils/authUtils"; // Importing the getToken utility function
 
 export const signUpAsync = createAsyncThunk(
     "auth/signUp",
@@ -48,10 +47,9 @@ export const loginAsync = createAsyncThunk(
 )
 export const getSessionAsync = createAsyncThunk(
     "auth/getSession",
-    async (_, { rejectWithValue }) => {
+    async (token, { rejectWithValue }) => {
         try {
-            const token = getCookie('session-token'); // Retrieve token from cookies
-            const { response, json } = await POST("auth/session", { token });
+            const { response, json } = await GET("auth/session", { token });
             if (response.status === 200) {
                 return json;
             }

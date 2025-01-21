@@ -11,12 +11,13 @@ import {
 } from "../actions/authActions";
 
 // Utils
-import { clearToken, setToken, clearAuthData } from "../../utils/authUtils";
+import { clearToken, clearAuthData } from "../../utils/authUtils";
 
 // Initial State
 const initialState = {
     isLoading: false,
     isLoggedIn: false,
+    isLoadingSession: false,
     authUser: null, // No user data in local storage
     token: "",
     roles: [],
@@ -25,7 +26,7 @@ const initialState = {
     isAdmin: false,
     isSuperdistributers: false,
     isDistributers: false,
-    isRetailers:false,
+    isRetailers: false,
     isUser: false,
     session: null,
     isVerificationSuccessful: false,
@@ -76,9 +77,9 @@ const authSlice = createSlice({
                 state.roles = roles;
                 state.isAdmin = state.roles.includes("admin");
                 state.isUser = state.roles.includes("user");
-                state.isSuperdistributers= state.roles.includes("superdistributer");
-                state.isDistributers= state.roles.includes("distributer");
-                state.isRetailers= state.roles.includes("retailer");
+                state.isSuperdistributers = state.roles.includes("superdistributer");
+                state.isDistributers = state.roles.includes("distributer");
+                state.isRetailers = state.roles.includes("retailer");
             })
             .addCase(loginAsync.rejected, (state, action) => {
                 state.isLoading = false;
@@ -87,24 +88,25 @@ const authSlice = createSlice({
 
             // **Session**
             .addCase(getSessionAsync.pending, (state) => {
-                state.isLoading = true;
+                state.isLoadingSession = true;
             })
             .addCase(getSessionAsync.fulfilled, (state, action) => {
                 const { token, user } = action.payload;
-                state.isLoading = false;
+                console.log("session on slise:-", token);
+                state.isLoadingSession = false;
                 state.isLoggedIn = true;
                 state.token = token;
-                state.authUser= user;
+                state.authUser = user;
                 state.roles = user.roles.map((role) => role.name);
                 state.isAdmin = state.roles.includes("admin");
                 state.isUser = state.roles.includes("user");
-                state.isSuperdistributers= state.roles.includes("superdistributer");
-                state.isDistributers= state.roles.includes("distributer");
-                state.isRetailers= state.roles.includes("retailer");
+                state.isSuperdistributers = state.roles.includes("superdistributer");
+                state.isDistributers = state.roles.includes("distributer");
+                state.isRetailers = state.roles.includes("retailer");
 
             })
             .addCase(getSessionAsync.rejected, (state) => {
-                state.isLoading = false;
+                state.isLoadingSession = false;
                 clearAuthData();
             })
 

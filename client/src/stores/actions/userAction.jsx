@@ -1,20 +1,15 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { POST, PUT, GET, DELETE } from "../../utils/http";
 import { handleError } from "../../utils/error";
-import { getToken } from "../../utils/authUtils"; // Importing the getToken utility function
+
 
 export const fetchAllUsersAsync = createAsyncThunk(
     'users/fetchAll',
-    async (role, { rejectWithValue }) => {
+    async (role, { getState, rejectWithValue }) => {
         try {
-            const token = getToken(); // Retrieve token from authUtils
-            if (role) {
-                const { response, json } = await GET(`users?role=${role}`, token);
-                // Successful response
-                if (response.status === 200) {
-                    return json;
-                }
-            }
+            // Log the full state to check the structure
+            const state = getState();  // Log the entire state to confirm it's accessible
+            const { token } = state.auth;
             const { response, json } = await GET(`users/`, token);
             // Successful response
             if (response.status === 200) {
@@ -28,11 +23,11 @@ export const fetchAllUsersAsync = createAsyncThunk(
 );
 export const fetchUserByIdAsync = createAsyncThunk(
     'users/fetchById',
-    async (userId, { rejectWithValue }) => {
+    async (userId, { getState, rejectWithValue }) => {
         try {
-            const token = getToken(); // Retrieve token from authUtils
+            const state = getState();  // Log the entire state to confirm it's accessible
+            const { token } = state.auth;
             const { response, json } = await GET(`users/${userId}`, token);
-
             // Successful response
             if (response.status === 200) {
                 return json;
@@ -45,9 +40,10 @@ export const fetchUserByIdAsync = createAsyncThunk(
 );
 export const createUserAsync = createAsyncThunk(
     'users/create',
-    async (userData, { rejectWithValue }) => {
+    async (userData, { getState, rejectWithValue }) => {
         try {
-            const token = getToken(); // Retrieve token from authUtils
+            const state = getState();  // Log the entire state to confirm it's accessible
+            const { token } = state.auth;
             const { response, json } = await POST("users/", userData, token);
             // Successful response
             if (response.status === 201) {
@@ -61,9 +57,10 @@ export const createUserAsync = createAsyncThunk(
 );
 export const updateUserProfileAsync = createAsyncThunk(
     'users/updateProfile',
-    async (userData, { rejectWithValue }) => {
+    async (userData, { getState, rejectWithValue }) => {
         try {
-            const token = getToken(); // Retrieve token from authUtils
+            const state = getState();  // Log the entire state to confirm it's accessible
+            const { token } = state.auth;
             const { response, json } = await PUT(`users/me`, userData, token);
 
             // Successful response
@@ -78,11 +75,11 @@ export const updateUserProfileAsync = createAsyncThunk(
 );
 export const updateUserDashboardAsync = createAsyncThunk(
     'users/updateUserDashboard',
-    async ({ userData, id }, { rejectWithValue }) => { // Ensure we destructure properly here
+    async ({ userData, id }, { getState, rejectWithValue }) => { // Ensure we destructure properly here
         try {
-            const token = getToken(); // Retrieve token from authUtils
+            const state = getState();  // Log the entire state to confirm it's accessible
+            const { token } = state.auth;
             const { response, json } = await PUT(`users/admin/${id}`, userData, token, "json"); // Fixed the URL format
-
             // Successful response
             if (response.status === 200) {
                 return json; // Returns the response JSON if successful
@@ -96,9 +93,10 @@ export const updateUserDashboardAsync = createAsyncThunk(
 );
 export const activateUserAsync = createAsyncThunk(
     'users/:id/:action',
-    async ({ userId, action }, { rejectWithValue }) => {
-        const token = getToken();
+    async ({ userId, action }, { getState, rejectWithValue }) => {
         try {
+            const state = getState();
+            const { token } = state.auth; // Retrieve token from authUtils
             const { response, json } = await PUT(`users/:${userId}/${action}`, { status: action }, token, "json"); // Adjust `info` if backend requires it
             if (response.status === 200) {
                 return response.data;
@@ -111,9 +109,10 @@ export const activateUserAsync = createAsyncThunk(
 );
 export const deleteUserAsync = createAsyncThunk(
     'users/delete',
-    async (userId, { rejectWithValue }) => {
+    async (userId, { getState, rejectWithValue }) => {
         try {
-            const token = getToken(); // Retrieve token from authUtils
+            const state = getState();
+            const { token } = state.auth; // Retrieve token from authUtils
             const { response, json } = await DELETE(`users/${userId}`, token);
             console.log(json)
             // Successful response

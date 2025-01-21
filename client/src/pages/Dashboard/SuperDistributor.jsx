@@ -8,16 +8,20 @@ import CreditAdjust from "../../components/ActionModel/CreditAdjust";
 import Modal from "../../components/ActionModel/Modal";
 import useActivateUser from '../../hooks/admin/users/useActivateUser';
 import useDeleteUser from '../../hooks/admin/users/useDeleteUser';
+import useFetchAllWallets from '../../hooks/admin/wallets/useFetchAllWallets';
 const SuperDistributor = () => {
     const { action, any } = useParams();
-    const { superdistributers,admins, loading, error } = useSelector((state) => state.users);
-    const { wallets, isWalletLoading, walletwalletError, walletMessage } = useSelector((state) => state.wallets);
-    const { activateUser, isLoading } = useActivateUser();
+    const { superdistributers, admins, isLoading, error } = useSelector((state) => state.users);
+    const { wallets, isWalletLoading, walletwalletError, walletMessage } = useFetchAllWallets();
+    const { activateUser, loading } = useActivateUser();
     const { deleteUser, users, message } = useDeleteUser();
     const [modalVisible, setModalVisible] = useState(false);
     const [modalContent, setModalContent] = useState(null);
     const [modalTitle, setModalTitle] = useState("");
     const [onConfirmAction, setOnConfirmAction] = useState(null);
+    if (isLoading || isWalletLoading) {
+        return <div>Loading...</div>;
+    }
     const openModal = (content, title, onConfirm) => {
         setModalContent(content);
         setModalTitle(title);
@@ -53,7 +57,7 @@ const SuperDistributor = () => {
     };
 
     if (action === "edit") {
-        return <Edit userType={"Superdistributer"} userDetails={any} refe={admins}/>;
+        return <Edit userType={"Superdistributer"} userDetails={any} refe={admins} />;
     }
     if (action === "credittransfer") {
         return <CreditTransfer userType={"Superdistributer"} userDetails={any} />;
@@ -63,7 +67,7 @@ const SuperDistributor = () => {
     }
 
     if (action === "create") {
-        return <Add userType={"Superdistributer"} refe={admins}/>;
+        return <Add userType={"Superdistributer"} refe={admins} />;
     }
 
     if (action === undefined || action === null) {

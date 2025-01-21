@@ -6,7 +6,7 @@ export default function useActivateUser() {
     const dispatch = useDispatch();
 
     // Local state to manage loading and errors
-    const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState(null);
 
@@ -16,7 +16,7 @@ export default function useActivateUser() {
     const activateUser = useCallback(
         async (userId, action) => {
             console.log(`Activating user ${userId} with action ${action}`);
-            setIsLoading(true);
+            setLoading(true);
             setError(null);
             setSuccessMessage(null);
 
@@ -28,7 +28,7 @@ export default function useActivateUser() {
                 console.error('Error in activation:', err);
                 setError(err.message || 'Failed to update user status.');
             } finally {
-                setIsLoading(false);
+                setLoading(false);
             }
         },
         [dispatch]
@@ -36,7 +36,7 @@ export default function useActivateUser() {
 
     return {
         activateUser,
-        isLoading,
+        loading,
         error,
         successMessage,
         user,

@@ -184,15 +184,11 @@ async function sendConfirmationEmail(req, res) {
 // Get user session information
 async function getSession(req, res) {
   try {
-    const { token } = req.body;
-    // Get the session token from the cookie
     let cookieToken;
-    if (!cookieToken) {
       cookieToken = getCookieValueByName(
         req.cookies,
         process.env.SESSION_TOKEN || "session-token" // Fallback to default if undefined
       );
-    }
     if (!cookieToken) {
       // Log activity when no session token is found
       return res

@@ -18,7 +18,7 @@ let initialState = {
     distributers: [],
     retailers: [],
     users: [],
-    user: null,
+    user: [],
     error: null,
     message: null,
 };

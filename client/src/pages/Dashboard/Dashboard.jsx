@@ -4,8 +4,7 @@ import { useSelector } from "react-redux";
 import CardSkeleton from '../../components/Loader/DashboardCardSkeleton';  // Import the skeleton loader
 
 function Dashboard() {
-
-    const { users, loading, error } = useSelector((state) => state.users);
+    const { users, isLoading } = useSelector((state) => state.users);
     return (
         <div>
             <div className="d-flex justify-content-between align-items-center flex-wrap grid-margin">
@@ -16,15 +15,15 @@ function Dashboard() {
 
             <div className="row">
                 {/* Users Card */}
-                {loading ? (
-                    <CardSkeleton />
+                {isLoading ? (
+                    <h1>loding..</h1>
                 ) : (
                     <Card title="Users" value={users.length} icon={<UsersRound className='h-12 w-12' />} link="users.html" />
                 )}
 
                 {/* Game Bet Card */}
-                {loading ? (
-                    <CardSkeleton />
+                {isLoading ? (
+                    <h1>loding..</h1>
                 ) : (
                     <Card title="Game Bet" value="69917" icon={<Receipt className='h-12 w-12' />} link="GameBet.html" />
                 )}

@@ -10,14 +10,17 @@ import useActivateUser from '../../hooks/admin/users/useActivateUser';
 import useDeleteUser from '../../hooks/admin/users/useDeleteUser';
 export default function Users() {
     const { action, any } = useParams();
-    const { user, retailers, loading, error } = useSelector((state) => state.users);
+    const { user, retailers, isLoading, error } = useSelector((state) => state.users);
     const { wallets, isWalletLoading, walletwalletError, walletMessage } = useSelector((state) => state.wallets);
-    const { activateUser, isLoading } = useActivateUser();
+    const { activateUser, loading } = useActivateUser();
     const { deleteUser, users, message } = useDeleteUser();
     const [modalVisible, setModalVisible] = useState(false);
     const [modalContent, setModalContent] = useState(null);
     const [modalTitle, setModalTitle] = useState("");
     const [onConfirmAction, setOnConfirmAction] = useState(null);
+    if (isLoading || isWalletLoading) {
+        return <div>Loading...</div>;
+    }
     const openModal = (content, title, onConfirm) => {
         setModalContent(content);
         setModalTitle(title);

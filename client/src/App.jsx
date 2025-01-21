@@ -45,10 +45,10 @@ import Loader from "./components/Loader/Loader";
 // };
 // Protected Route Component
 // const ProtectedRoute = ({ element, redirectTo = "/auth/login", requiredRoles = [], accessDeniedPath = "/access-denied" }) => {
-//   const { isAdmin, isUser, isSuperdistributers, isRetailers, isDistributers, isLoggedIn, isLoading } = useSession();
+//   const { isAdmin, isUser, isSuperdistributers, isRetailers, isDistributers, isLoggedIn, isLoadingSession } = useSession();
 
 
-//   if (!isLoading) return <Loader />;
+//   if (isLoadingSession) return <Loader />;
 
 //   if (isLoggedIn) return <Navigate to={redirectTo} />;
 
@@ -57,7 +57,11 @@ import Loader from "./components/Loader/Loader";
 
 
 export default function App() {
-  const { isLoggedIn } = useSession();
+  const { isLoadingSession, isLoggedIn } = useSession();
+
+  if (isLoadingSession) {
+    return <Loader />;
+  }
 
   // Function to render routes
   const renderRoutes = (layout, routes) => (

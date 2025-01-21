@@ -21,7 +21,7 @@ router.post("/signup", [checkDuplicatedEmail, checkIsValidUser], signUp); // Sig
 
 router.post("/login", login); // Login route
 
-router.post("/session", getSession); // Get session information route
+router.get("/session", getSession); // Get session information route
 
 router.post("/forgotPassword", sendResetPasswordEmail); // Forgot password route
 
