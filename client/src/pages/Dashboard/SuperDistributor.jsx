@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BounceLoader, ScaleLoader } from "react-spinners"
 import { Link, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Add from "../../components/ActionModel/Add";
@@ -11,17 +12,14 @@ import useDeleteUser from '../../hooks/admin/users/useDeleteUser';
 import useFetchAllWallets from '../../hooks/admin/wallets/useFetchAllWallets';
 const SuperDistributor = () => {
     const { action, any } = useParams();
-    const { superdistributers, admins, isLoading, error } = useSelector((state) => state.users);
-    const { wallets, isWalletLoading, walletwalletError, walletMessage } = useFetchAllWallets();
-    const { activateUser, loading } = useActivateUser();
-    const { deleteUser, users, message } = useDeleteUser();
+    const { superdistributers, admins, isLoading } = useSelector((state) => state.users);
+    const { wallets } = useFetchAllWallets();
+    const { activateUser } = useActivateUser();
+    const { deleteUser } = useDeleteUser();
     const [modalVisible, setModalVisible] = useState(false);
     const [modalContent, setModalContent] = useState(null);
     const [modalTitle, setModalTitle] = useState("");
     const [onConfirmAction, setOnConfirmAction] = useState(null);
-    if (isLoading || isWalletLoading) {
-        return <div>Loading...</div>;
-    }
     const openModal = (content, title, onConfirm) => {
         setModalContent(content);
         setModalTitle(title);
@@ -161,7 +159,7 @@ const SuperDistributor = () => {
                                                                             )
                                                                         }
                                                                     >
-                                                                        <i className="fa fa-times-circle"></i>
+                                                                        <i className="fa fa-toggle-off"></i>
                                                                     </Link>
                                                                 ) : (
                                                                     // Render Activate Link if userStatus is false (inactive)
@@ -212,6 +210,11 @@ const SuperDistributor = () => {
                     onConfirm={onConfirmAction}>
                     {modalContent}
                 </Modal>
+                {isLoading && (
+                    <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                        <ScaleLoader />
+                    </div>
+                )}
             </div>
         );
     }

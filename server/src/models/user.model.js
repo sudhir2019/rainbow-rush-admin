@@ -93,6 +93,12 @@ const userSchema = new Schema(
         ref: "Wallet",
       },
     ],
+    referralTransaction: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "ReferTransaction",
+      },
+    ],
     userLogs: [
       {
         type: Schema.Types.ObjectId,

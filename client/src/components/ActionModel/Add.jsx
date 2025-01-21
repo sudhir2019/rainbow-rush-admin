@@ -104,12 +104,12 @@ export default function Add({ userType, refe }) {
                                 </div>
                                 {/* File Upload */}
                                 {/* <div className="col-sm-6">
-                                    <div className="form-group">
+                                    <div className="flex items-center g-7">
                                         <label>Upload File:</label>
-                                        <div className="custom-file">
+                                        <div className="custom-file ">
                                             <input
                                                 type="file"
-                                                className="custom-file-input"
+                                                className="w-5"
                                                 {...register("img")}
                                                 accept="image/*"
                                                 disabled={loading}
@@ -139,12 +139,12 @@ export default function Add({ userType, refe }) {
                                                 <label>Reference:</label>
                                                 <select
                                                     className="form-control"
-                                                    {...register("reference", { required: "Reference is required" })}
+                                                    {...register("refId", { required: "Reference is required" })}
                                                     disabled={loading}
                                                 >
                                                     <option value="">Select Reference</option>
                                                     {refe.map((ref, index) => (
-                                                        <option key={index} value={ref._id}>
+                                                        <option key={index} value={ref.refId}>
                                                             {ref.username}
                                                         </option>
                                                     ))}
@@ -156,29 +156,31 @@ export default function Add({ userType, refe }) {
                                         </div>
                                     )}
                                 {/* Status */}
-                                <div className="col-sm-6">
+                                <div className="col-sm-6 pt-9 ">
                                     <div className="form-group">
-                                        <label>Status:</label>
-                                        <div className="form-check form-check-inline">
-                                            <input
-                                                type="radio"
-                                                className="form-check-input"
-                                                {...register("userStatus", { required: "Status is required" })}
-                                                value="true"
-                                                defaultChecked
-                                                disabled={loading}
-                                            />
-                                            <label className="form-check-label">Active</label>
-                                        </div>
-                                        <div className="form-check form-check-inline">
-                                            <input
-                                                type="radio"
-                                                className="form-check-input"
-                                                {...register("userStatus")}
-                                                value="false"
-                                                disabled={loading}
-                                            />
-                                            <label className="form-check-label">Deactive</label>
+                                        <div className="flex text-center items-center gap-[30px]">
+                                            <label>Status:</label>
+                                            <div className="flex g-1">
+                                                <input
+                                                    type="radio"
+                                                    className="form-check-input"
+                                                    {...register("userStatus", { required: "Status is required" })}
+                                                    value="true"
+                                                    defaultChecked
+                                                    disabled={loading}
+                                                />
+                                                <label className="form-check-label">Active</label>
+                                            </div>
+                                            <div className="flex g-1">
+                                                <input
+                                                    type="radio"
+                                                    className="form-check-input"
+                                                    {...register("userStatus")}
+                                                    value="false"
+                                                    disabled={loading}
+                                                />
+                                                <label className="form-check-label">Deactive</label>
+                                            </div>
                                         </div>
                                         {errors.userStatus && (
                                             <p className="text-danger">{errors.userStatus.message}</p>

@@ -129,8 +129,16 @@ async function updateUserRoleById(req, res) {
 // Create user
 const createUser = async (req, res) => {
   try {
-    const { username, firstName, lastName, email, mobile, password, roles } =
-      req.body;
+    const {
+      username,
+      firstName,
+      lastName,
+      refId,
+      email,
+      mobile,
+      password,
+      roles,
+    } = req.body;
 
     const rolesFound = await Role.find({ name: { $in: roles } });
     const user = new User({
@@ -139,12 +147,39 @@ const createUser = async (req, res) => {
       mobile,
       password: await User.encryptPassword(password),
       roles: rolesFound.map((role) => role._id),
+      referredBy: refId, // Assuming referral ID is provided
     });
 
     if (email && !username) {
       const emailLocalPart = email.split("@")[0];
       user.username = emailLocalPart.toLowerCase(); // Convert to lowercase for consistency
     }
+    // Handle referral bonus (set status as pending)
+    if (refId) {
+      const referrer = await User.findOne({ refId: refId });
+      if (!referrer) {
+        return res.status(404).json({
+          successful: false,
+          message: "Referrer not found. Please check the referral code.",
+        });
+      }
+      if (referrer) {
+        const referralTransaction = new ReferTransaction({
+          referredUser: user._id, // Temporary user ID
+          referredBy: referrer._id, // Referrer's ID
+          refUserType: roles, // Assuming user type is temporal
+          commissionAmount: 0,
+          status: "paid",
+        });
+        user.referredBy = referrer.username;
+        // Save the referral transaction and store its ID in temporalUser
+        const savedTransaction = await referralTransaction.save();
+        user.referralTransaction.push(savedTransaction._id);
+        referrer.referralTransaction.push(savedTransaction._id);
+        await referrer.save();
+      }
+    }
+
     const wallet = await Wallet.create({
       userId: user._id,
     });
@@ -269,42 +304,119 @@ async function updateProfileById(req, res) {
   }
 }
 
-// Update
+// User Update Function (Dashboard)
 const updateUserByIdDashboard = async (req, res) => {
   const userId = req.params.id?.replace(/^:/, "");
-  const { Commission, note, userStatus } = req.body;
+  const { refId, Commission, note, userStatus } = req.body;
   try {
-    // Find user by username (assuming username is unique)
+    // Validate required fields (Commission, note, userStatus)
+    if (!Commission && !note && !userStatus) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "At least one field (Commission, note, or userStatus) is required for update.",
+      });
+    }
+
+    // Find user by ID
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "Superdistributor user not found",
+        message: "User not found",
       });
     }
 
-    // Update the fields (commission, note, status)
+    // If refId is provided, handle referral update logic (if needed)
+    if (refId) {
+      // Validate refId and ensure it's linked with a valid user
+      const referrer = await User.findOne({ refId: refId });
+
+      if (!referrer) {
+        return res.status(404).json({
+          success: false,
+          message: "Referrer not found. Invalid referral ID.",
+        });
+      }
+
+      // Check if the user is trying to refer themselves
+      if (user.referredBy === referrer.username) {
+        return res.status(404).json({
+          success: false,
+          message: "This user has already referred themselves.",
+        });
+      }
+
+      user.referredBy = referrer.username;
+
+      // Create a referral transaction with 'paid' status if the referrer exists
+      const referralTransaction = new ReferTransaction({
+        referredUser: user._id, // New user's ID
+        referredBy: referrer._id, // Referrer's ID
+        refUserType: user.roles, // Assuming user type is temporal
+        commissionAmount: 0, // Default commission amount, can be adjusted dynamically
+        status: "paid", // Set to 'paid'
+      });
+
+      // Save the referral transaction
+      const savedTransaction = await referralTransaction.save();
+
+      // Store the referral transaction ID in both the new user and referrer
+      user.referralTransaction.push(savedTransaction._id);
+      referrer.referralTransaction.push(savedTransaction._id);
+
+      // Save the updated referrer
+      await referrer.save();
+    }
+
+    // Update user fields (commission, note, userStatus)
     user.Commission = Commission || user.Commission;
     user.note = note || user.note;
     user.userStatus = userStatus || user.userStatus;
 
     // Save the updated user
     await user.save();
+
+    // Fetch the updated user and their referrer (if any)
+    const updatedUser = await User.findById(userId)
+      .populate("roles")
+      .populate("wallet")
+      .populate("userLogs")
+      .exec();
+
+    // Check if the user has a referrer and populate referrer data
+    let referrerDetails = null;
+    if (updatedUser.referredBy) {
+      const referrer = await User.findOne({ username: updatedUser.referredBy })
+        .populate("roles")
+        .populate("wallet")
+        .exec();
+      referrerDetails = {
+        username: referrer.username,
+        email: referrer.email,
+        mobile: referrer.mobile,
+        roles: referrer.roles,
+      };
+    }
+    // Fetch users
     const users = await User.find()
       .populate("roles")
       .populate("wallet")
       .populate("userLogs")
       .exec();
+
     return res.status(200).json({
       success: true,
-      message: "Superdistributor updated successfully",
+      message: "User updated successfully",
+      updatedUser: updatedUser,
       data: users,
+      referrer: referrerDetails, // Include referrer details if available
     });
   } catch (error) {
-    console.error("Error updating Superdistributor:", error);
+    console.error("Error updating user:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error. Could not update Superdistributor.",
+      message: "Internal Server Error. Could not update user.",
     });
   }
 };
@@ -355,10 +467,10 @@ async function deleteUserById(req, res) {
       });
     }
     const users = await User.find()
-    .populate("roles")
-    .populate("wallet")
-    .populate("userLogs")
-    .exec();
+      .populate("roles")
+      .populate("wallet")
+      .populate("userLogs")
+      .exec();
     // Return success response
     return res.status(200).json({
       success: true,

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { BounceLoader, ScaleLoader } from "react-spinners"
 import Add from "../../components/ActionModel/Add";
 import Edit from "../../components/ActionModel/Edit";
 import CreditTransfer from "../../components/ActionModel/CreditTransfer";
@@ -10,17 +11,15 @@ import useActivateUser from '../../hooks/admin/users/useActivateUser';
 import useDeleteUser from '../../hooks/admin/users/useDeleteUser';
 export default function Distributor() {
     const { action, any } = useParams();
-    const { distributers, superdistributers, isLoading, error } = useSelector((state) => state.users);
-    const { wallets, isWalletLoading, walletwalletError, walletMessage } = useSelector((state) => state.wallets);
-    const { activateUser, loading } = useActivateUser();
-    const { deleteUser, users, message } = useDeleteUser();
+    const { distributers, superdistributers, isLoading } = useSelector((state) => state.users);
+    const { wallets } = useSelector((state) => state.wallets);
+    const { activateUser } = useActivateUser();
+    const { deleteUser } = useDeleteUser();
     const [modalVisible, setModalVisible] = useState(false);
     const [modalContent, setModalContent] = useState(null);
     const [modalTitle, setModalTitle] = useState("");
     const [onConfirmAction, setOnConfirmAction] = useState(null);
-    if (isLoading || isWalletLoading) {
-        return <div>Loading...</div>;
-    }
+    
     const openModal = (content, title, onConfirm) => {
         setModalContent(content);
         setModalTitle(title);
@@ -161,7 +160,7 @@ export default function Distributor() {
                                                                             )
                                                                         }
                                                                     >
-                                                                        <i className="fa fa-times-circle"></i>
+                                                                        <i className="fa fa-toggle-off"></i>
                                                                     </Link>
                                                                 ) : (
                                                                     // Render Activate Link if userStatus is false (inactive)
@@ -212,6 +211,11 @@ export default function Distributor() {
                     onConfirm={onConfirmAction}>
                     {modalContent}
                 </Modal>
+                {isLoading && (
+                    <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                        <ScaleLoader />
+                    </div>
+                )}
             </div>
         );
     }

@@ -40,8 +40,6 @@ export default function Edit({ userType, refe }) {
         }));
     };
 
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p>Error: {error}</p>;
     if (!user) return <p>No user found with the provided ID.</p>;
 
     return (
@@ -109,35 +107,36 @@ export default function Edit({ userType, refe }) {
                                         />
                                     </div>
                                 </div>
-                                <div className="col-sm-6">
-                                    <div className="flex items-center ">
-                                        <label>Status:</label>
-                                        <div className="flex items-center ml-1">
-                                            <label className="flex items-center justify-between">
+                                {/* Status */}
+                                <div className="col-sm-6 pt-9 ">
+                                    <div className="form-group">
+                                        <div className="flex text-center items-center gap-[30px]">
+                                            <label>Status:</label>
+                                            <div className="flex g-1">
                                                 <input
                                                     type="radio"
-                                                    name="userStatus"
+                                                    className="form-check-input"
+                                                    {...register("userStatus", { required: "Status is required" })}
                                                     value="true"
-                                                    className="m-1"
-                                                    checked={user.userStatus === true}
-                                                    {...register("userStatus", { required: true })}
-                                                    onChange={handleInputChange}
+                                                    defaultChecked
+                                                    disabled={loading}
                                                 />
-                                                Active
-                                            </label>
-                                            <label className="flex items-center justify-between">
+                                                <label className="form-check-label">Active</label>
+                                            </div>
+                                            <div className="flex g-1">
                                                 <input
                                                     type="radio"
-                                                    name="userStatus"
+                                                    className="form-check-input"
+                                                    {...register("userStatus")}
                                                     value="false"
-                                                    className="m-1"
-                                                    checked={user.userStatus === false}
-                                                    {...register("userStatus", { required: true })}
-                                                    onChange={handleInputChange}
+                                                    disabled={loading}
                                                 />
-                                                Deactive
-                                            </label>
+                                                <label className="form-check-label">Deactive</label>
+                                            </div>
                                         </div>
+                                        {errors.userStatus && (
+                                            <p className="text-danger">{errors.userStatus.message}</p>
+                                        )}
                                     </div>
                                 </div>
 
@@ -148,12 +147,12 @@ export default function Edit({ userType, refe }) {
                                             <label>Reference:</label>
                                             <select
                                                 className="form-control"
-                                                {...register("reference", { required: "Reference is required" })}
+                                                {...register("refId", { required: "Reference is required" })}
                                                 disabled={loading}
                                             >
                                                 <option value="">Select Reference</option>
                                                 {refe.map((ref, index) => (
-                                                    <option key={index} value={ref._id}>
+                                                    <option key={index} value={ref.refId}>
                                                         {ref.username}
                                                     </option>
                                                 ))}

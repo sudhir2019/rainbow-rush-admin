@@ -85,7 +85,7 @@ export default function CreditAdjust({ userType }) {
                                     )}
                                 </div>
                             </div>
-
+                            <MessageComponent />
                             <div className="form-group d-flex">
                                 <label className="col-sm-2 offset-lg-1 text-right control-label mt-2"></label>
                                 <div className="col-sm-6" style={{ display: "flex", gap: "10px" }}>
@@ -104,9 +104,9 @@ export default function CreditAdjust({ userType }) {
                                         Cancel
                                     </button>
                                 </div>
+
                             </div>
                         </form>
-                        <MessageComponent />
                     </div>
                 </div>
             </div>

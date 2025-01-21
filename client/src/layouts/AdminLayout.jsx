@@ -15,8 +15,8 @@ function AdminLayout() {
 
     // Fetch users data when the component mounts and isLoadingSession is false (only once)
     useEffect(() => {
-        if (isLoadingSession) {
-            setHasFetchedUsers(false);
+        if(isLoadingSession){
+            setHasFetchedUsers(false)
         }
         if (!isLoadingSession && !hasFetchedUsers) {
             fetchAllUsers();

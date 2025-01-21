@@ -22,6 +22,7 @@ const useCreateUser = (userType = "User") => {
             email: "",
             mobile: "",
             password: "",
+            refId: "",
             roles: userRole,
             userStatus: "true",  // Default to active
             img: null,

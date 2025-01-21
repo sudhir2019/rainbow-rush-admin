@@ -60,6 +60,7 @@ export default function App() {
   const { isLoadingSession, isLoggedIn } = useSession();
 
   if (isLoadingSession) {
+    
     return <Loader />;
   }
   console.log(isLoggedIn);
