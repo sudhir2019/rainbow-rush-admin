@@ -21,6 +21,7 @@ let initialState = {
     user: [],
     error: null,
     message: null,
+    
 };
 
 

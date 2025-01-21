@@ -62,6 +62,7 @@ export default function App() {
   if (isLoadingSession) {
     return <Loader />;
   }
+  console.log(isLoggedIn);
 
   // Function to render routes
   const renderRoutes = (layout, routes) => (
