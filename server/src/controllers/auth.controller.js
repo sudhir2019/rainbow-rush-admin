@@ -186,10 +186,8 @@ async function getSession(req, res) {
   try {
     const { token } = req.body;
     // Get the session token from the cookie
-    let cookieToken = token;
-    console.log("cookieToken1:-", cookieToken);
+    let cookieToken;
     if (!cookieToken) {
-      console.log("cookieToken2:-", cookieToken);
       cookieToken = getCookieValueByName(
         req.cookies,
         process.env.SESSION_TOKEN || "session-token" // Fallback to default if undefined

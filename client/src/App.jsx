@@ -32,17 +32,17 @@ import LogActivities from "./pages/Dashboard/LogActivities";
 import Profile from "./pages/Dashboard/Profile";
 import Loader from "./components/Loader/Loader";
 
-const ProtectedRoute = ({ element, redirectTo = "/auth/login" }) => {
-  const { isAdmin, isUser, isSuperdistributers, isRetailers, isDistributers, isLoggedIn, isLoading } = useSession();
+// const ProtectedRoute = ({ element, redirectTo = "/auth/login" }) => {
+//   const { isAdmin, isUser, isSuperdistributers, isRetailers, isDistributers, isLoggedIn, isLoading } = useSession();
 
-  // While session is loading, show a loader
-  if (isLoading) {
-    return <Loader />;
-  }
+//   // While session is loading, show a loader
+// if (isLoading) {
+//   return <Loader />;
+// }
 
-  // If user is logged in, render the protected route element
-  return isLoggedIn ? element : <Navigate to={redirectTo} />;
-};
+// If user is logged in, render the protected route element
+// return isLoggedIn ? element : <Navigate to={redirectTo} />;
+// };
 // Protected Route Component
 // const ProtectedRoute = ({ element, redirectTo = "/auth/login", requiredRoles = [], accessDeniedPath = "/access-denied" }) => {
 //   const { isAdmin, isUser, isSuperdistributers, isRetailers, isDistributers, isLoggedIn, isLoading } = useSession();
@@ -85,26 +85,26 @@ export default function App() {
 
         {/* Protected Admin Routes */}
         {renderRoutes({ path: "admin", component: <AdminLayout /> }, [
-          { path: "dashboard", element: <ProtectedRoute element={<Dashboard />} /> },
-          { path: "company", element: <ProtectedRoute element={<Company />} /> },
-          { path: "company/:action", element: <ProtectedRoute element={<Company />} /> },
-          { path: "superdistributor", element: <ProtectedRoute element={<SuperDistributor />} /> },
-          { path: "superdistributor/:action/:any", element: <ProtectedRoute element={<SuperDistributor />} /> },
-          { path: "distributor", element: <ProtectedRoute element={<Distributor />} /> },
-          { path: "distributor/:action/:any", element: <ProtectedRoute element={<Distributor />} /> },
-          { path: "retailer", element: <ProtectedRoute element={<Retailer />} /> },
-          { path: "retailer/:action/:any", element: <ProtectedRoute element={<Retailer />} /> },
-          { path: "users", element: <ProtectedRoute element={<Users />} /> },
-          { path: "users/:action/:any", element: <ProtectedRoute element={<Users />} /> },
-          { path: "onlineplayers", element: <ProtectedRoute element={<OnlinePlayers />} /> },
-          { path: "gamehistory", element: <ProtectedRoute element={<GameHistory />} /> },
-          { path: "winpercentage", element: <ProtectedRoute element={<WinPercentage />} /> },
-          { path: "turnoverreport", element: <ProtectedRoute element={<TurnOverReport />} /> },
-          { path: "transactionreport", element: <ProtectedRoute element={<TransactionReport />} /> },
-          { path: "commissionpayoutReport", element: <ProtectedRoute element={<CommissionPayout />} /> },
-          { path: "admincommissionreport", element: <ProtectedRoute element={<AdminCommissionReport />} /> },
-          { path: "logactivities", element: <ProtectedRoute element={<LogActivities />} /> },
-          { path: "profile", element: <ProtectedRoute element={<Profile />} /> },
+          { path: "dashboard", element: <Dashboard /> },
+          { path: "company", element: <Company /> },
+          { path: "company/:action", element: <Company /> },
+          { path: "superdistributor", element: <SuperDistributor /> },
+          { path: "superdistributor/:action/:any", element: <SuperDistributor /> },
+          { path: "distributor", element: <Distributor /> },
+          { path: "distributor/:action/:any", element: <Distributor /> },
+          { path: "retailer", element: <Retailer /> },
+          { path: "retailer/:action/:any", element: <Retailer /> },
+          { path: "users", element: <Users /> },
+          { path: "users/:action/:any", element: <Users /> },
+          { path: "onlineplayers", element: <OnlinePlayers /> },
+          { path: "gamehistory", element: <GameHistory /> },
+          { path: "winpercentage", element: <WinPercentage /> },
+          { path: "turnoverreport", element: <TurnOverReport /> },
+          { path: "transactionreport", element: <TransactionReport /> },
+          { path: "commissionpayoutReport", element: <CommissionPayout /> },
+          { path: "admincommissionreport", element: <AdminCommissionReport /> },
+          { path: "logactivities", element: <LogActivities /> },
+          { path: "profile", element: <Profile /> },
           { path: "*", element: <Navigate to="/admin/dashboard" /> },
         ])}
 
