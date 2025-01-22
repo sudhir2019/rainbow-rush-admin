@@ -124,8 +124,8 @@ function Sidebar() {
                             {links.map((link, linkIndex) => (
                                 <li key={`link-${categoryIndex}-${linkIndex}`} className="nav-item">
                                     {link.submenu ? (
-                                        <a
-                                            href={link.to}
+                                        <NavLink
+                                            to={link.to}
                                             className="nav-link"
                                             onClick={(e) => {
                                                 e.preventDefault();
@@ -135,7 +135,7 @@ function Sidebar() {
                                             <i className="link-icon" data-feather={link.icon}></i>
                                             <span className="link-title">{link.label}</span>
                                             <i className="link-arrow" data-feather="chevron-down"></i>
-                                        </a>
+                                        </NavLink>
                                     ) : link.to ? (
                                         <NavLink
                                             to={link.to}

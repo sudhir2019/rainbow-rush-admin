@@ -9,10 +9,9 @@ import { NavLink } from "react-router-dom";
 import useLogout from "../../../hooks/Authentication/useLogout ";
 // Import the useLogout hook
 
-function Navbar() {
+function Navbar({ user }) {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const handleLogout = useLogout(); // Get the logout handler from the hook
-
     // Initialize Feather Icons
     useEffect(() => {
         feather.replace();
@@ -72,8 +71,8 @@ function Navbar() {
                                         <img src={favicon} alt="" />
                                     </div>
                                     <div className="info text-center">
-                                        <p className="name font-weight-bold mb-0">admin</p>
-                                        <p className="email text-muted mb-3">admin@gmail.com</p>
+                                        <p className="name font-weight-bold mb-0">{user.username}</p>
+                                        <p className="email text-muted mb-3">{user.email}</p>
                                     </div>
                                 </div>
                                 <div className="dropdown-body">
@@ -90,7 +89,7 @@ function Navbar() {
                                                 className="nav-link"
                                                 onClick={(e) => {
                                                     e.preventDefault();
-                                                    handleLogout(); // Call the logout function from the hook
+                                                    handleLogout(user._id); // Call the logout function from the hook
                                                 }}
                                             >
                                                 <i data-feather="log-out"></i>

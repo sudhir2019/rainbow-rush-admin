@@ -9,13 +9,13 @@ import useFetchAllUsers from '../hooks/admin/users/useFetchAllUsers';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { useEffect, useState } from 'react';
 function AdminLayout() {
-    const { isLoadingSession } = useSelector((state) => state.auth);
-    const { fetchAllUsers, isLoading } = useFetchAllUsers();
+    const { isLoadingSession, authUser } = useSelector((state) => state.auth);
+    const { fetchAllUsers } = useFetchAllUsers();
     const [hasFetchedUsers, setHasFetchedUsers] = useState(false); // State to track if the API has been called
 
     // Fetch users data when the component mounts and isLoadingSession is false (only once)
     useEffect(() => {
-        if(isLoadingSession){
+        if (isLoadingSession) {
             setHasFetchedUsers(false)
         }
         if (!isLoadingSession && !hasFetchedUsers) {
@@ -29,7 +29,7 @@ function AdminLayout() {
         <div className="main-wrapper h-screen" id="app">
             <Sidebar />
             <div className="page-wrapper">
-                <Navbar />
+                <Navbar user={authUser} />
                 <div className="page-content overflow-auto">
                     {isLoadingSession ? (
                         <div className="flex justify-center items-center h-full">

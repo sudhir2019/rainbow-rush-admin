@@ -33,7 +33,6 @@ const createRoles = async () => {
     console.error("Error creating roles:", err);
   }
 };
-
 const createUserIfNotExists = async (userData) => {
   try {
     const user = await User.findOne({ email: userData.email });
@@ -49,13 +48,21 @@ const createUserIfNotExists = async (userData) => {
       userData.username = emailLocalPart.toLowerCase(); // Convert to lowercase for consistency
     }
 
-    // Find roles or create if they don't exist
-    let roles = await Role.find({ name: userData.roles });
-    if (roles.length === 0) {
-      const newRole = await Role.create({ name: userData.roles });
-      roles = [newRole]; // Add the newly created role
-      // console.log(`Role ${userData.roles} created.`);
-    }
+    // Ensure roles is always an array
+    const rolesArray = Array.isArray(userData.roles)
+      ? userData.roles
+      : [userData.roles];
+
+    // Find or create roles
+    let roles = await Promise.all(
+      rolesArray.map(async (roleName) => {
+        return await Role.findOneAndUpdate(
+          { name: roleName },
+          { name: roleName },
+          { upsert: true, new: true } // Create role if not exists
+        );
+      })
+    );
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(userData.password, 10);
@@ -71,8 +78,9 @@ const createUserIfNotExists = async (userData) => {
       ...userData,
       password: hashedPassword,
       emailToken: token,
-      roles: roles.map((role) => role.id),
+      roles: roles.map((role) => role._id), // Save role IDs
     });
+
     const wallet = await Wallet.create({
       userId: newUser._id,
     });
@@ -81,7 +89,7 @@ const createUserIfNotExists = async (userData) => {
     newUser.wallet = wallet._id;
     await newUser.save();
 
-    // console.log(`User ${newUser.name} created with role(s): ${userData.roles}`);
+    console.log(`User ${newUser.name} created with role(s): ${userData.roles}`);
   } catch (err) {
     console.error(`Error creating user ${userData.name}:`, err.message);
   }

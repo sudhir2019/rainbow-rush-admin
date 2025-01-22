@@ -185,10 +185,10 @@ async function sendConfirmationEmail(req, res) {
 async function getSession(req, res) {
   try {
     let cookieToken;
-      cookieToken = getCookieValueByName(
-        req.cookies,
-        process.env.SESSION_TOKEN || "session-token" // Fallback to default if undefined
-      );
+    cookieToken = getCookieValueByName(
+      req.cookies,
+      process.env.SESSION_TOKEN || "session-token" // Fallback to default if undefined
+    );
     if (!cookieToken) {
       // Log activity when no session token is found
       return res
@@ -457,34 +457,47 @@ async function login(req, res) {
 async function logout(req, res) {
   try {
     const sessionToken = req.cookies[process.env.SESSION_TOKEN];
+
     if (!sessionToken) {
       return res.status(400).json({
         success: false,
         message: "No session token found. User is not logged in.",
       });
     }
-    if (req.body.userId) {
-      const user = await User.findById(req.body.userId);
-      if (user) {
-        // Set the user as logged out
-        user.isLoggedIn = false;
-        await user.save(); // Save the updated login statu
-      }
-      // Log the successful logout
-      await logUserActivity(req, req.body.userId, "Logout Successful", null);
-      // Clear the session token cookie
-      res.clearCookie(process.env.SESSION_TOKEN);
-      // Respond with a success message
-      return res.status(200).json({
-        success: true,
-        message: "User has logged out successfully",
+
+    // Decode the session token (JWT) to get the user ID
+    const decoded = jwt.verify(sessionToken, process.env.JWT_SECRET_KEY);
+    const userId = decoded.id;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID not found in the session token.",
       });
     }
-    return res.status(401).json({
-      success: false,
-      message: "User Id is not found",
+
+    // Find the user in the database
+    const user = await User.findById(userId);
+
+    if (user) {
+      // Set the user as logged out in the database
+      user.isLoggedIn = false;
+      await user.save(); // Save the updated login status
+    }
+
+    // Log the successful logout (You can customize logUserActivity)
+    await logUserActivity(req, userId, "Logout Successful", null);
+
+    // Clear the session token cookie
+    res.clearCookie(process.env.SESSION_TOKEN);
+
+    // Respond with a success message
+    return res.status(200).json({
+      success: true,
+      message: "User has logged out successfully",
     });
   } catch (error) {
+    console.error("Logout error:", error); // Log error for debugging
     // Respond with an error message
     return res.status(500).json({
       success: false,

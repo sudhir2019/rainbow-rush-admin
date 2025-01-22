@@ -18,7 +18,7 @@ const initialState = {
     isLoading: false,
     isLoggedIn: false,
     isLoadingSession: false,
-    authUser: null, // No user data in local storage
+    authUser: [], // No user data in local storage
     token: "",
     roles: [],
     serverError: null,

@@ -46,6 +46,9 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    lastLoginTime: {
+      type: Date,
+    },
     userStatus: {
       type: Boolean,
       default: true,
@@ -167,7 +170,21 @@ userSchema.statics.comparePassword = async (password, receivedPassword) => {
     throw new Error("Error comparing passwords: " + error.message);
   }
 };
+// Method to handle login logic and check the last login time
+userSchema.methods.login = async function () {
+  const now = new Date();
 
+  // If lastLoginTime exists and is older than 24 hours, set isLoggedIn to false
+  if (this.lastLoginTime && now - this.lastLoginTime > 24 * 60 * 60 * 1000) {
+    this.isLoggedIn = false;
+  }
+
+  // Update lastLoginTime and set isLoggedIn to true
+  this.lastLoginTime = now;
+  this.isLoggedIn = true;
+
+  await this.save();
+};
 // Create indexes for email, mobile and username
 
 userSchema.index({ username: 1 }, { unique: true });
