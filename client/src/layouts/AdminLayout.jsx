@@ -6,11 +6,15 @@ import Sidebar from '../components/layouts/Sidebar/Sidebar';
 import { useSelector } from "react-redux";
 import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
 import useFetchAllUsers from '../hooks/admin/users/useFetchAllUsers';
+import useFetchAllWallets from '../hooks/admin/wallets/useFetchAllWallets';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { useEffect, useState } from 'react';
+
 function AdminLayout() {
     const { isLoadingSession, authUser } = useSelector((state) => state.auth);
     const { fetchAllUsers } = useFetchAllUsers();
+    const { fetchAllWallets } = useFetchAllWallets();
+
     const [hasFetchedUsers, setHasFetchedUsers] = useState(false); // State to track if the API has been called
 
     // Fetch users data when the component mounts and isLoadingSession is false (only once)
@@ -20,9 +24,10 @@ function AdminLayout() {
         }
         if (!isLoadingSession && !hasFetchedUsers) {
             fetchAllUsers();
+            fetchAllWallets();
             setHasFetchedUsers(true); // Set flag to true after fetching
         }
-    }, [isLoadingSession, hasFetchedUsers, fetchAllUsers]);
+    }, [isLoadingSession, hasFetchedUsers, fetchAllUsers, fetchAllWallets]);
 
     // Combine both loading states (session and users loading)
     return (

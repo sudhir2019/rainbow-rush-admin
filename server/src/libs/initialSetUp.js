@@ -5,104 +5,78 @@ const { User } = require("../models/user.model");
 const Wallet = require("../models/wallet.model");
 const { Role } = require("../models/roles.model");
 
+// Create Roles with Unique Enforcement
 const createRoles = async () => {
   try {
-    const existingRoles = await Role.find().select("name").lean();
-    const existingRoleNames = existingRoles.map((role) => role.name);
+    const roles = ["superdistributer", "distributer", "retailer", "admin", "user"];
 
-    const rolesToCreate = [
-      "superdistributer",
-      "distributer",
-      "retailer",
-      "admin",
-      "user",
-    ]
-      .filter((roleName) => !existingRoleNames.includes(roleName)) // Only add roles that don't exist
-      .map((name) => ({ name }));
-
-    if (rolesToCreate.length > 0) {
-      await Role.insertMany(rolesToCreate);
-      console.log(
-        "Roles created:",
-        rolesToCreate.map((role) => role.name)
+    for (const roleName of roles) {
+      const role = await Role.findOneAndUpdate(
+        { name: roleName }, // Filter
+        { name: roleName }, // Update
+        { upsert: true, new: true, setDefaultsOnInsert: true } // Options
       );
-    } else {
-      console.log("All roles already exist. No roles created.");
+
+      if (role.wasNew) {
+        console.log(`Role created: ${roleName}`);
+      } else {
+        console.log(`Role already exists: ${roleName}`);
+      }
     }
   } catch (err) {
-    console.error("Error creating roles:", err);
+    console.error("Error creating roles:", err.message);
   }
 };
+
+// Create a User if it doesn't exist
 const createUserIfNotExists = async (userData) => {
   try {
-    const user = await User.findOne({ email: userData.email });
+    const user = await User.findOne({ username: userData.username });
 
     if (user) {
-      // User already exists, skipping creation.
-      return; // Exit if the user already exists
+      console.log(`User ${userData.username} already exists.`);
+      return;
     }
 
-    // If email exists but username is not set, generate the username
-    if (userData.email && !userData.username) {
-      const emailLocalPart = userData.email.split("@")[0];
-      userData.username = emailLocalPart.toLowerCase(); // Convert to lowercase for consistency
+    // Find role
+    const role = await Role.findOne({ name: userData.roles });
+    if (!role) {
+      console.error(`Role ${userData.roles} not found`);
+      return;
     }
 
-    // Ensure roles is always an array
-    const rolesArray = Array.isArray(userData.roles)
-      ? userData.roles
-      : [userData.roles];
-
-    // Find or create roles
-    let roles = await Promise.all(
-      rolesArray.map(async (roleName) => {
-        return await Role.findOneAndUpdate(
-          { name: roleName },
-          { name: roleName },
-          { upsert: true, new: true } // Create role if not exists
-        );
-      })
-    );
-
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
-
-    // Generate email confirmation token
-    const token = jwt.sign(
-      { id: userData.email },
-      process.env.JWT_EMAIL_CONFIRMATION_KEY
-    );
-
-    // Create the user instance
+    // Create new user
     const newUser = new User({
-      ...userData,
-      password: hashedPassword,
-      emailToken: token,
-      roles: roles.map((role) => role._id), // Save role IDs
+      username: userData.username,
+      password: await User.encryptPassword(userData.password),
+      roles: [role._id],
+      userStatus: true,
+      note: "System generated user",
+      Commission: 0,
     });
 
+    // Create wallet for the user
     const wallet = await Wallet.create({
       userId: newUser._id,
     });
 
-    // Save the new user to the database
-    newUser.wallet = wallet._id;
+    // Link wallet to user
+    newUser.wallet = [wallet._id];
     await newUser.save();
 
-    console.log(`User ${newUser.name} created with role(s): ${userData.roles}`);
+    console.log(`User ${newUser.username} created with role: ${userData.roles}`);
   } catch (err) {
-    console.error(`Error creating user ${userData.name}:`, err.message);
+    console.error(`Error creating user ${userData.username}:`, err.message);
   }
 };
 
+// Create Individual Users
 const createSuperDistributer = async () => {
   try {
     const superDistributerData = {
-      name: "superdistributer",
-      email: "superdistributer@localhost.com",
+      username: "superdistributer",
       roles: "superdistributer",
-      mobile: "1945514230",
-      password: "superdistributer123", // Change this to a secure password.
+      password: "superdistributer123",
     };
 
     await createUserIfNotExists(superDistributerData);
@@ -110,14 +84,13 @@ const createSuperDistributer = async () => {
     console.error("Error creating superdistributer user:", err);
   }
 };
+
 const createDistributer = async () => {
   try {
     const distributerData = {
-      name: "distributer",
-      email: "distributer@localhost.com",
+      username: "distributer",
       roles: "distributer",
-      mobile: "1945514231",
-      password: "distributer123", // Change this to a secure password.
+      password: "distributer123",
     };
 
     await createUserIfNotExists(distributerData);
@@ -125,29 +98,27 @@ const createDistributer = async () => {
     console.error("Error creating distributer user:", err);
   }
 };
+
 const createRetailer = async () => {
   try {
-    const RetailerData = {
-      name: "retailer",
-      email: "retailer@localhost.com",
+    const retailerData = {
+      username: "retailer",
       roles: "retailer",
-      mobile: "1945514232",
-      password: "retailer123", // Change this to a secure password.
+      password: "retailer123",
     };
 
-    await createUserIfNotExists(RetailerData);
+    await createUserIfNotExists(retailerData);
   } catch (err) {
     console.error("Error creating retailer user:", err);
   }
 };
+
 const createAdmin = async () => {
   try {
     const adminData = {
-      name: "admin",
-      email: "admin@localhost.com",
+      username: "admin",
       roles: "admin",
-      mobile: "1945514233",
-      password: "admin123", // Change this to a secure password.
+      password: "admin123",
     };
 
     await createUserIfNotExists(adminData);
@@ -159,11 +130,9 @@ const createAdmin = async () => {
 const createUser = async () => {
   try {
     const userData = {
-      name: "user",
-      email: "user@localhost.com",
+      username: "user",
       roles: "user",
-      mobile: "1945514234",
-      password: "user123", // Change this to a secure password.
+      password: "user123",
     };
     await createUserIfNotExists(userData);
   } catch (err) {
@@ -171,14 +140,25 @@ const createUser = async () => {
   }
 };
 
-// Create all users
+// Create All Users and Roles
 const createAllUsers = async () => {
-  await createSuperDistributer();
-  await createDistributer();
-  await createRetailer();
-  await createAdmin();
-  await createUser();
+  try {
+    console.log("Starting roles creation...");
+    await createRoles();
+    console.log("Roles created. Starting user creation...");
+
+    await createSuperDistributer();
+    await createDistributer();
+    await createRetailer();
+    await createAdmin();
+    await createUser();
+
+    console.log("All users and roles setup completed successfully.");
+  } catch (err) {
+    console.error("Error during setup:", err);
+  }
 };
+
 module.exports = {
   createRoles,
   createAllUsers,

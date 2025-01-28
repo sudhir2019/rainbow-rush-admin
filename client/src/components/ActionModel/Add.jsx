@@ -27,70 +27,25 @@ export default function Add({ userType, refe }) {
                             encType="multipart/form-data"
                         >
                             <div className="row">
-                                {/* First Name */}
+                                {/* User Name */}
                                 <div className="col-sm-6">
                                     <div className="form-group">
-                                        <label>First Name:</label>
+                                        <label>User Name :</label>
                                         <input
-                                            type="text"
+                                            type="username"
                                             className="form-control"
-                                            {...register("firstName", { required: "First name is required" })}
+                                            {...register("username", { required: "Username is required" })}
                                             disabled={loading}
                                         />
-                                        {errors.firstName && (
-                                            <p className="text-danger">{errors.firstName.message}</p>
-                                        )}
-                                    </div>
-                                </div>
-                                {/* Last Name */}
-                                <div className="col-sm-6">
-                                    <div className="form-group">
-                                        <label>Last Name:</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            {...register("lastName", { required: "Last name is required" })}
-                                            disabled={loading}
-                                        />
-                                        {errors.lastName && (
-                                            <p className="text-danger">{errors.lastName.message}</p>
-                                        )}
-                                    </div>
-                                </div>
-                                {/* Email */}
-                                <div className="col-sm-6">
-                                    <div className="form-group">
-                                        <label>Email:</label>
-                                        <input
-                                            type="email"
-                                            className="form-control"
-                                            {...register("email", { required: "Email is required" })}
-                                            disabled={loading}
-                                        />
-                                        {errors.email && (
-                                            <p className="text-danger">{errors.email.message}</p>
-                                        )}
-                                    </div>
-                                </div>
-                                {/* Mobile */}
-                                <div className="col-sm-6">
-                                    <div className="form-group">
-                                        <label>Mobile:</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            {...register("mobile", { required: "Mobile number is required" })}
-                                            disabled={loading}
-                                        />
-                                        {errors.mobile && (
-                                            <p className="text-danger">{errors.mobile.message}</p>
+                                        {errors.username && (
+                                            <p className="text-danger">{errors.username.message}</p>
                                         )}
                                     </div>
                                 </div>
                                 {/* Password */}
                                 <div className="col-sm-6">
                                     <div className="form-group">
-                                        <label>Password:</label>
+                                        <label>Password :</label>
                                         <input
                                             type="password"
                                             className="form-control"
@@ -102,35 +57,36 @@ export default function Add({ userType, refe }) {
                                         )}
                                     </div>
                                 </div>
-                                {/* File Upload */}
-                                {/* <div className="col-sm-6">
-                                    <div className="flex items-center g-7">
-                                        <label>Upload File:</label>
-                                        <div className="custom-file ">
-                                            <input
-                                                type="file"
-                                                className="w-5"
-                                                {...register("img")}
-                                                accept="image/*"
-                                                disabled={loading}
-                                            />
-                                            <label className="custom-file-label">
-                                                {imagePreview ? "Change File" : "Choose File"}
-                                            </label>
-                                        </div>
-                                        {imagePreview && (
-                                            <div className="mt-3">
-                                                <img
-                                                    src={imagePreview}
-                                                    alt="Preview"
-                                                    className="img-thumbnail"
-                                                    style={{ maxHeight: "100px", maxWidth: "100px" }}
-                                                />
-                                            </div>
+                                {/* User Name */}
+                                <div className="col-sm-6">
+                                    <div className="form-group">
+                                        <label>Commission :</label>
+                                        <input
+                                            type="commissionAmount"
+                                            className="form-control"
+                                            {...register("commissionAmount", { required: "commissionAmount is required" })}
+                                            disabled={loading}
+                                        />
+                                        {errors.commissionAmount && (
+                                            <p className="text-danger">{errors.commissionAmount.message}</p>
                                         )}
                                     </div>
-                                </div> */}
-                                {/* Conditional Reference Field */}
+                                </div>
+                                {/* Password */}
+                                <div className="col-sm-6">
+                                    <div className="form-group">
+                                        <label>Note :</label>
+                                        <input
+                                            type="note"
+                                            className="form-control"
+                                            {...register("note", { required: "note is required" })}
+                                            disabled={loading}
+                                        />
+                                        {errors.note && (
+                                            <p className="text-danger">{errors.note.message}</p>
+                                        )}
+                                    </div>
+                                </div>
                                 {(userType === "Distributer" ||
                                     userType === "Retailer" ||
                                     userType === "User") && (

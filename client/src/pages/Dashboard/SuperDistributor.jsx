@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BounceLoader, ScaleLoader } from "react-spinners"
+import { ScaleLoader } from "react-spinners"
 import { Link, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Add from "../../components/ActionModel/Add";
@@ -9,11 +9,11 @@ import CreditAdjust from "../../components/ActionModel/CreditAdjust";
 import Modal from "../../components/ActionModel/Modal";
 import useActivateUser from '../../hooks/admin/users/useActivateUser';
 import useDeleteUser from '../../hooks/admin/users/useDeleteUser';
-import useFetchAllWallets from '../../hooks/admin/wallets/useFetchAllWallets';
+
 const SuperDistributor = () => {
     const { action, any } = useParams();
     const { superdistributers, admins, isLoading } = useSelector((state) => state.users);
-    const { wallets } = useFetchAllWallets();
+    const { wallets } = useSelector((state) => state.wallets);
     const { activateUser } = useActivateUser();
     const { deleteUser } = useDeleteUser();
     const [modalVisible, setModalVisible] = useState(false);
@@ -117,6 +117,7 @@ const SuperDistributor = () => {
                                                             return 0.0//return null if no matching wallet is found
                                                         })}
 
+
                                                         <td>{new Date(superDistributer.createdAt).toLocaleString()}</td>
                                                         <td>
                                                             <div className="btn-group">
@@ -137,15 +138,6 @@ const SuperDistributor = () => {
                                                                 >
                                                                     <i className="fas fa-arrow-down"></i>
                                                                 </Link>
-                                                                {/* <Link
-                                                                    to=""
-                                                                    className="btn btn-outline-success"
-                                                                    onClick={handleCancel}
-                                                                >
-                                                                    <i className="fa fa-times-circle"></i>
-                                                                </Link> */}
-                                                                {/* Activate Link */}
-
                                                                 {superDistributer.userStatus ? (
                                                                     // Render Deactivate Link if userStatus is true (active)
                                                                     <Link
@@ -153,7 +145,7 @@ const SuperDistributor = () => {
                                                                         className="btn btn-outline-secondary"
                                                                         onClick={() =>
                                                                             openModal(
-                                                                                `Are you sure you want to deactivate ${superDistributer.name}?`,
+                                                                                `Are you sure you want to deactivate ${superDistributer.username}?`,
                                                                                 'Deactivate Confirmation',
                                                                                 () => handleActivateDeactivate(superDistributer._id, true)
                                                                             )
@@ -168,7 +160,7 @@ const SuperDistributor = () => {
                                                                         className="btn btn-outline-primary"
                                                                         onClick={() =>
                                                                             openModal(
-                                                                                `Are you sure you want to activate ${superDistributer.name}?`,
+                                                                                `Are you sure you want to activate ${superDistributer.username}?`,
                                                                                 'Activate Confirmation',
                                                                                 () => handleActivateDeactivate(superDistributer._id, false)
                                                                             )
@@ -182,7 +174,7 @@ const SuperDistributor = () => {
                                                                     className="btn btn-outline-danger delete-confirm"
                                                                     onClick={() =>
                                                                         openModal(
-                                                                            `Are you sure you want to  Delete ${superDistributer.name}?`,
+                                                                            `Are you sure you want to  Delete ${superDistributer.username}?`,
                                                                             'Delete Confirmation',
                                                                             () => handleDelete(superDistributer._id)
                                                                         )

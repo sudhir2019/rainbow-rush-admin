@@ -1,42 +1,98 @@
 const Game = require("../models/game.model");
 const { validationResult } = require("express-validator"); // To handle validation errors
 
-// POST: Create a new game
-const createGame = async (req, res) => {
+// GET: Get all games with filtering, pagination and search
+const getAllGames = async (req, res) => {
   try {
-    // 1. Validate incoming request data
-    const errors = validationResult(req); // Check if there are validation errors
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+    const {
+      search,
+      page = 1,
+      limit = 10,
+      status,
+      publisher,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = req.query;
+
+    // Build query object
+    let query = {};
+
+    // Add search functionality
+    if (search) {
+      query.$or = [
+        { gameName: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { publisher: { $regex: search, $options: "i" } },
+      ];
     }
 
-    // 2. Extract data from request
-    const { gameName, description, releaseDate, publisher, status, logo } =
-      req.body;
-    // Do not manually pass gameId; it's automatically generated in the pre-save hook
-    const newGame = new Game({
-      gameName,
-      description,
-      releaseDate,
-      publisher,
-      status: status || "active", // Default status is "active"
-      logo:
-        logo || "https://platopedia.com/docs/assets/images/logos/default.png", // Default logo if none provided
-    });
+    // Add status filter
+    if (status) {
+      query.status = status;
+    }
 
-    await newGame.save();
+    // Add publisher filter
+    if (publisher) {
+      query.publisher = publisher;
+    }
 
-    // 5. Return success response
-    return res.status(201).json({
-      message: "Game created successfully",
-      game: newGame,
+    // Calculate skip value for pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Build sort object
+    const sort = {};
+    sort[sortBy] = sortOrder === "asc" ? 1 : -1;
+
+    // Get total count for pagination
+    const totalCount = await Game.countDocuments(query);
+
+    // Get games with pagination and sorting
+    const games = await Game.find(query)
+      .sort(sort)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .exec();
+
+    // If no games found
+    if (games.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No games found for the given criteria.",
+      });
+    }
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(totalCount / parseInt(limit));
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+
+    // Return success response
+    return res.status(200).json({
+      success: true,
+      data: games,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages,
+        totalGames: totalCount,
+        hasNextPage,
+        hasPrevPage,
+        limit: parseInt(limit),
+      },
+      filters: {
+        search: search || null,
+        status: status || null,
+        publisher: publisher || null,
+      },
+      sorting: {
+        sortBy,
+        sortOrder,
+      },
     });
   } catch (error) {
-    // 6. Handle unexpected errors and provide a detailed error message
-    console.error("Error creating game:", error); // Log the error for internal tracking
-
+    console.error("Error fetching games:", error);
     return res.status(500).json({
-      message: "Error creating game",
+      success: false,
+      message: "Error fetching games",
       error: error.message,
     });
   }
@@ -47,21 +103,81 @@ const getGameById = async (req, res) => {
   try {
     const id = req.params.id?.replace(/^:/, "");
     const game = await Game.findById(id);
+
     if (!game) {
-      res.status(404).json({ message: "Game not found" });
-    } else {
-      res.status(200).json({ game });
+      return res.status(404).json({
+        success: false,
+        message: "Game not found",
+      });
     }
+
+    return res.status(200).json({
+      success: true,
+      data: game,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error fetching game", error: error.message });
+    console.error("Error fetching game:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching game",
+      error: error.message,
+    });
+  }
+};
+
+// POST: Create a new game
+const createGame = async (req, res) => {
+  try {
+    // Validate incoming request data
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array(),
+      });
+    }
+
+    // Extract data from request
+    const {nodigit, gameName, description, releaseDate, publisher, status, logo } =
+      req.body;
+
+    // Create new game instance
+    const newGame = new Game({
+      nodigit,
+      gameName,
+      description,
+      releaseDate,
+      publisher,
+      status: status || "active",
+      logo:
+        logo || "https://platopedia.com/docs/assets/images/logos/default.png",
+    });
+
+    // Save the game
+    await newGame.save();
+   // get all game
+   const games = await Game.find({});
+
+    // Return success response
+    return res.status(201).json({
+      success: true,
+      message: "Game created successfully",
+      data: games,
+    });
+  } catch (error) {
+    console.error("Error creating game:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error creating game",
+      error: error.message,
+    });
   }
 };
 
 // PUT: Update a game by gameId
 const updateGame = async (req, res) => {
   try {
+    const id = req.params.id?.replace(/^:/, "");
     // 1. Validate incoming request data
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -69,11 +185,10 @@ const updateGame = async (req, res) => {
     }
 
     // 2. Find and update the game by gameId
-    const updatedGame = await Game.findOneAndUpdate(
-      { gameId: req.params.gameId },
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const updatedGame = await Game.findOneAndUpdate({ _id: id }, req.body, {
+      new: true,
+      runValidators: true,
+    });
 
     // 3. If game not found, return 404
     if (!updatedGame) {
@@ -99,8 +214,9 @@ const updateGame = async (req, res) => {
 const deleteGame = async (req, res) => {
   try {
     // 1. Find and delete the game by gameId
+    const id = req.params.id?.replace(/^:/, "");
     const deletedGame = await Game.findOneAndDelete({
-      gameId: req.params.gameId,
+      _id: id,
     });
 
     // 2. If game not found, return 404
@@ -123,9 +239,71 @@ const deleteGame = async (req, res) => {
   }
 };
 
+// Toggle game status (active/inactive)
+const toggleGameStatus = async (req, res) => {
+  const gameId = req.params.id?.replace(/^:/, "");
+  const action = req.params.action;
+
+  try {
+    const game = await Game.findOne({ _id: gameId});
+    if (!game) {
+      return res.status(404).json({
+        success: false,
+        message: "Game not found",
+      });
+    }
+
+    // Validate and update status
+    if (action === "activate") {
+      if (game.status === "active") {
+        return res.status(400).json({
+          success: false,
+          message: "Game is already active",
+        });
+      }
+      game.status = "active";
+    } else if (action === "deactivate") {
+      if (game.status === "inactive") {
+        return res.status(400).json({
+          success: false,
+          message: "Game is already inactive",
+        });
+      }
+      game.status = "inactive";
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid action. Use 'activate' or 'deactivate'.",
+      });
+    }
+
+    await game.save();
+
+    // Fetch updated games list with pagination and sorting
+    const games = await Game.find({ isDeleted: false })
+      .sort({ createdAt: -1 })
+      .exec();
+
+    return res.status(200).json({
+      success: true,
+      message: `Game ${action}d successfully`,
+      data: games,
+    });
+  } catch (error) {
+    console.error(`Error occurred during game ${action}:`, error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
-  createGame,
+  getAllGames,
   getGameById,
+  createGame,
   updateGame,
   deleteGame,
+  toggleGameStatus
 };

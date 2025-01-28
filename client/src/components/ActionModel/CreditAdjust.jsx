@@ -39,7 +39,7 @@ export default function CreditAdjust({ userType }) {
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <div className="form-group d-flex">
                                 <div className="col-sm-3 offset-lg-3">
-                                    <h4 className="breadcrumb bg-light">User: {user.name}</h4>
+                                    <h4 className="breadcrumb bg-light">User : {user.username}</h4>
                                     <br />
                                     <h4 className="breadcrumb bg-light">
                                         Individual Credit: {(wallet?.individualCredit || 0).toFixed(2)}

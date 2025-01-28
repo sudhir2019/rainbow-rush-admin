@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { BounceLoader, ScaleLoader } from "react-spinners"
+import { ScaleLoader } from "react-spinners"
 import Add from "../../components/ActionModel/Add";
 import Edit from "../../components/ActionModel/Edit";
 import CreditTransfer from "../../components/ActionModel/CreditTransfer";
@@ -19,7 +19,7 @@ export default function Distributor() {
     const [modalContent, setModalContent] = useState(null);
     const [modalTitle, setModalTitle] = useState("");
     const [onConfirmAction, setOnConfirmAction] = useState(null);
-    
+
     const openModal = (content, title, onConfirm) => {
         setModalContent(content);
         setModalTitle(title);
@@ -138,14 +138,7 @@ export default function Distributor() {
                                                                 >
                                                                     <i className="fas fa-arrow-down"></i>
                                                                 </Link>
-                                                                {/* <Link
-                                                                    to=""
-                                                                    className="btn btn-outline-success"
-                                                                    onClick={handleCancel}
-                                                                >
-                                                                    <i className="fa fa-times-circle"></i>
-                                                                </Link> */}
-                                                                {/* Activate Link */}
+
 
                                                                 {distributer.userStatus ? (
                                                                     // Render Deactivate Link if userStatus is true (active)
@@ -154,7 +147,7 @@ export default function Distributor() {
                                                                         className="btn btn-outline-secondary"
                                                                         onClick={() =>
                                                                             openModal(
-                                                                                `Are you sure you want to deactivate ${distributer.name}?`,
+                                                                                `Are you sure you want to deactivate ${distributer.username}?`,
                                                                                 'Deactivate Confirmation',
                                                                                 () => handleActivateDeactivate(distributer._id, true)
                                                                             )
@@ -169,7 +162,7 @@ export default function Distributor() {
                                                                         className="btn btn-outline-primary"
                                                                         onClick={() =>
                                                                             openModal(
-                                                                                `Are you sure you want to activate ${distributer.name}?`,
+                                                                                `Are you sure you want to activate ${distributer.username}?`,
                                                                                 'Activate Confirmation',
                                                                                 () => handleActivateDeactivate(distributer._id, false)
                                                                             )
@@ -183,7 +176,7 @@ export default function Distributor() {
                                                                     className="btn btn-outline-danger delete-confirm"
                                                                     onClick={() =>
                                                                         openModal(
-                                                                            `Are you sure you want to  Delete ${distributer.name}?`,
+                                                                            `Are you sure you want to  Delete ${distributer.username}?`,
                                                                             'Delete Confirmation',
                                                                             () => handleDelete(distributer._id)
                                                                         )

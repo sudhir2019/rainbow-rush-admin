@@ -92,7 +92,6 @@ const authSlice = createSlice({
             })
             .addCase(getSessionAsync.fulfilled, (state, action) => {
                 const { token, user } = action.payload;
-                console.log("session on slise:-", token);
                 state.isLoadingSession = false;
                 state.isLoggedIn = true;
                 state.token = token;

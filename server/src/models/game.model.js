@@ -26,14 +26,22 @@ const gameSchema = new Schema(
       required: true,
       trim: true, // Remove leading and trailing spaces
     },
+    nodigit: {
+      type: Number,
+      required: true,                                                       
+    },
     logo: {
       type: String,
       default: "https://platopedia.com/docs/assets/images/logos/default.png",
     },
     status: {
       type: String,
-      enum: ["active", "inactive", "coming-soon", "archived"], // Possible status values
-      default: "active", // Default status is "active"
+      enum: ["active", "inactive"],
+      default: "active",
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
     description: {
       type: String,
@@ -61,6 +69,11 @@ gameSchema.pre("save", async function (next) {
   }
   next();
 });
+
+// Add a static method to find non-deleted games
+gameSchema.statics.findActive = function() {
+  return this.find({ isDeleted: false });
+};
 
 // Create the Game model
 const Game = mongoose.model("Game", gameSchema);

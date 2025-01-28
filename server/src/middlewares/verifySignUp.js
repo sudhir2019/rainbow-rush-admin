@@ -5,29 +5,17 @@ const TemporalUser = require("../models/temporalUser.model");
 const checkDuplicatedEmail = async (req, res, next) => {
   try {
     // Check if the email exists in the User collection
-    const userEmail = await User.findOne({ email: req.body.email });
-    if (userEmail)
-      return res.status(400).json({ message: "The email already exists" });
+    const username = await User.findOne({ username: req.body.username });
+    if (username)
+      return res.status(400).json({ message: "The username already exists" });
 
-    // Check if the Mobile exists in the User collection
-    const userMobile = await User.findOne({ mobile: req.body.mobile });
-    if (userMobile)
-      return res
-        .status(400)
-        .json({ message: "The mobile number already exists" });
-    // Check if the mobile exists in the TemporalUser collection
-    const tempMobile = await TemporalUser.findOne({ mobile: req.body.mobile });
-    if (tempMobile)
-      return res
-        .status(400)
-        .json({ message: "The mobile number already exists" });
-
-    // Check if the email exists in the TemporalUser collection
-    const tempEmail = await TemporalUser.findOne({ email: req.body.email });
-    if (tempEmail)
+    const tempUsername = await TemporalUser.findOne({
+      username: req.body.username,
+    });
+    if (tempUsername)
       return res.status(302).json({
         successful: false,
-        message: "Email unverified",
+        message: "username unverified",
         redirect: `/#/authentication/confirmation`,
         id: tempEmail._id,
       });

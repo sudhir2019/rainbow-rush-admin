@@ -1,8 +1,7 @@
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { createUserAsync } from "../../../stores/actions/userAction";
-import { clearMessage, clearError } from "../../../stores/slices/userSlice";
-import userFetchAllUsers from "../users/useFetchAllUsers";
+
 const useCreateUser = (userType = "User") => {
     const userRole = userType ? userType.replace(/\s+/g, '').toLowerCase() : "user";
     const dispatch = useDispatch();
@@ -13,23 +12,19 @@ const useCreateUser = (userType = "User") => {
         handleSubmit,
         setValue,
         reset,
-        watch,
         formState: { errors },
     } = useForm({
         defaultValues: {
-            firstName: "",
-            lastName: "",
-            email: "",
-            mobile: "",
+            username: "",
             password: "",
             refId: "",
+            commissionAmount: 0,
             roles: userRole,
+            note: "add notes",
             userStatus: "true",  // Default to active
-            img: null,
         },
     });
 
-    const imagePreview = watch("img") ? URL.createObjectURL(watch("img")[0]) : null;
 
     // Submit handler
     const onSubmit = async (data) => {
@@ -54,7 +49,6 @@ const useCreateUser = (userType = "User") => {
         message,
         error,
         errors,
-        imagePreview,
     };
 };
 

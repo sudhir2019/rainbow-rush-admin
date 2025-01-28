@@ -17,9 +17,7 @@ import SuperDistributor from "./pages/Dashboard/SuperDistributor";
 import Distributor from "./pages/Dashboard/Distributor";
 import Retailer from "./pages/Dashboard/Retailer";
 import Users from "./pages/Dashboard/Users";
-
-// Other Components
-import ToastContainers from "./components/Toast/ToastContainer";
+import GameMaster from "./pages/Dashboard/GameMaster";
 import Company from "./pages/Dashboard/Company";
 import OnlinePlayers from "./pages/Dashboard/OnlinePlayers";
 import GameHistory from "./pages/Dashboard/GameHistory";
@@ -30,6 +28,9 @@ import CommissionPayout from "./pages/Dashboard/CommissionPayout";
 import AdminCommissionReport from "./pages/Dashboard/AdminCommissionReport";
 import LogActivities from "./pages/Dashboard/LogActivities";
 import Profile from "./pages/Dashboard/Profile";
+
+// Other Components
+import ToastContainers from "./components/Toast/ToastContainer";
 import Loader from "./components/Loader/Loader";
 
 // const ProtectedRoute = ({ element, redirectTo = "/auth/login" }) => {
@@ -63,7 +64,7 @@ export default function App() {
     
     return <Loader />;
   }
-  console.log(isLoggedIn);
+  // console.log(isLoggedIn);
 
   // Function to render routes
   const renderRoutes = (layout, routes) => (
@@ -92,8 +93,12 @@ export default function App() {
         {/* Protected Admin Routes */}
         {renderRoutes({ path: "admin", component: <AdminLayout /> }, [
           { path: "dashboard", element: <Dashboard /> },
+          { path: "gamemaster", element: <GameMaster /> },
+          { path: "gamemaster/:action", element: <GameMaster /> },
+          { path: "gamemaster/:action/:any", element: <GameMaster /> },
           { path: "company", element: <Company /> },
           { path: "company/:action", element: <Company /> },
+          { path: "company/:action/:any", element: <Company /> },
           { path: "superdistributor", element: <SuperDistributor /> },
           { path: "superdistributor/:action/:any", element: <SuperDistributor /> },
           { path: "distributor", element: <Distributor /> },

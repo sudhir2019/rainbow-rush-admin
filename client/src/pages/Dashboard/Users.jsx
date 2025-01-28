@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { BounceLoader, ScaleLoader } from "react-spinners"
+import { ScaleLoader } from "react-spinners"
 import Add from "../../components/ActionModel/Add";
 import Edit from "../../components/ActionModel/Edit";
 import CreditTransfer from "../../components/ActionModel/CreditTransfer";
@@ -106,16 +106,17 @@ export default function Users() {
                                                         <td>{use.refId}</td>
                                                         <td>{use.username}</td>
                                                         {use.wallet.map((point, walletIndex) => {
-                                                            const matchingWallet = wallets.find((wallet) => wallet._id === point._id); // Find the matching wallet
-                                                            if (matchingWallet) {
-                                                                return (
-                                                                    <td className="p-2" key={`${walletIndex}-${matchingWallet._id}`}>
-                                                                        {matchingWallet.individualCredit}
-                                                                    </td>
-                                                                );
-                                                            }
-                                                            return 0.0//return null if no matching wallet is found
-                                                        })}
+                                                          const matchingWallet = wallets.find((wallet) => wallet._id === point._id); // Find the matching wallet
+                                                          if (matchingWallet) {
+                                                              return (
+                                                                  <td className="p-2" key={`${walletIndex}-${matchingWallet._id}`}>
+                                                                      {matchingWallet.individualCredit}
+                                                                  </td>
+                                                              );
+                                                          }
+                                                          return 0.0//return null if no matching wallet is found
+                                                      })}
+
                                                         {use.isLoggedIn ? (
                                                             <td><span className="badge text-white bg-success">Online</span></td>
                                                         ) : (
@@ -141,14 +142,6 @@ export default function Users() {
                                                                 >
                                                                     <i className="fas fa-arrow-down"></i>
                                                                 </Link>
-                                                                {/* <Link
-                                                                to=""
-                                                                className="btn btn-outline-success"
-                                                                onClick={handleCancel}
-                                                            >
-                                                                <i className="fa fa-times-circle"></i>
-                                                            </Link> */}
-                                                                {/* Activate Link */}
 
                                                                 {use.userStatus ? (
                                                                     // Render Deactivate Link if userStatus is true (active)
@@ -157,7 +150,7 @@ export default function Users() {
                                                                         className="btn btn-outline-secondary"
                                                                         onClick={() =>
                                                                             openModal(
-                                                                                `Are you sure you want to deactivate ${use.name}?`,
+                                                                                `Are you sure you want to deactivate ${use.username}?`,
                                                                                 'Deactivate Confirmation',
                                                                                 () => handleActivateDeactivate(use._id, true)
                                                                             )
@@ -172,7 +165,7 @@ export default function Users() {
                                                                         className="btn btn-outline-primary"
                                                                         onClick={() =>
                                                                             openModal(
-                                                                                `Are you sure you want to activate ${use.name}?`,
+                                                                                `Are you sure you want to activate ${use.username}?`,
                                                                                 'Activate Confirmation',
                                                                                 () => handleActivateDeactivate(use._id, false)
                                                                             )
@@ -186,7 +179,7 @@ export default function Users() {
                                                                     className="btn btn-outline-danger delete-confirm"
                                                                     onClick={() =>
                                                                         openModal(
-                                                                            `Are you sure you want to  Delete ${use.name}?`,
+                                                                            `Are you sure you want to  Delete ${use.username}?`,
                                                                             'Delete Confirmation',
                                                                             () => handleDelete(use._id)
                                                                         )

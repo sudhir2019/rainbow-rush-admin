@@ -18,10 +18,7 @@ const {
   checkDuplicatedEmail,
   checkRolesExisted,
 } = require("../middlewares/verifySignUp");
-const {
-  checkIsValidUser,
-  checkIsValidUpdate,
-} = require("../middlewares/userValidator");
+const {checkIsValidUser} = require("../middlewares/userValidator");
 
 // Multer configuration for handling file uploads
 const storageProduct = multer.diskStorage({
@@ -66,7 +63,7 @@ router.get("/:id", [verifyToken], getUserById);
 
 router.put(
   "/me",
-  [verifyToken, checkIsValidUpdate, uploadProduct.single("img")],
+  [verifyToken, uploadProduct.single("img")],
   updateProfileById
 );
 router.put("/admin/:id", [verifyToken], updateUserByIdDashboard);

@@ -137,14 +137,6 @@ export default function Retailer() {
                                                                 >
                                                                     <i className="fas fa-arrow-down"></i>
                                                                 </Link>
-                                                                {/* <Link
-                                                                    to=""
-                                                                    className="btn btn-outline-success"
-                                                                    onClick={handleCancel}
-                                                                >
-                                                                    <i className="fa fa-times-circle"></i>
-                                                                </Link> */}
-                                                                {/* Activate Link */}
 
                                                                 {retailer.userStatus ? (
                                                                     // Render Deactivate Link if userStatus is true (active)
@@ -153,7 +145,7 @@ export default function Retailer() {
                                                                         className="btn btn-outline-secondary"
                                                                         onClick={() =>
                                                                             openModal(
-                                                                                `Are you sure you want to deactivate ${retailer.name}?`,
+                                                                                `Are you sure you want to deactivate ${retailer.username}?`,
                                                                                 'Deactivate Confirmation',
                                                                                 () => handleActivateDeactivate(retailer._id, true)
                                                                             )
@@ -168,7 +160,7 @@ export default function Retailer() {
                                                                         className="btn btn-outline-primary"
                                                                         onClick={() =>
                                                                             openModal(
-                                                                                `Are you sure you want to activate ${retailer.name}?`,
+                                                                                `Are you sure you want to activate ${retailer.username}?`,
                                                                                 'Activate Confirmation',
                                                                                 () => handleActivateDeactivate(retailer._id, false)
                                                                             )
@@ -182,7 +174,7 @@ export default function Retailer() {
                                                                     className="btn btn-outline-danger delete-confirm"
                                                                     onClick={() =>
                                                                         openModal(
-                                                                            `Are you sure you want to  Delete ${retailer.name}?`,
+                                                                            `Are you sure you want to  Delete ${retailer.username}?`,
                                                                             'Delete Confirmation',
                                                                             () => handleDelete(retailer._id)
                                                                         )

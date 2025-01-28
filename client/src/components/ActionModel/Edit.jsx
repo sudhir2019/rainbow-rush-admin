@@ -64,7 +64,7 @@ export default function Edit({ userType, refe }) {
                                             type="text"
                                             className="form-control"
                                             name="name"
-                                            value={user.name || ""}
+                                            value={user.username || ""}
                                             readOnly
                                         />
                                     </div>
@@ -85,13 +85,14 @@ export default function Edit({ userType, refe }) {
                                     <div className="form-group">
                                         <label>Commission:</label>
                                         <input
-                                            type="text"
+                                            type="Number"
                                             className="form-control"
                                             name="Commission"
-                                            value={user.Commission || ""}
+                                            value={user.Commission}
                                             {...register("Commission", { required: true })}
                                             onChange={handleInputChange}
                                         />
+                                        {console.log(user.Commission)}
                                     </div>
                                 </div>
                                 <div className="col-sm-6">

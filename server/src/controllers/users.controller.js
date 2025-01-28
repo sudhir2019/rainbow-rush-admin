@@ -8,26 +8,15 @@ const { cloudinary } = require("../configs/cloudinary");
 const path = require("path");
 // Get all users
 async function getAllUsers(req, res) {
-  const { search, profileState, page = 1, limit = 10, role } = req.query;
+  const { search, page = 1, limit = 10, role } = req.query;
 
   try {
-    let query = {};
+    let query = { isDeleted: { $ne: true } };
 
-    // Apply search functionality
     if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
-        { mobile: { $regex: search, $options: "i" } },
-      ];
+      query.username = { $regex: search, $options: "i" };
     }
 
-    // Apply profileState filter
-    if (profileState) {
-      query.profileState = profileState;
-    }
-
-    // Apply role-based filter
     if (role) {
       const roleDocument = await Role.findOne({ name: role });
       if (!roleDocument) {
@@ -36,14 +25,14 @@ async function getAllUsers(req, res) {
           message: `Role "${role}" not found.`,
         });
       }
-      query.roles = roleDocument._id; // Filter users by role ID
+      query.roles = roleDocument._id;
     }
 
-    // Apply pagination
     const skip = (page - 1) * limit;
 
-    // Fetch users
-    const users = await User.find()
+    const users = await User.find(query)
+      .skip(skip)
+      .limit(parseInt(limit))
       .populate("roles")
       .populate("wallet")
       .populate("userLogs")
@@ -56,7 +45,6 @@ async function getAllUsers(req, res) {
       });
     }
 
-    // Get total count for pagination
     const totalCount = await User.countDocuments(query);
 
     return res.status(200).json({
@@ -81,13 +69,22 @@ async function getAllUsers(req, res) {
 const getUserById = async (req, res) => {
   try {
     const id = req.params.id?.replace(/^:/, "");
-    const user = await User.findById(id, { password: 0 })
-      .populate("roles") // Populates the 'roles' field (Role model)
-      .populate("wallet") // Populates the 'wallet' field (Wallet model)
-      .populate("userLogs") // Populates the 'userLogs' field (UserLog model)
+    const user = await User.findOne(
+      { _id: id, isDeleted: { $ne: true } },
+      { password: 0 }
+    )
+      .populate("roles")
+      .populate("wallet")
+      .populate("userLogs")
       .exec();
 
-    return res.status(200).json({ successful: true, data: user });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    return res.status(200).json({ success: true, data: user });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ success: false, message: error.message });
@@ -99,27 +96,26 @@ async function updateUserRoleById(req, res) {
   const { roles } = req.body;
   try {
     const id = req.params.id?.replace(/^:/, "");
-    let roleFound = await Role.findOne({ name: roles });
-    if (!roleFound)
+    const roleFound = await Role.findOne({ name: roles });
+    if (!roleFound) {
       return res
         .status(404)
-        .json({ success: false, message: "Role not provided" });
+        .json({ success: false, message: "Role not found" });
+    }
 
-    let user = await User.findById(id);
-
-    if (!user)
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-
-    user = await User.findByIdAndUpdate(
-      id,
+    const user = await User.findOneAndUpdate(
+      { _id: id, isDeleted: { $ne: true } },
       { $set: { roles: roleFound._id } },
       { new: true }
     );
-    updatedUser = await user.save();
 
-    return res.status(200).json({ success: true, data: updatedUser });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    return res.status(200).json({ success: true, data: user });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ success: false, message: error.message });
@@ -129,102 +125,84 @@ async function updateUserRoleById(req, res) {
 // Create user
 const createUser = async (req, res) => {
   try {
-    const {
-      username,
-      firstName,
-      lastName,
-      refId,
-      email,
-      mobile,
-      password,
-      roles,
-    } = req.body;
+    const { username, refId, commissionAmount, note, password, roles } =
+      req.body;
 
     const rolesFound = await Role.find({ name: { $in: roles } });
     const user = new User({
-      name: req.body.userFullName || `${firstName} ${lastName}`,
-      email,
-      mobile,
+      username,
       password: await User.encryptPassword(password),
       roles: rolesFound.map((role) => role._id),
-      referredBy: refId, // Assuming referral ID is provided
+      referredBy: refId,
+      note,
+      Commission: commissionAmount,
     });
 
-    if (email && !username) {
-      const emailLocalPart = email.split("@")[0];
-      user.username = emailLocalPart.toLowerCase(); // Convert to lowercase for consistency
-    }
-    // Handle referral bonus (set status as pending)
     if (refId) {
-      const referrer = await User.findOne({ refId: refId });
+      const referrer = await User.findOne({
+        refId: refId,
+        isDeleted: { $ne: true },
+      });
       if (!referrer) {
         return res.status(404).json({
-          successful: false,
+          success: false,
           message: "Referrer not found. Please check the referral code.",
         });
       }
-      if (referrer) {
-        const referralTransaction = new ReferTransaction({
-          referredUser: user._id, // Temporary user ID
-          referredBy: referrer._id, // Referrer's ID
-          refUserType: roles, // Assuming user type is temporal
-          commissionAmount: 0,
-          status: "paid",
-        });
-        user.referredBy = referrer.username;
-        // Save the referral transaction and store its ID in temporalUser
-        const savedTransaction = await referralTransaction.save();
-        user.referralTransaction.push(savedTransaction._id);
-        referrer.referralTransaction.push(savedTransaction._id);
-        await referrer.save();
-      }
+
+      const referralTransaction = new ReferTransaction({
+        referredUser: user._id,
+        referredBy: referrer._id,
+        refUserType: roles,
+        commissionAmount: commissionAmount,
+        status: "paid",
+      });
+
+      user.referredBy = referrer.username;
+      const savedTransaction = await referralTransaction.save();
+      user.referralTransaction.push(savedTransaction._id);
+      referrer.referralTransaction.push(savedTransaction._id);
+      await referrer.save();
     }
 
     const wallet = await Wallet.create({
       userId: user._id,
     });
 
-    // Save the new user to the database
     user.wallet = wallet._id;
-
     const savedUser = await user.save();
-    // Fetch users
-    const users = await User.find()
+
+    const users = await User.find({ isDeleted: { $ne: true } })
       .populate("roles")
       .populate("wallet")
       .populate("userLogs")
       .exec();
+
     return res.status(201).json({
       success: true,
       data: users,
       dataUser: {
         id: savedUser._id,
         username: savedUser.username,
-        mobile: savedUser.mobile,
-        email: savedUser.email,
         roles: savedUser.roles,
       },
     });
   } catch (error) {
     console.log(error);
-
     return res.status(500).json({
       success: false,
-      message: "something went wrong, fail to create user ",
+      message: "Something went wrong, failed to create user",
     });
   }
 };
 
-// Function to update user profile and handle image upload
+// Update user profile
 async function updateProfileById(req, res) {
-  const { email, lastName, firstName, password, newPassword } = req.body;
-  const mobile = req.body.mobile ? parseInt(req.body.mobile) : undefined; // Convert mobile if provided
-  const fullName = `${firstName || ""} ${lastName || ""}`.trim();
-  const id = req.params.id?.replace(/^:/, ""); // Remove ':' from ID, if present
+  const { username, password, newPassword } = req.body;
+  const id = req.params.id?.replace(/^:/, "");
 
   try {
-    // Find the user by ID
-    const userFound = await User.findById(id);
+    const userFound = await User.findOne({ _id: id, isDeleted: { $ne: true } });
     if (!userFound) {
       return res
         .status(404)
@@ -232,40 +210,31 @@ async function updateProfileById(req, res) {
     }
 
     let encodedPassword;
-
-    // Check and compare password if updating the password
     if (newPassword && password) {
       const matchPassword = await User.comparePassword(
         password,
         userFound.password
       );
-
       if (!matchPassword) {
         return res
           .status(401)
           .json({ success: false, message: "Current password is incorrect." });
       }
-
       encodedPassword = await User.encryptPassword(newPassword);
     }
-    // Handle profile image upload if provided
-    let profileImageUrl = userFound.profilePicture; // Default to existing profile picture
+
+    let profileImageUrl = userFound.profilePicture;
+    let profilePicture_id = userFound.profilePicture_id;
     if (req.file) {
       try {
-        // Upload new image to Cloudinary
         const imageUploaded = await cloudinary.uploader.upload(req.file.path, {
-          folder: "profile_pictures", // Optional: specify folder in Cloudinary
+          folder: "profile_pictures",
         });
-
         profileImageUrl = imageUploaded.secure_url;
-
-        // Optionally delete the old image from Cloudinary
         if (userFound.profilePicture_id) {
           await cloudinary.uploader.destroy(userFound.profilePicture_id);
         }
-
-        // Save the new image ID
-        userFound.profilePicture_id = imageUploaded.public_id;
+        profilePicture_id = imageUploaded.public_id;
       } catch (uploadError) {
         return res.status(500).json({
           success: false,
@@ -275,21 +244,16 @@ async function updateProfileById(req, res) {
       }
     }
 
-    // Prepare fields to update
     const updatedUserFields = {
-      name: fullName || userFound.name,
+      username: username || userFound.username,
       password: encodedPassword || userFound.password,
-      email: email || userFound.email,
-      mobile: mobile || userFound.mobile,
       profilePicture: profileImageUrl,
+      profilePicture_id: profilePicture_id,
     };
 
-    // Update user in the database
-    const updatedUser = await User.findByIdAndUpdate(
-      userFound.id,
-      updatedUserFields,
-      { new: true }
-    );
+    const updatedUser = await User.findByIdAndUpdate(id, updatedUserFields, {
+      new: true,
+    });
 
     return res.status(200).json({
       success: true,
@@ -304,12 +268,12 @@ async function updateProfileById(req, res) {
   }
 }
 
-// User Update Function (Dashboard)
+// Update user (Dashboard)
 const updateUserByIdDashboard = async (req, res) => {
   const userId = req.params.id?.replace(/^:/, "");
   const { refId, Commission, note, userStatus } = req.body;
+
   try {
-    // Validate required fields (Commission, note, userStatus)
     if (!Commission && !note && !userStatus) {
       return res.status(400).json({
         success: false,
@@ -318,8 +282,7 @@ const updateUserByIdDashboard = async (req, res) => {
       });
     }
 
-    // Find user by ID
-    const user = await User.findById(userId);
+    const user = await User.findOne({ _id: userId, isDeleted: { $ne: true } });
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -327,11 +290,11 @@ const updateUserByIdDashboard = async (req, res) => {
       });
     }
 
-    // If refId is provided, handle referral update logic (if needed)
     if (refId) {
-      // Validate refId and ensure it's linked with a valid user
-      const referrer = await User.findOne({ refId: refId });
-
+      const referrer = await User.findOne({
+        refId: refId,
+        isDeleted: { $ne: true },
+      });
       if (!referrer) {
         return res.status(404).json({
           success: false,
@@ -339,67 +302,36 @@ const updateUserByIdDashboard = async (req, res) => {
         });
       }
 
-      // Check if the user is trying to refer themselves
       if (user.referredBy === referrer.username) {
-        return res.status(404).json({
+        return res.status(400).json({
           success: false,
-          message: "This user has already referred themselves.",
+          message: "This user has already been referred by this referrer.",
         });
       }
 
       user.referredBy = referrer.username;
 
-      // Create a referral transaction with 'paid' status if the referrer exists
       const referralTransaction = new ReferTransaction({
-        referredUser: user._id, // New user's ID
-        referredBy: referrer._id, // Referrer's ID
-        refUserType: user.roles, // Assuming user type is temporal
-        commissionAmount: 0, // Default commission amount, can be adjusted dynamically
-        status: "paid", // Set to 'paid'
+        referredUser: user._id,
+        referredBy: referrer._id,
+        refUserType: user.roles,
+        commissionAmount: 0,
+        status: "paid",
       });
 
-      // Save the referral transaction
       const savedTransaction = await referralTransaction.save();
-
-      // Store the referral transaction ID in both the new user and referrer
       user.referralTransaction.push(savedTransaction._id);
       referrer.referralTransaction.push(savedTransaction._id);
-
-      // Save the updated referrer
       await referrer.save();
     }
 
-    // Update user fields (commission, note, userStatus)
     user.Commission = Commission || user.Commission;
     user.note = note || user.note;
-    user.userStatus = userStatus || user.userStatus;
+    user.userStatus = userStatus ?? user.userStatus;
 
-    // Save the updated user
     await user.save();
 
-    // Fetch the updated user and their referrer (if any)
-    const updatedUser = await User.findById(userId)
-      .populate("roles")
-      .populate("wallet")
-      .populate("userLogs")
-      .exec();
-
-    // Check if the user has a referrer and populate referrer data
-    let referrerDetails = null;
-    if (updatedUser.referredBy) {
-      const referrer = await User.findOne({ username: updatedUser.referredBy })
-        .populate("roles")
-        .populate("wallet")
-        .exec();
-      referrerDetails = {
-        username: referrer.username,
-        email: referrer.email,
-        mobile: referrer.mobile,
-        roles: referrer.roles,
-      };
-    }
-    // Fetch users
-    const users = await User.find()
+    const users = await User.find({ isDeleted: { $ne: true } })
       .populate("roles")
       .populate("wallet")
       .populate("userLogs")
@@ -408,9 +340,7 @@ const updateUserByIdDashboard = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "User updated successfully",
-      updatedUser: updatedUser,
       data: users,
-      referrer: referrerDetails, // Include referrer details if available
     });
   } catch (error) {
     console.error("Error updating user:", error);
@@ -421,12 +351,11 @@ const updateUserByIdDashboard = async (req, res) => {
   }
 };
 
-// Controller to delete a user by ID
+// Delete user
 async function deleteUserById(req, res) {
   const userId = req.params.id?.replace(/^:/, "");
 
   try {
-    // Check if the user exists
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
@@ -435,50 +364,22 @@ async function deleteUserById(req, res) {
       });
     }
 
-    // Delete associated images from Cloudinary
-    const imageDeletionPromises = [];
+    // Perform soft delete
+    await user.softDelete();
 
-    if (user.profilePicture_id) {
-      imageDeletionPromises.push(
-        deleteImageFromCloudinary(user.profilePicture_id)
-      );
-    }
-
-    // Wait for all image deletions to complete
-    await Promise.all(imageDeletionPromises);
-
-    // Delete associated records
-    const deletionPromises = [
-      UserLog.deleteMany({ userId }), // Delete user logs
-      Wallet.deleteOne({ userId }), // Delete wallet
-      UserTransaction.deleteMany({ userId }), // Delete user transactions
-      ReferTransaction.deleteMany({
-        $or: [{ referredBy: userId }, { referredUser: userId }],
-      }), // Delete referral transactions
-    ];
-    await Promise.all(deletionPromises);
-
-    // Delete the user
-    const deletedUser = await User.findByIdAndDelete(userId);
-    if (!deletedUser) {
-      return res.status(500).json({
-        success: false,
-        message: "Failed to delete user",
-      });
-    }
-    const users = await User.find()
+    const users = await User.findNonDeleted()
       .populate("roles")
       .populate("wallet")
       .populate("userLogs")
       .exec();
-    // Return success response
+
     return res.status(200).json({
       success: true,
-      message: "User and all associated data deleted successfully",
+      message: "User deleted successfully",
       data: users,
     });
   } catch (error) {
-    console.error("Error occurred during user deletion:", error);
+    console.error("Error deleting user:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -486,33 +387,13 @@ async function deleteUserById(req, res) {
   }
 }
 
-async function deleteImageFromCloudinary(publicId) {
-  try {
-    const result = await cloudinary.uploader.destroy(publicId);
-    if (result.result === "ok") {
-      console.log(
-        `Image with public ID ${publicId} deleted successfully from Cloudinary.`
-      );
-    } else {
-      console.warn(
-        `Failed to delete image with public ID ${publicId} from Cloudinary.`
-      );
-    }
-  } catch (error) {
-    console.error("Error deleting image from Cloudinary:", error);
-  }
-}
-
-// Controller to activate or deactivate a user based on action
+// Toggle user status
 async function toggleUserStatus(req, res) {
   const userId = req.params.id?.replace(/^:/, "");
-  const action = req.params.action; // Expecting "activate" or "deactivate" in the URL
+  const action = req.params.action;
 
   try {
-    // Find the user by ID
-    const user = await User.findById(userId);
-
-    // If user doesn't exist
+    const user = await User.findOne({ _id: userId, isDeleted: { $ne: true } });
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -520,11 +401,10 @@ async function toggleUserStatus(req, res) {
       });
     }
 
-    // Handle the action (activate or deactivate)
     if (action === "activate") {
-      user.userStatus = true; // Set user status to active
+      user.userStatus = true;
     } else if (action === "deactivate") {
-      user.userStatus = false; // Set user status to inactive
+      user.userStatus = false;
     } else {
       return res.status(400).json({
         success: false,
@@ -532,34 +412,18 @@ async function toggleUserStatus(req, res) {
       });
     }
 
-    // Save the updated user
     await user.save();
-    //Get All Usres
-    // Populate roles and wallet data for all users
-    const users = await User.find()
+
+    const users = await User.findNonDeleted()
       .populate("roles")
       .populate("wallet")
       .populate("userLogs")
       .exec();
-    // Filter users to include only active users
-    const activeUsers = users.filter((user) => user.userStatus);
 
-    // Get all user logs
-    const userLogs = await UserLog.find({ userId: userId }).exec();
-
-    // Return success response
     return res.status(200).json({
       success: true,
       message: `User ${action}d successfully`,
-      dataUser: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        status: user.userStatus,
-      },
       data: users,
-      userLogs: userLogs,
-      activeUsers: activeUsers,
     });
   } catch (error) {
     console.error(`Error occurred during user ${action}:`, error);

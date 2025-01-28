@@ -16,6 +16,7 @@ const authRouter = require("./routers/auth.routes.js");
 const usersRouter = require("./routers/users.routes.js");
 const walletRouter = require("./routers/wallet.routes.js");
 const gameRouter = require("./routers/games.routes.js");
+const companieRoutes = require("./routers/companie.routes");
 
 // Middleware for parsing URL-encoded and JSON request bodies
 app.use(express.json({ limit: "10mb" }));
@@ -68,5 +69,7 @@ app.use("/api/users", usersRouter);
 app.use("/api/wallet", walletRouter);
 
 app.use("/api/game", gameRouter);
+
+app.use("/api/companies", companieRoutes);
 
 module.exports = app;

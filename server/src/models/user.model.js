@@ -5,32 +5,13 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema(
   {
-    name: {
-      type: String,
-      required: true,
-      lowercase: true,
-      trim: true,
-    },
-    password: {
-      type: String,
-      required: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      trim: true,
-    },
     username: {
       type: String,
       required: true,
       lowercase: true,
       trim: true,
     },
-    address: {
-      type: String,
-      trim: true,
-    },
-    mobile: {
+    password: {
       type: String,
       required: true,
     },
@@ -65,24 +46,8 @@ const userSchema = new Schema(
       default: "Initial State",
     },
     Commission: {
-      type: String,
-      default: "Initial State",
-    },
-
-    bankAccountNumber: {
-      type: String,
-    },
-    bankName: {
-      type: String,
-    },
-    bankAccountHolderName: {
-      type: String,
-    },
-    bankIfscCode: {
-      type: String,
-    },
-    bankBranchName: {
-      type: String,
+      type: Number,
+      default: 0,
     },
     roles: [
       {
@@ -108,10 +73,12 @@ const userSchema = new Schema(
         ref: "UserLog",
       },
     ],
-    profileState: {
-      type: String,
-      enum: ["uncompleted", "completed"],
-      default: "uncompleted",
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    deletedAt: {
+      type: Date,
     },
   },
   {
@@ -123,24 +90,15 @@ const userSchema = new Schema(
 // Pre-save middleware to set username and refId
 userSchema.pre("save", async function (next) {
   try {
-    if (this.email && !this.username) {
-      // Generate username from email (local part of Gmail)
-      const emailLocalPart = this.email.split("@")[0];
-      this.username = emailLocalPart.toLowerCase();
-    }
-
     if (!this.refId) {
-      // Generate a unique refId
       const generateRefId = () =>
         Math.random().toString(36).substring(2, 8).toUpperCase();
       let newRefId = generateRefId();
-      // Ensure refId is unique
       while (await User.exists({ refId: newRefId })) {
         newRefId = generateRefId();
       }
       this.refId = newRefId;
     }
-
     next();
   } catch (error) {
     next(error);
@@ -170,26 +128,35 @@ userSchema.statics.comparePassword = async (password, receivedPassword) => {
     throw new Error("Error comparing passwords: " + error.message);
   }
 };
+
 // Method to handle login logic and check the last login time
 userSchema.methods.login = async function () {
   const now = new Date();
 
-  // If lastLoginTime exists and is older than 24 hours, set isLoggedIn to false
   if (this.lastLoginTime && now - this.lastLoginTime > 24 * 60 * 60 * 1000) {
     this.isLoggedIn = false;
   }
 
-  // Update lastLoginTime and set isLoggedIn to true
   this.lastLoginTime = now;
   this.isLoggedIn = true;
 
   await this.save();
 };
-// Create indexes for email, mobile and username
 
+// Method to perform soft delete
+userSchema.methods.softDelete = async function () {
+  this.isDeleted = true;
+  this.deletedAt = new Date();
+  await this.save();
+};
+
+// Static method to find non-deleted users by default
+userSchema.statics.findNonDeleted = function () {
+  return this.find({ isDeleted: { $ne: true } });
+};
+
+// Create indexes for email, mobile and username
 userSchema.index({ username: 1 }, { unique: true });
-userSchema.index({ email: 1 }, { unique: true });
-userSchema.index({ mobile: 1 }, { unique: true });
 
 // Create User model
 const User = mongoose.model("User", userSchema);

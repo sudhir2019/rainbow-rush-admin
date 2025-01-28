@@ -14,7 +14,7 @@ export default function useLogin() {
     const { register, handleSubmit, reset, formState: { errors } } = useForm({ mode: "onBlur" });
 
     const preparePayload = (data) => ({
-        email: data.userEmail.trim(),
+        username: data.userName.trim(),
         password: data.userPassword,
     });
 

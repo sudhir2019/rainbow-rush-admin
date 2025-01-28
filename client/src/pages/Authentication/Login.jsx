@@ -1,5 +1,4 @@
 
-import React from "react";
 import useLogin from "../../hooks/Authentication/useLogin"; // Import the custom hook
 
 function Login() {
@@ -33,23 +32,19 @@ function Login() {
 
                                             <form onSubmit={handleSubmit(onSubmit)}>
                                                 <div className="form-group relative">
-                                                    <label htmlFor="userEmail">Email</label>
+                                                    <label htmlFor="userName">Username</label>
                                                     <input
-                                                        type="email"
-                                                        name="userEmail"
-                                                        id="userEmail"
+                                                        type="username"
+                                                        name="userName"
+                                                        id="userName"
                                                         className="form-control"
-                                                        placeholder="Enter your email"
-                                                        {...register("userEmail", {
-                                                            required: "Email is required",
-                                                            pattern: {
-                                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                                                message: "Invalid email format",
-                                                            },
+                                                        placeholder="Enter your User Name"
+                                                        {...register("userName", {
+                                                            required: "Username is required",
                                                         })}
                                                     />
-                                                    {errors.userEmail && (
-                                                        <p className="absolute right-3 top-19 p-1 text-red-500">{errors.userEmail.message}</p>
+                                                    {errors.Username && (
+                                                        <p className="absolute right-3 top-19 p-1 text-red-500">{errors.Username.message}</p>
                                                     )}
                                                 </div>
                                                 <div className="form-group relative">

@@ -10,6 +10,7 @@ const menuItems = [
     {
         category: "Management",
         links: [
+            { to: "/admin/gamemaster", icon: "users", label: "GameMaster" },
             { to: "/admin/company", icon: "users", label: "Company" },
             { to: "/admin/superdistributor", icon: "users", label: "SuperDistributer" },
             { to: "/admin/distributor", icon: "users", label: "Distributor" },
@@ -117,9 +118,9 @@ function Sidebar() {
             <div className="sidebar-body">
                 <ul className="nav" >
                     {menuItems.map(({ category, links }, categoryIndex) => (
-                        <>
+                        <div key={`section-${categoryIndex}`}>
                             {category && (
-                                <li key={`category-${categoryIndex}`} className="nav-item nav-category">{category}</li>
+                                <li className="nav-item nav-category">{category}</li>
                             )}
                             {links.map((link, linkIndex) => (
                                 <li key={`link-${categoryIndex}-${linkIndex}`} className="nav-item">
@@ -167,7 +168,7 @@ function Sidebar() {
                                     )}
                                 </li>
                             ))}
-                        </>
+                        </div>
                     ))}
                 </ul>
             </div>
