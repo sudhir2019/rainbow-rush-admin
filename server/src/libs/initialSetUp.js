@@ -8,7 +8,7 @@ const { Role } = require("../models/roles.model");
 // Create Roles with Unique Enforcement
 const createRoles = async () => {
   try {
-    const roles = ["superdistributer", "distributer", "retailer", "admin", "user"];
+    const roles = ["superdistributer", "distributer", "retailer","superadmin" ,"admin", "user"];
 
     for (const roleName of roles) {
       const role = await Role.findOneAndUpdate(
@@ -113,6 +113,19 @@ const createRetailer = async () => {
   }
 };
 
+const createSuperAdmin = async () => {
+  try {
+    const superAdminData = {
+      username: "superadmin",
+      roles: "superadmin",
+      password: "superadmin123",
+    };
+    await createUserIfNotExists(superAdminData);
+  } catch (err) {
+    console.error("Error creating superadmin user:", err);
+  }
+};
+
 const createAdmin = async () => {
   try {
     const adminData = {
@@ -150,6 +163,7 @@ const createAllUsers = async () => {
     await createSuperDistributer();
     await createDistributer();
     await createRetailer();
+    await createSuperAdmin();
     await createAdmin();
     await createUser();
 

@@ -16,10 +16,9 @@ const MessageComponent = () => {
         }
     }, [message, error, walletError, walletMessage, dispatch]);
 
-    useEffect(() => { 
+    useEffect(() => {
         if (walletMessage || walletError) {
             const timeout = setTimeout(() => {
-                console.log("fhdhf")
                 dispatch(clearwalletMessage());
                 dispatch(clearwalletError());
             }, 3000);

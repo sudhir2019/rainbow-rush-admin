@@ -15,8 +15,8 @@ export const fetchGames = createAsyncThunk(
             }
 
             const { response, json } = await GET("game/", token);
-               // Successful response
-               if (response.status === 200) {
+            // Successful response
+            if (response.status === 200) {
                 return json;
             }
             return rejectWithValue(handleError(json));
@@ -43,8 +43,8 @@ export const createGame = createAsyncThunk(
 
             const { response, json } = await POST("game", gameData, token);
             console.log(response)
-             // Successful response
-             if (response.status === 201) {
+            // Successful response
+            if (response.status === 201) {
                 return json;
             }
             return rejectWithValue(handleError(json));
@@ -73,7 +73,7 @@ export const updateGame = createAsyncThunk(
                 return rejectWithValue("Valid game data is required");
             }
 
-            const { response, json } = await PUT(`games/${gameId}`, gameData, token);
+            const { response, json } = await PUT(`game/${gameId}`, gameData, token);
 
             // Successful response
             if (response.status === 200) {
@@ -103,8 +103,8 @@ export const deleteGame = createAsyncThunk(
 
             const { response, json } = await DELETE(`game/:${gameId}`, token);
 
-             // Successful response
-             if (response.status === 200) {
+            // Successful response
+            if (response.status === 200) {
                 return json;
             }
             return rejectWithValue(handleError(json));
@@ -114,7 +114,7 @@ export const deleteGame = createAsyncThunk(
     }
 );
 
-export const activateGameAsync  = createAsyncThunk(
+export const activateGameAsync = createAsyncThunk(
     'games/:id/:action',
     async ({ gameId, action }, { getState, rejectWithValue }) => {
         try {

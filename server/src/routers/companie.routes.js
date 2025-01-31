@@ -10,6 +10,7 @@ const {
   deleteCompanie,
   addGameToCompanie,
   removeGameFromCompanie,
+  toggleCompanieStatus
 } = require("../controllers/companie.controller");
 
 // Validation middleware
@@ -82,5 +83,7 @@ router.delete(
   ],
   removeGameFromCompanie
 );
+// PUT: Status toggle a game by gameId
+router.put('/:companieId/:action', toggleCompanieStatus);
 
 module.exports = router;

@@ -1,45 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import React from "react";
 import { useParams } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import MessageComponent from "./MessageComponent";
+import { useSelector } from "react-redux";
+import { useUpdateGame } from "../../hooks/admin/games/useUpdateGame"; // Adjust the path
 
 export default function GameEdit() {
-    const { games, loading } = useSelector((state) => state.games);
-    const { register, handleSubmit, setValue } = useForm();
-    const [game, setGame] = useState({});
-    const { id } = useParams();
+    const { any } = useParams();
+    const { games, gamesLoading } = useSelector((state) => state.games);
+    // Find the game by ID
+    const initialGameData = games.find((g) => g._id === any) || {};
 
-    useEffect(() => {
-        if (games?.length > 0) {
-            const foundGame = games.find((g) => g._id === id);
-            if (foundGame) {
-                setGame(foundGame);
-                Object.keys(foundGame).forEach((key) => {
-                    if (setValue) setValue(key, foundGame[key]);
-                });
-            }
-        }
-    }, [id, games, setValue]);
+    // Use the hook for managing form and submission
+    const { register, handleSubmit, onSubmit, errors, gamesError, gamesMessage } = useUpdateGame(initialGameData);
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setGame((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
-
-    const onSubmit = async (data) => {
-        try {
-            // TODO: Add game update logic here
-            console.log('Submitting:', data);
-        } catch (error) {
-            console.error('Error updating game:', error);
-        }
-    };
-
-    if (!game) return <p>No game found with the provided ID.</p>;
+    if (!initialGameData._id) return <p>No game found with the provided ID.</p>;
 
     return (
         <div className="row">
@@ -53,117 +26,74 @@ export default function GameEdit() {
                                 <div className="col-sm-6">
                                     <div className="form-group">
                                         <label>Game ID:</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            value={game.gameId || ""}
-                                            readOnly
-                                        />
+                                        <input type="text" className="form-control" value={initialGameData.gameId || ""} readOnly />
                                     </div>
                                 </div>
                                 <div className="col-sm-6">
                                     <div className="form-group">
                                         <label>Game Name:</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="gameName"
-                                            {...register("gameName", { required: true })}
-                                            onChange={handleInputChange}
-                                        />
+                                        <input type="text" className="form-control" {...register("gameName", { required: "Game Name is required" })} />
+                                        {errors.gameName && <p className="text-danger">{errors.gameName.message}</p>}
                                     </div>
                                 </div>
                                 <div className="col-sm-6">
                                     <div className="form-group">
                                         <label>Number of Digits:</label>
-                                        <input
-                                            type="number"
-                                            className="form-control"
-                                            name="nodigit"
-                                            {...register("nodigit", { required: true })}
-                                            onChange={handleInputChange}
-                                        />
+                                        <input type="number" className="form-control" {...register("nodigit", { required: "Number of Digits is required" })} />
+                                        {errors.nodigit && <p className="text-danger">{errors.nodigit.message}</p>}
                                     </div>
                                 </div>
                                 <div className="col-sm-6">
                                     <div className="form-group">
                                         <label>Logo URL:</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="logo"
-                                            {...register("logo")}
-                                            onChange={handleInputChange}
-                                        />
+                                        <input type="text" className="form-control" {...register("logo")} />
                                     </div>
                                 </div>
                                 <div className="col-sm-12">
                                     <div className="form-group">
                                         <label>Description:</label>
-                                        <textarea
-                                            className="form-control"
-                                            name="description"
-                                            rows="3"
-                                            {...register("description", { required: true })}
-                                            onChange={handleInputChange}
-                                        />
+                                        <textarea className="form-control" rows="3" {...register("description", { required: "Description is required" })}></textarea>
+                                        {errors.description && <p className="text-danger">{errors.description.message}</p>}
                                     </div>
                                 </div>
                                 <div className="col-sm-6">
                                     <div className="form-group">
                                         <label>Publisher:</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="publisher"
-                                            {...register("publisher", { required: true })}
-                                            onChange={handleInputChange}
-                                        />
+                                        <input type="text" className="form-control" {...register("publisher", { required: "Publisher is required" })} />
+                                        {errors.publisher && <p className="text-danger">{errors.publisher.message}</p>}
                                     </div>
                                 </div>
                                 <div className="col-sm-6">
                                     <div className="form-group">
                                         <label>Release Date:</label>
-                                        <input
-                                            type="date"
-                                            className="form-control"
-                                            name="releaseDate"
-                                            {...register("releaseDate", { required: true })}
-                                            onChange={handleInputChange}
-                                        />
+                                        <input type="date" className="form-control" {...register("releaseDate", { required: "Release Date is required" })} />
+                                        {errors.releaseDate && <p className="text-danger">{errors.releaseDate.message}</p>}
                                     </div>
                                 </div>
                                 <div className="col-sm-6">
                                     <div className="form-group">
                                         <label>Status:</label>
-                                        <select
-                                            className="form-control"
-                                            name="status"
-                                            {...register("status", { required: true })}
-                                            onChange={handleInputChange}
-                                        >
+                                        <select className="form-control" {...register("status", { required: "Status is required" })}>
                                             <option value="active">Active</option>
                                             <option value="inactive">Inactive</option>
                                         </select>
+                                        {errors.status && <p className="text-danger">{errors.status.message}</p>}
                                     </div>
                                 </div>
                             </div>
                             <div className="row mt-3">
                                 <div className="col-sm-6">
-                                    <button type="submit" className="btn btn-primary mr-2">
-                                        {loading ? "Updating..." : "Submit"}
+                                    <button type="submit" className="btn btn-primary mr-2" disabled={gamesLoading}>
+                                        {gamesLoading ? "Updating..." : "Submit"}
                                     </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => window.history.back()}
-                                        className="btn btn-light"
-                                    >
+                                    <button type="button" onClick={() => window.history.back()} className="btn btn-light">
                                         Cancel
                                     </button>
                                 </div>
                             </div>
                         </form>
-                        <MessageComponent />
+                        {gamesError && <p className="text-danger">{gamesError}</p>}
+                        {gamesMessage && <p className="text-success">{gamesMessage}</p>}
                     </div>
                 </div>
             </div>

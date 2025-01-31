@@ -1,92 +1,79 @@
-import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import {
-    fetchCompanies,
-    createCompany,
-    updateCompanyById,
-    deleteCompanyById
-} from "../../stores/actions/companieAction";
-import { getToken } from "../../utils/authUtils";
-
+import { Link, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { ScaleLoader } from "react-spinners"
+import { useFetchCompanies } from "../../hooks/admin/companies/useFetchCompanies"; // Import the hook
+import CompaniesAdd from "../../components/ActionModel/CompaniesAdd";
+import Modal from "../../components/ActionModel/Modal";
+import CompaniesEdit from "../../components/ActionModel/CompaniesEdit";
+import useActivateCompanies from "../../hooks/admin/companies/useActivateCompanies";
+import { useDeleteCompanies } from "../../hooks/admin/companies/useDeleteCompanies";
 const Company = () => {
-    const { action } = useParams();
-    const dispatch = useDispatch();
-    const { companies, loading, error, pagination } = useSelector((state) => state.companies);
-    const token = getToken();
-
-    // Form state
-    const [formData, setFormData] = useState({
-        name: "",
-        games: [],
-        note: "",
-        status: "true"
-    });
-
-    // Load companies on component mount
+    const { action, any } = useParams();
+    const [loadData, setLoadData] = useState(true);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalContent, setModalContent] = useState(null);
+    const [modalTitle, setModalTitle] = useState("");
+    const [onConfirmAction, setOnConfirmAction] = useState(null);
+    const { companies } = useSelector((state) => state.companies);
+    const {
+        companiesLoading,
+        fetchAllCompanies,
+    } = useFetchCompanies(); // Use the hook to fetch and manage companies
+    const { removeCompanies } = useDeleteCompanies();
+    const { activateCompany } = useActivateCompanies(); // Call the hook to activate/deactivate the game
     useEffect(() => {
-        if (action === undefined) {
-            dispatch(fetchCompanies({ page: 1, limit: 10 }));
+        if (loadData) {
+            fetchAllCompanies();
+            setLoadData(false);
         }
-    }, [dispatch, action]);
+    }, [loadData]);
+    const openModal = (content, title, onConfirm) => {
+        setModalContent(content);
+        setModalTitle(title);
+        setOnConfirmAction(() => onConfirm);
+        setModalVisible(true);
+    };
 
-    // Handle form input changes
-    const handleInputChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        if (type === 'checkbox') {
-            const gameId = value;
-            setFormData(prev => ({
-                ...prev,
-                games: checked
-                    ? [...prev.games, gameId]
-                    : prev.games.filter(id => id !== gameId)
-            }));
-        } else {
-            setFormData(prev => ({
-                ...prev,
-                [name]: value
-            }));
+    const closeModal = () => {
+        setModalVisible(false);
+        setOnConfirmAction(null);
+    };
+
+    const handleActivateDeactivate = async (companyId, isActive) => {
+        const action = isActive ? "deactivate" : "activate";
+        try {
+            // Replace with company activation logic
+            await activateCompany(companyId, action);
+        } catch (error) {
+            console.error(`Failed to ${action} company:`, error);
+        } finally {
+            closeModal();
         }
     };
 
-    // Handle form submission
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (action === "create") {
-            const result = await dispatch(createCompany(formData, token));
-            if (result.success) {
-                window.history.back();
-            }
-        } else if (action === "edit") {
-            const companyId = ""; // Get company ID from somewhere
-            const result = await dispatch(updateCompanyById(companyId, formData, token));
-            if (result.success) {
-                window.history.back();
-            }
+    const handleDelete = async (companyId) => {
+        try {
+            // Replace with company deletion logic
+            await removeCompanies(companyId);
+        } catch (error) {
+            console.error(`Failed to delete company:`, error);
+        } finally {
+            closeModal();
         }
     };
 
-    // Handle company deletion
-    const handleDelete = async (id) => {
-        if (window.confirm("Are you sure you want to delete this company?")) {
-            const result = await dispatch(deleteCompanyById(id, token));
-            if (result.success) {
-                dispatch(fetchCompanies({ page: 1, limit: 10 }));
-            }
-        }
-    };
-
-    if (loading) {
-        return <div>Loading...</div>;
+    if (action === "edit") {
+        return <CompaniesEdit />;
     }
 
-    if (error) {
-        return <div className="alert alert-danger">{error}</div>;
+    if (action === "create") {
+        return <CompaniesAdd action={"create"} any={any} />
     }
 
-    if (action === undefined) {
+    if (action === undefined || action === null) {
         return (
-            <div className="row">
+            <div className="row relative">
                 <div className="col-md-12 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-header d-flex justify-content-between mb-2">
@@ -112,19 +99,59 @@ const Company = () => {
                                                 <th scope="row">{index + 1}</th>
                                                 <td>{company.name}</td>
                                                 <td>{company.uniqueId}</td>
-                                                <td>{company.games.map(game => game.name).join(", ")}</td>
+                                                <td>{company.games.map(game => game.gameName).join(", ")}</td>
                                                 <td>{new Date(company.createdAt).toLocaleString()}</td>
                                                 <td>
                                                     <div className="btn-group">
-                                                        <Link to={`edit/${company._id}`}
-                                                            className="btn btn-outline-info">
+                                                        <Link to={`edit/${company._id}`} className="btn btn-outline-info">
                                                             <i className="fas fa-edit"></i>
                                                         </Link>
-                                                        <button
-                                                            onClick={() => handleDelete(company._id)}
-                                                            className="btn btn-outline-danger">
+                                                        {console.log(company.status)}
+
+                                                        {company.status === "active" ? (
+                                                            // Render Deactivate Link if userStatus is true (active)
+                                                            <Link
+                                                                to="#"
+                                                                className="btn btn-outline-secondary"
+                                                                onClick={() =>
+                                                                    openModal(
+                                                                        `Are you sure you want to deactivate ${company.name}?`,
+                                                                        'Deactivate Confirmation',
+                                                                        () => handleActivateDeactivate(company._id, true)
+                                                                    )
+                                                                }
+                                                            >
+                                                                <i className="fa fa-toggle-off"></i>
+                                                            </Link>
+                                                        ) : (
+                                                            // Render Activate Link if userStatus is false (inactive)
+                                                            <Link
+                                                                to="#"
+                                                                className="btn btn-outline-primary"
+                                                                onClick={() =>
+                                                                    openModal(
+                                                                        `Are you sure you want to activate ${company.name}?`,
+                                                                        'Activate Confirmation',
+                                                                        () => handleActivateDeactivate(company._id, false)
+                                                                    )
+                                                                }
+                                                            >
+                                                                <i className="fas fa-toggle-on"></i>
+                                                            </Link>
+                                                        )}
+                                                        <Link
+                                                            to="#"
+                                                            className="btn btn-outline-danger delete-confirm"
+                                                            onClick={() =>
+                                                                openModal(
+                                                                    `Are you sure you want to  Delete ${company.name}?`,
+                                                                    'Delete Confirmation',
+                                                                    () => handleDelete(company._id)
+                                                                )
+                                                            }
+                                                        >
                                                             <i className="fas fa-trash"></i>
-                                                        </button>
+                                                        </Link>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -135,106 +162,21 @@ const Company = () => {
                         </div>
                     </div>
                 </div>
+                <Modal
+                    show={modalVisible}
+                    onClose={closeModal}
+                    title={modalTitle}
+                    onConfirm={onConfirmAction}>
+                    {modalContent}
+                </Modal>
+                {companiesLoading && (
+                    <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                        <ScaleLoader />
+                    </div>
+                )}
             </div>
         );
     }
-
-    // Create/Edit Form
-    return (
-        <div className="row">
-            <div className="col-md-12 grid-margin stretch-card">
-                <div className="card">
-                    <div className="card-body">
-                        <h6 className="card-title">{action === "create" ? "Add" : "Edit"} Company</h6>
-                        <form className="forms-sample" onSubmit={handleSubmit}>
-                            <div className="row">
-                                <div className="col-sm-6">
-                                    <div className="form-group">
-                                        <label>Company Name :</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="name"
-                                            value={formData.name}
-                                            onChange={handleInputChange}
-                                            autoComplete="off"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="col-sm-6">
-                                    <div className="form-group">
-                                        <label>Note :</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="note"
-                                            value={formData.note}
-                                            onChange={handleInputChange}
-                                            autoComplete="off"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="col-sm-6">
-                                    <div className="form-group">
-                                        <label>Status :</label>
-                                        <div className="form-check form-check-inline">
-                                            <label className="form-check-label">
-                                                <input
-                                                    type="radio"
-                                                    className="form-check-input"
-                                                    name="status"
-                                                    value="true"
-                                                    checked={formData.status === "true"}
-                                                    onChange={handleInputChange}
-                                                />
-                                                Active
-                                            </label>
-                                        </div>
-                                        <div className="form-check form-check-inline">
-                                            <label className="form-check-label">
-                                                <input
-                                                    type="radio"
-                                                    className="form-check-input"
-                                                    name="status"
-                                                    value="false"
-                                                    checked={formData.status === "false"}
-                                                    onChange={handleInputChange}
-                                                />
-                                                Deactive
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="row">
-                                <div className="col-sm-6">
-                                    <div className="form-group">
-                                        <button
-                                            type="submit"
-                                            className="btn btn-primary mr-2"
-                                            disabled={loading}
-                                        >
-                                            {loading ? "Submitting..." : "Submit"}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => window.history.back()}
-                                            className="btn btn-light"
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
 };
 
 export default Company;

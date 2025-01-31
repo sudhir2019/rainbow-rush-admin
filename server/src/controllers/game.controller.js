@@ -1,4 +1,5 @@
 const Game = require("../models/game.model");
+const Companie = require("../models/companie.model");
 const { validationResult } = require("express-validator"); // To handle validation errors
 
 // GET: Get all games with filtering, pagination and search
@@ -138,8 +139,15 @@ const createGame = async (req, res) => {
     }
 
     // Extract data from request
-    const {nodigit, gameName, description, releaseDate, publisher, status, logo } =
-      req.body;
+    const {
+      nodigit,
+      gameName,
+      description,
+      releaseDate,
+      publisher,
+      status,
+      logo,
+    } = req.body;
 
     // Create new game instance
     const newGame = new Game({
@@ -155,8 +163,9 @@ const createGame = async (req, res) => {
 
     // Save the game
     await newGame.save();
-   // get all game
-   const games = await Game.find({});
+    // get all game
+
+    const games = await Game.find({});
 
     // Return success response
     return res.status(201).json({
@@ -194,11 +203,13 @@ const updateGame = async (req, res) => {
     if (!updatedGame) {
       return res.status(404).json({ message: "Game not found" });
     }
-
+    // get all game
+    const games = await Game.find({});
     // 4. Return the updated game data
     return res.status(200).json({
       message: "Game updated successfully",
-      game: updatedGame,
+      game: games,
+      updatedGame: updatedGame,
     });
   } catch (error) {
     // 5. Handle errors during update
@@ -213,24 +224,30 @@ const updateGame = async (req, res) => {
 // DELETE: Delete a game by gameId
 const deleteGame = async (req, res) => {
   try {
+    const gameId = req.params.id?.replace(/^:/, "");
+
     // 1. Find and delete the game by gameId
-    const id = req.params.id?.replace(/^:/, "");
-    const deletedGame = await Game.findOneAndDelete({
-      _id: id,
-    });
+    const deletedGame = await Game.findOneAndDelete({ _id: gameId });
 
     // 2. If game not found, return 404
     if (!deletedGame) {
       return res.status(404).json({ message: "Game not found" });
     }
 
-    // 3. Return success message
+    // 3. Remove the deleted game from the 'games' array in all related companies
+    await Companie.updateMany(
+      { games: gameId }, // Find companies that reference the game
+      { $pull: { games: gameId } } // Remove the game reference from their 'games' array
+    );
+
+    // 4. Return success message
     return res.status(200).json({
-      message: "Game deleted successfully",
+      message:
+        "Game deleted successfully and removed from associated companies",
       game: deletedGame,
     });
   } catch (error) {
-    // 4. Handle errors during deletion
+    // 5. Handle errors during deletion
     console.error("Error deleting game:", error);
     return res.status(500).json({
       message: "Error deleting game",
@@ -238,14 +255,13 @@ const deleteGame = async (req, res) => {
     });
   }
 };
-
 // Toggle game status (active/inactive)
 const toggleGameStatus = async (req, res) => {
   const gameId = req.params.id?.replace(/^:/, "");
   const action = req.params.action;
 
   try {
-    const game = await Game.findOne({ _id: gameId});
+    const game = await Game.findOne({ _id: gameId });
     if (!game) {
       return res.status(404).json({
         success: false,
@@ -305,5 +321,5 @@ module.exports = {
   createGame,
   updateGame,
   deleteGame,
-  toggleGameStatus
+  toggleGameStatus,
 };

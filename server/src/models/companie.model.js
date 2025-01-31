@@ -24,6 +24,11 @@ const companieSchema = new Schema(
         ref: "Game",
       },
     ],
+    status: {
+      type: String,
+      enum: ["active", "inactive"],
+      default: "active",
+    },
     isDeleted: {
       type: Boolean,
       default: false,

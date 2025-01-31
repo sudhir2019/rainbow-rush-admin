@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const ROLES = ["superdistributer", "distributer", "retailer", "admin", "user"];
+  const ROLES = ["superdistributer", "distributer", "retailer", "superadmin","admin", "user"];
 
-const roleSchema = new Schema(
+  const roleSchema = new Schema(
   {
     name: { type: String, unique: true },
   },

@@ -1,139 +1,116 @@
-import React, { useState, useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
-import { createCompany, updateCompany } from '../../stores/actions/companieAction';
-import { useCompanyActions } from '../../hooks/admin/companies/useCompanyActions';
+import { useCompanyActions } from '../../hooks/admin/companies/useCreateCompany'; // Import your custom hook
+
 
 export default function CompaniesAdd() {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const { id } = useParams();
     const {
-        companiesLoading: loading,
-        addCompany,
-        editCompany
-    } = useCompanyActions();
+        register,
+        handleSubmit,
+        errors,
+        games,
+        isLoading,
+        companiesLoading,
+        companiesMessage,
+        companiesError
+    } = useCompanyActions();;
 
-    const [action] = useState(id ? "edit" : "create");
-    const [formData, setFormData] = useState({
-        name: '',
-        note: '',
-        status: 'true'
-    });
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        const success = action === "create"
-            ? await addCompany(formData)
-            : await editCompany(id, formData);
-
-        if (success) {
-            navigate(-1);
-        }
-    };
 
     return (
         <div className="row">
             <div className="col-md-12 grid-margin stretch-card">
                 <div className="card">
                     <div className="card-body">
-                        <h6 className="card-title">{action === "create" ? "Add" : "Edit"} Company</h6>
+                        <h6 className="card-title">Add Company</h6>
                         <form className="forms-sample" onSubmit={handleSubmit}>
                             <div className="row">
+                                {/* Company Name */}
                                 <div className="col-sm-6">
                                     <div className="form-group">
-                                        <label>Company Name :</label>
+                                        <label>Company Name:</label>
                                         <input
                                             type="text"
                                             className="form-control"
-                                            name="name"
-                                            value={formData.name}
-                                            onChange={handleInputChange}
-                                            autoComplete="off"
+                                            {...register("name", { required: "Company Name is required" })}
+                                        />
+                                        {errors.name && <small className="text-danger">{errors.name.message}</small>}
+                                    </div>
+                                </div>
+
+                                {/* Note */}
+                                <div className="col-sm-6">
+                                    <div className="form-group">
+                                        <label>Note:</label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            {...register("note")}
                                         />
                                     </div>
                                 </div>
 
+                                {/* Status */}
                                 <div className="col-sm-6">
                                     <div className="form-group">
-                                        <label>Note :</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="note"
-                                            value={formData.note}
-                                            onChange={handleInputChange}
-                                            autoComplete="off"
-                                        />
+                                        <label>Status:</label>
+                                        <div className="form-check form-check-inline">
+                                            <input
+                                                type="radio"
+                                                className="form-check-input"
+                                                value="true"
+                                                {...register("status")}
+                                                defaultChecked
+                                            />
+                                            <label className="form-check-label">Active</label>
+                                        </div>
+                                        <div className="form-check form-check-inline">
+                                            <input
+                                                type="radio"
+                                                className="form-check-input"
+                                                value="false"
+                                                {...register("status")}
+                                            />
+                                            <label className="form-check-label">Deactive</label>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="col-sm-6">
+                                {/* Select Games */}
+                                <div className="col-sm-12">
                                     <div className="form-group">
-                                        <label>Status :</label>
-                                        <div className="form-check form-check-inline">
-                                            <label className="form-check-label">
-                                                <input
-                                                    type="radio"
-                                                    className="form-check-input"
-                                                    name="status"
-                                                    value="true"
-                                                    checked={formData.status === "true"}
-                                                    onChange={handleInputChange}
-                                                />
-                                                Active
-                                            </label>
-                                        </div>
-                                        <div className="form-check form-check-inline">
-                                            <label className="form-check-label">
-                                                <input
-                                                    type="radio"
-                                                    className="form-check-input"
-                                                    name="status"
-                                                    value="false"
-                                                    checked={formData.status === "false"}
-                                                    onChange={handleInputChange}
-                                                />
-                                                Deactive
-                                            </label>
-                                        </div>
+                                        <label>Games:</label>
+                                        <select className="form-control" {...register("games")} multiple>
+                                            {isLoading ? (
+                                                <option>Loading games...</option>
+                                            ) : (
+                                                games.map((game) => (
+                                                    <option key={game._id} value={game._id}>
+                                                        {game.gameName}
+                                                    </option>
+                                                ))
+                                            )}
+                                        </select>
                                     </div>
                                 </div>
                             </div>
 
+                            {/* Submit and Cancel Buttons */}
                             <div className="row">
                                 <div className="col-sm-6">
                                     <div className="form-group">
-                                        <button
-                                            type="submit"
-                                            className="btn btn-primary mr-2"
-                                            disabled={loading}
-                                        >
-                                            {loading ? "Submitting..." : "Submit"}
+                                        <button type="submit" className="btn btn-primary mr-2" disabled={companiesLoading}>
+                                            {companiesLoading ? "Submitting..." : "Submit"}
                                         </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => window.history.back()}
-                                            className="btn btn-light"
-                                        >
+                                        <button type="button" onClick={() => window.history.back()} className="btn btn-light">
                                             Cancel
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </form>
+                        {companiesMessage && <p className="text-success">{companiesMessage}</p>}
+                        {companiesError && <p className="text-danger">{companiesError}</p>}
                     </div>
                 </div>
             </div>
         </div>
-    )
+    );
 }

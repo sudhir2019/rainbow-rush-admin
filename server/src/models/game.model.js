@@ -28,7 +28,7 @@ const gameSchema = new Schema(
     },
     nodigit: {
       type: Number,
-      required: true,                                                       
+      required: true,
     },
     logo: {
       type: String,

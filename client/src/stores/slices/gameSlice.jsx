@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import { fetchGames, createGame, updateGame, deleteGame,activateGameAsync } from '../actions/gameActions'
+import { fetchGames, createGame, updateGame, deleteGame, activateGameAsync } from '../actions/gameActions'
 // Game slice
 const gameSlice = createSlice({
     name: "games",
@@ -39,7 +39,7 @@ const gameSlice = createSlice({
             })
             .addCase(fetchGames.fulfilled, (state, action) => {
                 state.gamesLoading = false;
-                state.games =action.payload.data;
+                state.games = action.payload.data;
                 state.gamesMessage = "Games fetched successfully";
                 state.lastUpdated = new Date().toISOString();
                 state.gamesError = null;
@@ -49,7 +49,6 @@ const gameSlice = createSlice({
                 state.gamesError = action.payload || "Failed to fetch games. Please try again later.";
                 state.games = state.games || [];
             })
-
             // Create a new game
             .addCase(createGame.pending, (state) => {
                 state.gamesLoading = true;
@@ -59,7 +58,7 @@ const gameSlice = createSlice({
             .addCase(createGame.fulfilled, (state, action) => {
                 console.log(action.payload)
                 state.gamesLoading = false;
-                state.games = action.payload.data; 
+                state.games = action.payload.data;
                 state.gamesMessage = "Game created successfully";
                 state.lastUpdated = new Date().toISOString();
             })
@@ -75,11 +74,9 @@ const gameSlice = createSlice({
             })
             .addCase(updateGame.fulfilled, (state, action) => {
                 state.gamesLoading = false;
-                state.games = state.games.map((game) =>
-                    game._id === action.payload._id ? action.payload : game
-                );
+                state.games = action.payload.game || [];
                 state.currentGame = action.payload;
-                state.gamesMessage = `Game "${action.payload.title || action.payload.name}" updated successfully`;
+                state.gamesMessage = `Game "${action.payload.updatedGame.gameName}" updated successfully`;
                 state.lastUpdated = new Date().toISOString();
             })
             .addCase(updateGame.rejected, (state, action) => {

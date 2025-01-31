@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
 import { ScaleLoader } from "react-spinners"
 import GameAdd from "../../components/ActionModel/GameAdd";
-import Edit from "../../components/ActionModel/Edit";
 import Modal from "../../components/ActionModel/Modal";
 import {useDeleteGame} from '../../hooks/admin/games/useDeleteGame';
 import { useFetchGames } from '../../hooks/admin/games/useFetchGames';

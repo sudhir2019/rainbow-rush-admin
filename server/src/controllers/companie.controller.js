@@ -247,10 +247,14 @@ const deleteCompanie = async (req, res) => {
 
     // Perform soft delete
     await company.softDelete();
-
+ // Fetch updated games list with pagination and sorting
+ const Compan = await Companie.find({ isDeleted: false })
+ .sort({ createdAt: -1 })
+ .exec();
     return res.status(200).json({
       success: true,
       message: "Company deleted successfully",
+      data: Compan,
     });
   } catch (error) {
     console.error("Error deleting company:", error);
@@ -351,7 +355,65 @@ const removeGameFromCompanie = async (req, res) => {
     });
   }
 };
+// Toggle company status (active/inactive)
+const toggleCompanieStatus = async (req, res) => {
+  const companiId = req.params.companieId?.replace(/^:/, "");
+  const action = req.params.action;
 
+  try {
+    const Compani = await Companie.findOne({ _id: companiId });
+    if (!Compani) {
+      return res.status(404).json({
+        success: false,
+        message: "Companie not found",
+      });
+    }
+
+    // Validate and update status
+    if (action === "activate") {
+      if (Compani.status === "active") {
+        return res.status(400).json({
+          success: false,
+          message: "Companie is already active",
+        });
+      }
+      Compani.status = "active";
+    } else if (action === "deactivate") {
+      if (Compani.status === "inactive") {
+        return res.status(400).json({
+          success: false,
+          message: "Companie is already inactive",
+        });
+      }
+      Compani.status = "inactive";
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid action. Use 'activate' or 'deactivate'.",
+      });
+    }
+
+    await Compani.save();
+
+    // Fetch updated games list with pagination and sorting
+    const Compan = await Companie.find({ isDeleted: false })
+      .sort({ createdAt: -1 })
+      .exec();
+
+    return res.status(200).json({
+      success: true,
+      message: `Companie ${action}d successfully`,
+      data: Compan,
+    });
+  } catch (error) {
+    console.error(`Error occurred during Companie ${action}:`, error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
 module.exports = {
   createCompanie,
   getAllCompanies,
@@ -360,4 +422,5 @@ module.exports = {
   deleteCompanie,
   addGameToCompanie,
   removeGameFromCompanie,
+  toggleCompanieStatus,
 };

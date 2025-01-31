@@ -6,13 +6,16 @@ import {
     deleteCompanyById,
     addGameToCompany,
     removeGameFromCompany,
+    activateCompanyAsync
 } from "../actions/companieAction";
 
 const initialState = {
     companies: [],
-    companiesCompaniesLoading: false,
+    companiesLoading: false,
     companiesError: null,
     companiesMessage: null,
+    lastUpdated: null,
+    companieDeleted: false,
 };
 
 const companieSlice = createSlice({
@@ -25,6 +28,9 @@ const companieSlice = createSlice({
         clearCompaniesMessage: (state) => {
             state.companiesMessage = null;
         },
+        setCompaniesDeleted: (state) => {
+            state.companieDeleted = true;
+        },
     },
     extraReducers: (builder) => {
         // Fetch Companies
@@ -35,7 +41,7 @@ const companieSlice = createSlice({
             })
             .addCase(fetchCompanies.fulfilled, (state, action) => {
                 state.companiesLoading = false;
-                state.companies = action.payload.companies;
+                state.companies = action.payload.data;
                 state.companiesMessage = "Companies fetched successfully";
             })
             .addCase(fetchCompanies.rejected, (state, action) => {
@@ -86,9 +92,8 @@ const companieSlice = createSlice({
             })
             .addCase(deleteCompanyById.fulfilled, (state, action) => {
                 state.companiesLoading = false;
-                state.companies = state.companies.filter(
-                    (company) => company._id !== action.payload.companyId
-                );
+                console.log(action.payload.data)
+                state.companies = action.payload.data;
                 state.companiesMessage = "Company deleted successfully";
             })
             .addCase(deleteCompanyById.rejected, (state, action) => {
@@ -132,9 +137,26 @@ const companieSlice = createSlice({
             .addCase(removeGameFromCompany.rejected, (state, action) => {
                 state.companiesLoading = false;
                 state.companiesError = action.payload;
+            })
+
+            .addCase(activateCompanyAsync.pending, (state) => {
+                state.companiesLoading = true;
+                state.companiesError = null;
+                state.companiesMessage = null;
+            })
+            .addCase(activateCompanyAsync.fulfilled, (state, action) => {
+                state.companiesLoading = false;
+                state.companies = action.payload.data;
+                state.companiesMessage = action.payload.message;
+                state.lastUpdated = new Date().toISOString();
+                state.companiesError = null;
+            })
+            .addCase(activateCompanyAsync.rejected, (state, action) => {
+                state.companiesLoading = false;
+                state.companiesError = action.payload || "Failed to update game status";
             });
     },
 });
 
-export const { clearCompaniesError, clearCompaniesMessage } = companieSlice.actions;
+export const { clearCompaniesError, clearCompaniesMessage, setCompaniesDeleted } = companieSlice.actions;
 export default companieSlice.reducer;
