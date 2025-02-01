@@ -4637,12 +4637,11 @@ input[type=button].btn-block {
   box-shadow: 3px 0 10px 0 #03060b;
   display: flex;
   height: 60px;
-  left: 240px;
   padding: 0;
   position: fixed;
   right: 0;
   transition: width .1s ease,left .1s ease;
-  width: calc(100% - 240px);
+  width: calc(100%) ;
   z-index: 978;
 }
 .navbar .container,
