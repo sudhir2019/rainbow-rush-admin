@@ -1,9 +1,8 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-
 const Schema = mongoose.Schema;
 
-const userSchema = new Schema(
+const superAdminSchema = new Schema(
   {
     username: {
       type: String,
@@ -49,22 +48,20 @@ const userSchema = new Schema(
       type: Number,
       default: 0,
     },
-    companie: {
-      type: Schema.Types.ObjectId,
-      ref: "Companie",
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
-    user: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+    deletedAt: {
+      type: Date,
+    },
     roles: [
       {
         type: Schema.Types.ObjectId,
         ref: "Role",
       },
     ],
+
     wallet: [
       {
         type: Schema.Types.ObjectId,
@@ -83,28 +80,24 @@ const userSchema = new Schema(
         ref: "UserLog",
       },
     ],
-    isDeleted: {
-      type: Boolean,
-      default: false,
-    },
-    deletedAt: {
-      type: Date,
-    },
+    companies: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Company",
+      },
+    ],
   },
-  {
-    timestamps: true,
-    versionKey: false,
-  }
+  { timestamps: true, versionKey: false }
 );
 
 // Pre-save middleware to set username and refId
-userSchema.pre("save", async function (next) {
+superAdminSchema.pre("save", async function (next) {
   try {
     if (!this.refId) {
       const generateRefId = () =>
         Math.random().toString(36).substring(2, 8).toUpperCase();
       let newRefId = generateRefId();
-      while (await User.exists({ refId: newRefId })) {
+      while (await SuperAdmin.exists({ refId: newRefId })) {
         newRefId = generateRefId();
       }
       this.refId = newRefId;
@@ -116,7 +109,7 @@ userSchema.pre("save", async function (next) {
 });
 
 // Static Methods for password encryption and comparison
-userSchema.statics.encryptPassword = async (password) => {
+superAdminSchema.statics.encryptPassword = async (password) => {
   try {
     if (!password || password.length < 3) {
       throw new Error("Password is too weak. Must be at least 6 characters.");
@@ -128,7 +121,10 @@ userSchema.statics.encryptPassword = async (password) => {
   }
 };
 
-userSchema.statics.comparePassword = async (password, receivedPassword) => {
+superAdminSchema.statics.comparePassword = async (
+  password,
+  receivedPassword
+) => {
   try {
     if (!password || !receivedPassword) {
       throw new Error("Passwords cannot be null or undefined.");
@@ -140,7 +136,7 @@ userSchema.statics.comparePassword = async (password, receivedPassword) => {
 };
 
 // Method to handle login logic and check the last login time
-userSchema.methods.login = async function () {
+superAdminSchema.methods.login = async function () {
   const now = new Date();
 
   if (this.lastLoginTime && now - this.lastLoginTime > 24 * 60 * 60 * 1000) {
@@ -154,21 +150,20 @@ userSchema.methods.login = async function () {
 };
 
 // Method to perform soft delete
-userSchema.methods.softDelete = async function () {
+superAdminSchema.methods.softDelete = async function () {
   this.isDeleted = true;
   this.deletedAt = new Date();
   await this.save();
 };
 
 // Static method to find non-deleted users by default
-userSchema.statics.findNonDeleted = function () {
+superAdminSchema.statics.findNonDeleted = function () {
   return this.find({ isDeleted: { $ne: true } });
 };
 
 // Create indexes for email, mobile and username
-userSchema.index({ username: 1 }, { unique: true });
+superAdminSchema.index({ username: 1 }, { unique: true });
 
-// Create User model
-const User = mongoose.model("User", userSchema);
+const SuperAdmin = mongoose.model("SuperAdmin", superAdminSchema);
 
-module.exports = { User };
+module.exports = { SuperAdmin };

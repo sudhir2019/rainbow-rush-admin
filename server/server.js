@@ -14,20 +14,19 @@ var cron = require("node-cron");
 const http = require("http").createServer(app);
 
 // Import functions for initial setup
-const { createRoles, createAllUsers } = require("./src/libs/initialSetUp");
+const { setupSystem } = require("./src/libs/initialSetUp");
 
 // Connect to the database
 connectToDatabase();
 
 // Perform initial setup tasks
-createRoles();
-createAllUsers();
+setupSystem();
 
 // Connect Socket.IO to the HTTP server
 connectIO(http);
 
 // Define the port for the server to listen on
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 8080;
 
 // Schedules given task to be executed whenever the cron expression ticks.
 cron.schedule("* * * * *", () => {

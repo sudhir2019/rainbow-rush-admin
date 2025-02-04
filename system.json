@@ -1,0 +1,6 @@
+SuperAdmin: Can access all data across all companies, including Admins and their respective users.
+Company: Belongs to a SuperAdmin and has its own set of Admins and other roles (e.g., SuperDistributor, Distributor).
+Admins: Have access to SuperDistributors, Distributors, and Retailers in their company.
+SuperDistributors: Can access Distributors and Retailers within their scope.
+Distributors: Can access Retailers and manage their data.
+Roles: Define the level of access and permissions (e.g., SuperAdmin, Admin, SuperDistributor, etc.)

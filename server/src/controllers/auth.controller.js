@@ -12,15 +12,17 @@ const sendConfirmationEmailFunction = require("../libs/sendConfirmationEmail");
 const sendResetPasswordEmailFunction = require("../libs/sendResetPasswordEmail");
 const { getCookieValueByName } = require("../utils/getCookieValueByName");
 const logUserActivity = require("../libs/userActivity");
+const { SuperAdmin } = require("../models/superAdmin.model");
 
 // Signup function for user registration
 async function signUp(req, res) {
   try {
-    const { username, password, roles, referredBy } = req.body;
+    const { username, password, roles, referredBy, isSuperAdmin } = req.body;
 
-    // Check if the username already exists
+    // Check if user already exists
     let existingUser = await User.findOne({ username });
-    if (existingUser) {
+    let existingSuperAdmin = await SuperAdmin.findOne({ username });
+    if (existingUser || existingSuperAdmin) {
       return res.status(409).json({
         successful: false,
         message: "Username already exists.",
@@ -35,20 +37,20 @@ async function signUp(req, res) {
       });
     }
 
-    // Check if a temporal user exists
-    let temporalUser = await TemporalUser.findOne({ username });
-    if (temporalUser) {
-      return res.status(409).json({
-        successful: false,
-        message: "Please check your email to confirm.",
-      });
-    }
+    // Encrypt password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create a new temporal user
-    if (!temporalUser) {
-      temporalUser = new TemporalUser({
+    let newUser;
+    if (isSuperAdmin) {
+      newUser = new SuperAdmin({
         username,
-        password,
+        password: hashedPassword,
+        referredBy,
+      });
+    } else {
+      newUser = new User({
+        username,
+        password: hashedPassword,
         referredBy,
       });
     }
@@ -62,26 +64,26 @@ async function signUp(req, res) {
           message: "Invalid roles provided.",
         });
       }
-      temporalUser.roles = foundRoles.map((role) => role._id);
+      newUser.roles = foundRoles.map((role) => role._id);
     } else {
       const defaultRole = await Role.findOne({ name: "user" });
-      temporalUser.roles = [defaultRole._id];
+      newUser.roles = [defaultRole._id];
     }
 
     // Generate email confirmation token
     const token = jwt.sign(
-      { id: temporalUser.id },
+      { id: newUser.id },
       process.env.JWT_EMAIL_CONFIRMATION_KEY,
       { expiresIn: "1h" }
     );
-    temporalUser.emailToken = token;
+    newUser.emailToken = token;
 
     // Generate confirmation URL
-    const url = `${process.env.HOST || "http://localhost:3000"}/authentication/confirmation/:${token}`;
+    const url = `${process.env.HOST || "http://localhost:3000"}/authentication/confirmation/${token}`;
 
-    // Handle referral bonus (set status as pending)
+    // Handle referral bonus
     if (referredBy) {
-      const referrer = await User.findOne({ refId: referredBy });
+      const referrer = await User.findOne({ refId: referredBy }) || await SuperAdmin.findOne({ refId: referredBy });
       if (!referrer) {
         return res.status(404).json({
           successful: false,
@@ -90,39 +92,36 @@ async function signUp(req, res) {
       }
 
       const referralTransaction = new ReferTransaction({
-        userId: temporalUser._id,
+        userId: newUser._id,
         referrerId: referrer._id,
         refUserType: roles,
-        bonusAmount: "10",
+        bonusAmount: 10,
         status: "pending",
       });
 
       const savedTransaction = await referralTransaction.save();
-      temporalUser.referralTransactionId = savedTransaction._id;
+      newUser.referralTransactionId = savedTransaction._id;
     }
 
     // Send confirmation email
     await sendConfirmationEmailFunction(url, username);
 
-    // Log successful activity
-    await logUserActivity(req, temporalUser._id, "Resource Creation");
-    
     // Save the user
-    await temporalUser.save();
+    await newUser.save();
 
     return res.status(201).json({
       successful: true,
       message: "User created successfully. Please check your email to confirm.",
-      username: temporalUser.username,
+      username: newUser.username,
     });
   } catch (error) {
     return res.status(500).json({
       successful: false,
       message: "Something went wrong during sign-up.",
+      error: error.message,
     });
   }
 }
-
 // Send confirmation email
 async function sendConfirmationEmail(req, res) {
   try {
@@ -334,17 +333,25 @@ async function login(req, res) {
     let temporalUser = await TemporalUser.findOne({ username });
     if (temporalUser) {
       return res.status(409).json({
-        successful: true,
+        successful: false,
         message: "Please check your email to confirm.",
       });
     }
 
-    // Check if the user exists
-    const userFound = await User.findOne({ username, isDeleted: { $ne: true } })
+    // Check if the user exists in User or SuperAdmin
+    let userFound = await User.findOne({ username, isDeleted: { $ne: true } })
       .populate("roles")
       .populate("wallet")
       .populate("userLogs")
       .exec();
+
+    if (!userFound) {
+      userFound = await SuperAdmin.findOne({ username, isDeleted: { $ne: true } })
+        .populate("roles")
+        .populate("wallet")
+        .populate("userLogs")
+        .exec();
+    }
 
     if (!userFound) {
       return res.status(400).json({ message: "User Not Found" });
@@ -388,7 +395,7 @@ async function login(req, res) {
     });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: error });
+    return res.status(500).json({ message: error.message });
   }
 }
 

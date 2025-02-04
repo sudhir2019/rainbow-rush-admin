@@ -1,179 +1,284 @@
+const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 require("dotenv").config({ path: ".env" });
 const { User } = require("../models/user.model");
 const Wallet = require("../models/wallet.model");
 const { Role } = require("../models/roles.model");
+const { SuperAdmin } = require("../models/superAdmin.model");
+const Companie = require("../models/companie.model");
+const Game = require("../models/game.model");
 
-// Create Roles with Unique Enforcement
+// Helper function to create roles
 const createRoles = async () => {
-  try {
-    const roles = ["superdistributer", "distributer", "retailer","superadmin" ,"admin", "user"];
+  const roles = [
+    "superdistributer",
+    "distributer",
+    "retailer",
+    "superadmin",
+    "admin",
+    "user",
+  ];
 
-    for (const roleName of roles) {
-      const role = await Role.findOneAndUpdate(
-        { name: roleName }, // Filter
-        { name: roleName }, // Update
-        { upsert: true, new: true, setDefaultsOnInsert: true } // Options
-      );
+  // Fetch existing roles once to reduce DB queries
+  const existingRoles = await Role.find({ name: { $in: roles } }).lean();
+  const existingRoleNames = existingRoles.map((role) => role.name);
 
-      if (role.wasNew) {
-        console.log(`Role created: ${roleName}`);
-      } else {
-        console.log(`Role already exists: ${roleName}`);
+  for (const roleName of roles) {
+    if (!existingRoleNames.includes(roleName)) {
+      try {
+        await Role.create({ name: roleName });
+        console.log(`Role '${roleName}' created.`);
+      } catch (err) {
+        console.error(`Error creating role '${roleName}':`, err.message);
       }
+    } else {
+      console.log(`Role '${roleName}' already exists.`);
     }
-  } catch (err) {
-    console.error("Error creating roles:", err.message);
   }
 };
 
-// Create a User if it doesn't exist
-const createUserIfNotExists = async (userData) => {
+// Function to create a Game
+const createGame = async () => {
   try {
-    const user = await User.findOne({ username: userData.username });
+    const existingGame = await Game.findOne({ gameName: "SuperGame 1" });
 
-    if (user) {
-      console.log(`User ${userData.username} already exists.`);
-      return;
+    if (existingGame) {
+      console.log("Game already exists.");
+      return existingGame;
     }
 
-    // Find role
-    const role = await Role.findOne({ name: userData.roles });
-    if (!role) {
-      console.error(`Role ${userData.roles} not found`);
-      return;
-    }
-
-    // Create new user
-    const newUser = new User({
-      username: userData.username,
-      password: await User.encryptPassword(userData.password),
-      roles: [role._id],
-      userStatus: true,
-      note: "System generated user",
-      Commission: 0,
+    const game = new Game({
+      gameName: "SuperGame 1",
+      nodigit: 10,
+      description: "Description for SuperGame 1",
+      releaseDate: new Date(),
+      publisher: "superadmin",
     });
 
-    // Create wallet for the user
-    const wallet = await Wallet.create({
-      userId: newUser._id,
-    });
-
-    // Link wallet to user
-    newUser.wallet = [wallet._id];
-    await newUser.save();
-
-    console.log(`User ${newUser.username} created with role: ${userData.roles}`);
+    await game.save();
+    console.log("Game created successfully.");
+    return game;
   } catch (err) {
-    console.error(`Error creating user ${userData.username}:`, err.message);
-  }
-};
-
-// Create Individual Users
-const createSuperDistributer = async () => {
-  try {
-    const superDistributerData = {
-      username: "superdistributer",
-      roles: "superdistributer",
-      password: "superdistributer123",
-    };
-
-    await createUserIfNotExists(superDistributerData);
-  } catch (err) {
-    console.error("Error creating superdistributer user:", err);
-  }
-};
-
-const createDistributer = async () => {
-  try {
-    const distributerData = {
-      username: "distributer",
-      roles: "distributer",
-      password: "distributer123",
-    };
-
-    await createUserIfNotExists(distributerData);
-  } catch (err) {
-    console.error("Error creating distributer user:", err);
-  }
-};
-
-const createRetailer = async () => {
-  try {
-    const retailerData = {
-      username: "retailer",
-      roles: "retailer",
-      password: "retailer123",
-    };
-
-    await createUserIfNotExists(retailerData);
-  } catch (err) {
-    console.error("Error creating retailer user:", err);
+    console.error("Error creating Game:", err.message);
   }
 };
 
 const createSuperAdmin = async () => {
   try {
-    const superAdminData = {
+    // Check if SuperAdmin already exists
+    const existingSuperAdmin = await SuperAdmin.findOne({
       username: "superadmin",
-      roles: "superadmin",
-      password: "superadmin123",
-    };
-    await createUserIfNotExists(superAdminData);
+    }).lean();
+    if (existingSuperAdmin) {
+      console.log("SuperAdmin already exists.");
+      return existingSuperAdmin;
+    }
+
+    // Find the 'superadmin' role
+    const role = await Role.findOne({ name: "superadmin" }).lean();
+    if (!role) throw new Error("Role 'superadmin' not found");
+
+    // Create new SuperAdmin
+    const superAdmin = new SuperAdmin({
+      username: "superadmin",
+      password: await SuperAdmin.encryptPassword("superadmin123"),
+      roles: [role._id],
+      userStatus: true,
+      note: "System generated SuperAdmin",
+      Commission: 0,
+    });
+
+    // Create wallet and link it to SuperAdmin
+    const wallet = await Wallet.create({ userId: superAdmin._id });
+    superAdmin.wallet = [wallet._id];
+
+    await superAdmin.save();
+    console.log("SuperAdmin created successfully");
+    return superAdmin;
   } catch (err) {
-    console.error("Error creating superadmin user:", err);
+    console.error("Error creating SuperAdmin:", err.message);
   }
 };
 
-const createAdmin = async () => {
+// Function to create a Company and associate it with SuperAdmin
+const createCompany = async (superAdmin, game) => {
   try {
-    const adminData = {
+    // Check if a company already exists for this SuperAdmin
+    let companie = await Companie.findOne({ superAdmin: superAdmin._id });
+
+    if (companie) {
+      console.log(`Company already exists: ${companie.name}`);
+      return companie;
+    }
+
+    // Check if a company with the same name already exists
+    const existingCompany = await Companie.findOne({
+      name: "SuperAdmin's Company",
+    });
+    if (existingCompany) {
+      console.log(
+        `A company with the name "SuperAdmin's Company" already exists.`
+      );
+      return existingCompany;
+    }
+
+    // Prepare the company data
+    const testdata = {
+      name: "SuperAdmin's Company",
+      superAdmin: superAdmin._id,
+      note: "System generated company",
+      games: [game._id],
+    };
+
+    // Create new company if not found
+    companie = new Companie(testdata);
+
+    await companie.save();
+    console.log(`Company created and game added: ${companie.name}`);
+    return companie;
+  } catch (err) {
+    console.log(err);
+    console.error("Error creating company:", err.message);
+  }
+};
+
+const createAdmin = async (superAdmin, companie) => {
+  try {
+    if (!companie) throw new Error("Company not found. Cannot create Admin.");
+
+    const existingAdmin = await User.findOne({
       username: "admin",
-      roles: "admin",
-      password: "admin123",
-    };
+      company: companie._id, // Ensure correct reference
+    }).lean();
 
-    await createUserIfNotExists(adminData);
+    if (existingAdmin) {
+      console.log("Admin already exists for this company.");
+      return existingAdmin;
+    }
+    const existingAdmins = await User.findOne({
+      username: "admin",
+    });
+    if (existingAdmins) {
+      console.log(`A admin with the name "admin" already exists.`);
+      return existingAdmins;
+    }
+    const role = await Role.findOne({ name: "admin" });
+    if (!role) throw new Error("Role 'admin' not found");
+
+    const admin = new User({
+      username: "admin",
+      password: await User.encryptPassword("admin123"),
+      roles: [role._id],
+      userStatus: true,
+      note: "System generated admin",
+      Commission: 0,
+      company: [companie._id],
+    });
+
+    // Check if admin already has a wallet
+    let wallet = await Wallet.findOne({ userId: admin._id });
+    if (!wallet) {
+      wallet = await Wallet.create({ userId: admin._id });
+    }
+
+    admin.wallet = [wallet._id];
+    await admin.save();
+
+    if (!companie.admin.includes(admin._id)) {
+      companie.admin.push(admin._id);
+      await companie.save();
+    }
+
+    console.log("Admin created and added to company.");
+    return admin;
   } catch (err) {
-    console.error("Error creating admin user:", err);
+    console.error("Error creating Admin:", err.message);
   }
 };
 
-const createUser = async () => {
+const createRolesForCompany = async (companie) => {
   try {
-    const userData = {
-      username: "user",
-      roles: "user",
-      password: "user123",
-    };
-    await createUserIfNotExists(userData);
+    if (!companie) throw new Error("Company not found. Cannot create roles.");
+
+    const roleNames = ["superdistributer", "distributer", "retailer", "user"];
+
+    for (const roleName of roleNames) {
+      const role = await Role.findOne({ name: roleName });
+      if (!role) throw new Error(`Role '${roleName}' not found`);
+
+      const existingUser = await User.findOne({
+        username: roleName,
+      }).lean();
+
+      if (existingUser) {
+        console.log(`${roleName} already exists for this company.`);
+        continue;
+      }
+
+      const newUser = new User({
+        username: roleName,
+        password: await User.encryptPassword(`${roleName}123`),
+        roles: [role._id],
+        userStatus: true,
+        note: `System generated ${roleName}`,
+        Commission: 0,
+        company: companie._id,
+      });
+
+      let wallet = await Wallet.findOne({ userId: newUser._id });
+      if (!wallet) {
+        wallet = await Wallet.create({ userId: newUser._id });
+      }
+
+      newUser.wallet = [wallet._id];
+      await newUser.save();
+
+      if (!Array.isArray(companie[roleName])) {
+        companie[roleName] = [];
+      }
+
+      if (!companie[roleName].includes(newUser._id)) {
+        companie[roleName].push(newUser._id);
+        await companie.save();
+      }
+
+      console.log(`${roleName} created and added to company.`);
+    }
+
+    console.log("Roles setup completed.");
   } catch (err) {
-    console.error("Error creating user:", err);
+    console.error("Error creating roles for company:", err.message);
   }
 };
 
-// Create All Users and Roles
-const createAllUsers = async () => {
+// Full system setup function
+const setupSystem = async () => {
   try {
-    console.log("Starting roles creation...");
+    console.log("Starting system setup...");
+
     await createRoles();
-    console.log("Roles created. Starting user creation...");
+    console.log("Roles created successfully.");
 
-    await createSuperDistributer();
-    await createDistributer();
-    await createRetailer();
-    await createSuperAdmin();
-    await createAdmin();
-    await createUser();
+    const game = await createGame();
+    const superAdmin = await createSuperAdmin();
 
-    console.log("All users and roles setup completed successfully.");
+    if (!superAdmin || !game) {
+      throw new Error("SuperAdmin or Game creation failed. Aborting setup.");
+    }
+
+    const companie = await createCompany(superAdmin, game);
+    if (!companie) throw new Error("Company creation failed. Aborting setup.");
+
+    const admin = await createAdmin(superAdmin, companie);
+    if (!admin) throw new Error("Admin creation failed. Aborting setup.");
+
+    await createRolesForCompany(companie);
+
+    console.log("System setup completed.");
   } catch (err) {
-    console.error("Error during setup:", err);
+    console.error("Error during system setup:", err.message);
   }
 };
 
-module.exports = {
-  createRoles,
-  createAllUsers,
-};
+module.exports = { setupSystem };

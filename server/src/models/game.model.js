@@ -71,8 +71,8 @@ gameSchema.pre("save", async function (next) {
 });
 
 // Add a static method to find non-deleted games
-gameSchema.statics.findActive = function() {
-  return this.find({ isDeleted: false });
+gameSchema.statics.findActive = function () {
+  return this.find({ isDeleted: false, status: "active" });
 };
 
 // Create the Game model
