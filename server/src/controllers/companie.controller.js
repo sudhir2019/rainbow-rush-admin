@@ -2,7 +2,7 @@ const Companie = require("../models/companie.model");
 const Game = require("../models/game.model");
 const mongoose = require("mongoose");
 const { validationResult } = require("express-validator");
-
+const { SuperAdmin } = require("../models/superAdmin.model");
 // Create a new company
 const createCompanie = async (req, res) => {
   try {

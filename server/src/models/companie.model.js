@@ -24,6 +24,12 @@ const companieSchema = new Schema(
         ref: "Game",
       },
     ],
+    superAdmin: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "SuperAdmin",
+      },
+    ],
     admin: [
       {
         type: Schema.Types.ObjectId,

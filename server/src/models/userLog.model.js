@@ -69,6 +69,10 @@ const UserLogSchema = new Schema({
       default: "No error message", // Default error message
     },
   },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
   created_at: {
     type: Date,
     default: Date.now, // Automatically set current timestamp
@@ -78,7 +82,17 @@ const UserLogSchema = new Schema({
     default: Date.now, // Automatically set current timestamp on save
   },
 });
+// Method to perform soft delete
+UserLogSchema.methods.softDelete = async function () {
+  this.isDeleted = true;
+  this.deletedAt = new Date();
+  await this.save();
+};
 
+// Static method to find non-deleted UserLog by default
+UserLogSchema.statics.findNonDeleted = function () {
+  return this.find({ isDeleted: { $ne: true } });
+};
 // Create User model
 const UserLog = mongoose.model("UserLog", UserLogSchema);
 

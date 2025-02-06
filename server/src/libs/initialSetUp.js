@@ -104,6 +104,12 @@ const createSuperAdmin = async () => {
 // Function to create a Company and associate it with SuperAdmin
 const createCompany = async (superAdmin, game) => {
   try {
+    // Ensure superAdmin is a Mongoose document
+    superAdmin = await SuperAdmin.findById(superAdmin._id);
+    if (!superAdmin) {
+      throw new Error("SuperAdmin not found");
+    }
+
     // Check if a company already exists for this SuperAdmin
     let companie = await Companie.findOne({ superAdmin: superAdmin._id });
 
@@ -124,17 +130,22 @@ const createCompany = async (superAdmin, game) => {
     }
 
     // Prepare the company data
-    const testdata = {
+    const companyData = {
       name: "SuperAdmin's Company",
       superAdmin: superAdmin._id,
       note: "System generated company",
       games: [game._id],
+      createdBy: superAdmin._id, // Ensure SuperAdmin is also referenced
     };
 
     // Create new company if not found
-    companie = new Companie(testdata);
-
+    companie = new Companie(companyData);
     await companie.save();
+
+    // Update SuperAdmin model to associate the new company
+    superAdmin.companies = companie._id;
+    await superAdmin.save();
+
     console.log(`Company created and game added: ${companie.name}`);
     return companie;
   } catch (err) {
@@ -143,13 +154,14 @@ const createCompany = async (superAdmin, game) => {
   }
 };
 
+
 const createAdmin = async (superAdmin, companie) => {
   try {
     if (!companie) throw new Error("Company not found. Cannot create Admin.");
 
     const existingAdmin = await User.findOne({
       username: "admin",
-      company: companie._id, // Ensure correct reference
+      companie: companie._id, // Ensure correct reference
     }).lean();
 
     if (existingAdmin) {
@@ -173,7 +185,7 @@ const createAdmin = async (superAdmin, companie) => {
       userStatus: true,
       note: "System generated admin",
       Commission: 0,
-      company: [companie._id],
+      companie: [companie._id],
     });
 
     // Check if admin already has a wallet
@@ -223,7 +235,7 @@ const createRolesForCompany = async (companie) => {
         userStatus: true,
         note: `System generated ${roleName}`,
         Commission: 0,
-        company: companie._id,
+        companie: companie._id,
       });
 
       let wallet = await Wallet.findOne({ userId: newUser._id });

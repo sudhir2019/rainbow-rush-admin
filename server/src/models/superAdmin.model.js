@@ -80,10 +80,16 @@ const superAdminSchema = new Schema(
         ref: "UserLog",
       },
     ],
+    users: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     companies: [
       {
         type: Schema.Types.ObjectId,
-        ref: "Company",
+        ref: "Companie",
       },
     ],
   },

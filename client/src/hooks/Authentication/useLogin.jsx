@@ -30,10 +30,19 @@ export default function useLogin() {
 
             // Navigate based on roles
             setTimeout(() => {
-                if (response.roles.some((role) => role.name === "admin")) {
-                    navigate("/admin/dashboard");
-                } else if (response.roles.some((role) => role.name === "user")) {
-                    navigate("/");
+                const rolePathMap = {
+                    superadmin: "/superadmin/dashboard",
+                    admin: "/admin/dashboard",
+                    superdistributer: "/superdistributer/dashboard",
+                    distributer: "/distributer/dashboard",
+                    retailer: "/retailer/dashboard",
+                    user: "/",
+                };
+
+                const userRole = response.roles.find(role => rolePathMap[role.name]);
+                console.log(userRole);
+                if (userRole) {
+                    navigate(rolePathMap[userRole.name]);
                 } else {
                     navigate("/auth/login");
                 }

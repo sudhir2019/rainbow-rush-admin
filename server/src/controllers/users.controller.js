@@ -5,6 +5,8 @@ const UserLog = require("../models/userLog.model");
 const ReferTransaction = require("../models/referTransaction.model");
 const UserTransaction = require("../models/userTransaction.model");
 const { cloudinary } = require("../configs/cloudinary");
+const Companie = require("../models/companie.model");
+const { SuperAdmin } = require("../models/superAdmin.model");
 const path = require("path");
 // Get all users
 async function getAllUsers(req, res) {
@@ -65,7 +67,6 @@ async function getAllUsers(req, res) {
   }
 }
 
-// Get user by ID
 const getUserById = async (req, res) => {
   try {
     const id = req.params.id?.replace(/^:/, "");
@@ -76,6 +77,7 @@ const getUserById = async (req, res) => {
       .populate("roles")
       .populate("wallet")
       .populate("userLogs")
+      // .populate("companie") // Correct field name
       .exec();
 
     if (!user) {
@@ -122,61 +124,156 @@ async function updateUserRoleById(req, res) {
   }
 }
 
-// Create user
 const createUser = async (req, res) => {
   try {
-    const { username, refId, commissionAmount, note, password, roles } =
-      req.body;
-
-    const rolesFound = await Role.find({ name: { $in: roles } });
-    const user = new User({
+    const {
+      companieId,
       username,
-      password: await User.encryptPassword(password),
-      roles: rolesFound.map((role) => role._id),
-      referredBy: refId,
+      password,
+      roles,
+      refId,
+      commissionAmount,
       note,
-      Commission: commissionAmount,
-    });
+    } = req.body;
 
-    if (refId) {
-      const referrer = await User.findOne({
-        refId: refId,
-        isDeleted: { $ne: true },
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Username and password are required.",
       });
+    }
+
+    // Ensure roles is an array
+    const userRoles = [].concat(roles || []);
+
+    // Check for existing username
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "Username already taken. Please choose a different one.",
+      });
+    }
+
+    // Find roles in the database
+    const rolesFound = await Role.find({ name: { $in: userRoles } });
+    if (!rolesFound.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid roles provided.",
+      });
+    }
+    const roleIds = rolesFound.map((role) => role._id);
+
+    const isAdmin = userRoles.includes("admin");
+    let companie = null;
+
+    if (!isAdmin) {
+      if (!companieId) {
+        return res.status(400).json({
+          success: false,
+          message: "Company ID is required for non-admin users.",
+        });
+      }
+
+      companie = await Companie.findById(companieId);
+      if (!companie) {
+        return res.status(404).json({
+          success: false,
+          message: "Company not found.",
+        });
+      }
+    }
+
+    // Encrypt the password
+    const hashedPassword = await User.encryptPassword(password);
+    if (!hashedPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid password.",
+      });
+    }
+
+    let referrer = null;
+    if (refId) {
+      const referrerQuery = isAdmin
+        ? { refId, isDeleted: { $ne: true } }
+        : { refId, isDeleted: { $ne: true } };
+
+      referrer = await (isAdmin
+        ? SuperAdmin.findOne(referrerQuery)
+        : User.findOne(referrerQuery));
+
       if (!referrer) {
         return res.status(404).json({
           success: false,
           message: "Referrer not found. Please check the referral code.",
         });
       }
+    }
 
-      const referralTransaction = new ReferTransaction({
-        referredUser: user._id,
+    // Create user
+    const user = new User({
+      username,
+      password: hashedPassword,
+      roles: roleIds,
+      referredBy: refId,
+      note,
+      Commission: commissionAmount,
+      companie: companie ? companie._id : null,
+    });
+
+    const savedUser = await user.save();
+    const wallet = await Wallet.create({ userId: savedUser._id });
+
+    savedUser.wallet = wallet._id;
+    await savedUser.save();
+
+    // Assign user to correct role array in `companie`
+    if (!isAdmin && companie) {
+      rolesFound.forEach((role) => {
+        if (
+          Array.isArray(companie[role.name]) &&
+          !companie[role.name].includes(savedUser._id)
+        ) {
+          companie[role.name].push(savedUser._id);
+        }
+      });
+
+      await companie.save();
+    }
+
+    // Handle referral logic
+    if (refId) {
+      const referralTransaction = await ReferTransaction.create({
+        referredUser: savedUser._id,
         referredBy: referrer._id,
-        refUserType: roles,
-        commissionAmount: commissionAmount,
+        refUserType: userRoles,
+        commissionAmount,
         status: "paid",
       });
 
-      user.referredBy = referrer.username;
-      const savedTransaction = await referralTransaction.save();
-      user.referralTransaction.push(savedTransaction._id);
-      referrer.referralTransaction.push(savedTransaction._id);
+      referrer.referralTransaction.push(referralTransaction._id);
+      referrer.users.push(savedUser._id);
       await referrer.save();
+
+      savedUser.referralTransaction.push(referralTransaction._id);
+      await savedUser.save();
     }
 
-    const wallet = await Wallet.create({
-      userId: user._id,
-    });
-
-    user.wallet = wallet._id;
-    const savedUser = await user.save();
-
-    const users = await User.find({ isDeleted: { $ne: true } })
+    // Fetch updated user list
+    const users = await User.find({
+      isDeleted: { $ne: true },
+      companie: companieId,
+    })
       .populate("roles")
       .populate("wallet")
       .populate("userLogs")
-      .exec();
+      .populate({
+        path: "companie",
+        match: { _id: companieId },
+        select: "name address",
+      });
 
     return res.status(201).json({
       success: true,
@@ -185,13 +282,14 @@ const createUser = async (req, res) => {
         id: savedUser._id,
         username: savedUser.username,
         roles: savedUser.roles,
+        company: companie ? companie.name : null,
       },
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error creating user:", error);
     return res.status(500).json({
       success: false,
-      message: "Something went wrong, failed to create user",
+      message: "Something went wrong, failed to create user.",
     });
   }
 };
@@ -351,23 +449,38 @@ const updateUserByIdDashboard = async (req, res) => {
   }
 };
 
-// Delete user
+// Delete user (Soft Delete)
 async function deleteUserById(req, res) {
   const userId = req.params.id?.replace(/^:/, "");
 
   try {
-    const user = await User.findById(userId);
+    // Soft delete the user
+    const user = await User.findOneAndUpdate(
+      { _id: userId, isDeleted: { $ne: true } },
+      { isDeleted: true, deletedAt: new Date() },
+      { new: true }
+    );
+
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: "User not found or already deleted",
       });
     }
 
-    // Perform soft delete
-    await user.softDelete();
+    const deleteQuery = { userId }; // Common query for all related collections
+    const softDeleteData = { isDeleted: true, deletedAt: new Date() };
 
-    const users = await User.findNonDeleted()
+    // Run deletions in parallel
+    await Promise.all([
+      ReferTransaction.updateMany(deleteQuery, softDeleteData), // Soft delete all referral transactions
+      UserLog.updateMany(deleteQuery, softDeleteData), // Soft delete all user logs
+      UserTransaction.updateMany(deleteQuery, softDeleteData), // Soft delete all transactions
+      Wallet.findOneAndUpdate(deleteQuery, softDeleteData), // Soft delete wallet (one per user)
+    ]);
+
+    // Fetch updated user list (excluding deleted users)
+    const users = await User.find({ isDeleted: { $ne: true } })
       .populate("roles")
       .populate("wallet")
       .populate("userLogs")

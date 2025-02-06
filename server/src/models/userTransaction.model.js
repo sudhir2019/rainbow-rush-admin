@@ -35,12 +35,29 @@ const UserTransactionSchema = new Schema(
       type: String,
       required: true,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true, // Automatically adds `createdAt` and `updatedAt` fields
     strict: true, // Ensures only fields defined in the schema are stored
   }
 );
+
+
+// Method to perform soft delete
+UserTransactionSchema.methods.softDelete = async function () {
+  this.isDeleted = true;
+  this.deletedAt = new Date();
+  await this.save();
+};
+
+// Static method to find non-deleted UserTransaction by default
+UserTransactionSchema.statics.findNonDeleted = function () {
+  return this.find({ isDeleted: { $ne: true } });
+};
 
 // Add indexes for performance
 UserTransactionSchema.index({ userId: 1 });

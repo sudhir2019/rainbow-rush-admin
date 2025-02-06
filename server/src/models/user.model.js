@@ -53,7 +53,7 @@ const userSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Companie",
     },
-    user: [
+    users: [
       {
         type: Schema.Types.ObjectId,
         ref: "User",
