@@ -54,6 +54,7 @@ const menuItems = [
 ];
 
 function Sidebar() {
+  
     const [activeMenu, setActiveMenu] = useState(null);
     useEffect(() => {
         // Enable feather icons
@@ -84,7 +85,8 @@ function Sidebar() {
         const sidebarToggler = document.querySelector(".sidebar-toggler");
 
         const toggleSidebar = () => {
-            if (window.matchMedia("(min-width: 992px)").matches) {
+           // console.log("ok")
+            if (window.matchMedia("(min-width: 900px)").matches) {
                 body.classList.toggle("sidebar-folded");
             } else {
                 body.classList.toggle("sidebar-open");
@@ -104,9 +106,9 @@ function Sidebar() {
     const toggleSubmenu = (menuId) => {
         setActiveMenu(activeMenu === menuId ? null : menuId); // Toggle visibility of submenu
     };
-
+// console.log(isMenuOpen);
     return (
-        <nav className="sidebar">
+        <nav  className="sidebar">
             <div className="sidebar-header">
                 <a href="#" className="sidebar-brand"><span>RainbowRush</span></a>
                 <div className="sidebar-toggler not-active">
