@@ -25,6 +25,10 @@ const ReferTransactionSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
   updated_at: {
     type: Date,
     default: Date.now,
@@ -36,7 +40,17 @@ ReferTransactionSchema.pre("save", function (next) {
   this.updated_at = Date.now();
   next();
 });
+// Method to perform soft delete
+ReferTransactionSchema.methods.softDelete = async function () {
+  this.isDeleted = true;
+  this.deletedAt = new Date();
+  await this.save();
+};
 
+// Static method to find non-deleted ReferTransaction by default
+ReferTransactionSchema.statics.findNonDeleted = function () {
+  return this.find({ isDeleted: { $ne: true } });
+};
 const ReferTransaction = mongoose.model("ReferTransaction", ReferTransactionSchema);
 
 module.exports = ReferTransaction;

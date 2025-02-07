@@ -75,6 +75,18 @@ gameSchema.statics.findActive = function () {
   return this.find({ isDeleted: false, status: "active" });
 };
 
+// Method to perform soft delete
+gameSchema.methods.softDelete = async function () {
+  this.isDeleted = true;
+  this.deletedAt = new Date();
+  await this.save();
+};
+
+// Static method to find non-deleted game by default
+gameSchema.statics.findNonDeleted = function () {
+  return this.find({ isDeleted: { $ne: true } });
+};
+
 // Create the Game model
 const Game = mongoose.model("Game", gameSchema);
 

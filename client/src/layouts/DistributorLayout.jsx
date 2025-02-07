@@ -10,7 +10,7 @@ import useFetchAllWallets from '../hooks/admin/wallets/useFetchAllWallets';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { useEffect, useState } from 'react';
 
-function AdminLayout() {
+function SuperAdminLayout() {
     const { isLoadingSession, authUser } = useSelector((state) => state.auth);
     const { fetchAllUsers } = useFetchAllUsers();
     const { fetchAllWallets } = useFetchAllWallets();
@@ -29,31 +29,29 @@ function AdminLayout() {
         }
     }, [isLoadingSession, hasFetchedUsers, fetchAllUsers, fetchAllWallets]);
     const menuItems = [
-        { category: "Main", links: [{ to: "/admin/dashboard", icon: "box", label: "Dashboard" }] },
+        { category: "Main", links: [{ to: "/distributor/dashboard", icon: "box", label: "Dashboard" }] },
         {
             category: "Management",
             links: [
-                { to: "/admin/superdistributor", icon: "users", label: "SuperDistributer" },
-                { to: "/admin/distributor", icon: "users", label: "Distributor" },
-                { to: "/admin/retailer", icon: "users", label: "Retailer" },
-                { to: "/admin/users", icon: "users", label: "Users" },
-                { to: "/admin/onlineplayers", icon: "log-in", label: "Online Players" },
+                { to: "/distributor/retailer", icon: "users", label: "Retailer" },
+                { to: "/distributor/users", icon: "users", label: "Users" },
+                { to: "/distributor/onlineplayers", icon: "log-in", label: "Online Players" },
             ],
         },
         {
             category: "Game",
             links: [
-                { to: "/admin/gamehistory", icon: "inbox", label: "Game History" },
-                { to: "/admin/winpercentage", icon: "inbox", label: "Win Percentage" },
+                { to: "/distributor/gamehistory", icon: "inbox", label: "Game History" },
+                { to: "/distributor/winpercentage", icon: "inbox", label: "Win Percentage" },
             ],
         },
         {
             category: "Reports",
             links: [
-                { to: "/admin/turnoverreport", icon: "inbox", label: "TurnOver Report" },
-                { to: "/admin/transactionreport", icon: "briefcase", label: "Transaction Report" },
-                { to: "/admin/commissionpayoutReport", icon: "briefcase", label: "Commission Payout Report" },
-                { to: "/admin/admincommissionreport", icon: "briefcase", label: "Admin Commission Report" },
+                { to: "/distributor/turnoverreport", icon: "inbox", label: "TurnOver Report" },
+                { to: "/distributor/transactionreport", icon: "briefcase", label: "Transaction Report" },
+                { to: "/distributor/commissionpayoutReport", icon: "briefcase", label: "Commission Payout Report" },
+                { to: "/distributor/admincommissionreport", icon: "briefcase", label: "Admin Commission Report" },
             ],
         },
         {
@@ -61,17 +59,17 @@ function AdminLayout() {
             links: [
                 {
                     to: "#", icon: "download", label: "Live Result", submenu: [
-                        { href: "/admin/liveResult/LiveResult12one", label: "Lucky 12 one" },
-                        { href: "/admin/liveResult/LiveResult12two", label: "Lucky 12 two" },
-                        { href: "/admin/liveResult/LiveResult12three", label: "Lucky 12 coupon" },
-                        { href: "/admin/liveResult/LiveResult16", label: "Lucky 16" },
-                        { href: "/admin/liveResult/LiveResultTripleChanse", label: "Triple Chance" },
-                        { href: "/admin/liveResult/LiveResultRoulette", label: "GK Roulette-36" },
+                        { href: "/distributor/liveResult/LiveResult12one", label: "Lucky 12 one" },
+                        { href: "/distributor/liveResult/LiveResult12two", label: "Lucky 12 two" },
+                        { href: "/distributor/liveResult/LiveResult12three", label: "Lucky 12 coupon" },
+                        { href: "/distributor/liveResult/LiveResult16", label: "Lucky 16" },
+                        { href: "/distributor/liveResult/LiveResultTripleChanse", label: "Triple Chance" },
+                        { href: "/distributor/liveResult/LiveResultRoulette", label: "GK Roulette-36" },
                     ]
                 },
             ],
         },
-        { category: "Logs Activity", links: [{ to: "/admin/logactivities", icon: "inbox", label: "Logs" }] },
+        { category: "Logs Activity", links: [{ to: "/distributor/logactivities", icon: "inbox", label: "Logs" }] },
     ];
     // Combine both loading states (session and users loading)
     return (
@@ -94,4 +92,4 @@ function AdminLayout() {
     );
 }
 
-export default AdminLayout;
+export default SuperAdminLayout;

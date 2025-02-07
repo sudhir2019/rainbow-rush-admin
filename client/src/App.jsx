@@ -10,7 +10,11 @@ import Signup from "./pages/Authentication/Signup";
 // Layouts
 import MainLayout from "./layouts/MainLayout";
 import AuthLayout from "./layouts/AuthLayout";
+import SuperAdminLayout from "./layouts/SuperAdminLayout";
 import AdminLayout from "./layouts/AdminLayout";
+import SuperDistributorLayout from "./layouts/SuperDistributorLayout";
+import DistributorLayout from "./layouts/DistributorLayout";
+import RetailerLayout from "./layouts/RetailerLayout";
 
 // Admin Components
 import SuperDistributor from "./pages/Dashboard/SuperDistributor";
@@ -61,7 +65,7 @@ export default function App() {
   const { isLoadingSession, isLoggedIn } = useSession();
 
   if (isLoadingSession) {
-    
+
     return <Loader />;
   }
   // console.log(isLoggedIn);
@@ -90,8 +94,8 @@ export default function App() {
           { path: "signup", element: <Signup /> },
         ])}
 
-        {/* Protected Admin Routes */}
-        {renderRoutes({ path: "admin", component: <AdminLayout /> }, [
+        {/* Protected Super Admin Routes */}
+        {renderRoutes({ path: "superadmin", component: <SuperAdminLayout /> }, [
           { path: "dashboard", element: <Dashboard /> },
           { path: "gamemaster", element: <GameMaster /> },
           { path: "gamemaster/:action", element: <GameMaster /> },
@@ -119,7 +123,82 @@ export default function App() {
           { path: "*", element: <Navigate to="/admin/dashboard" /> },
         ])}
 
-        {/* Catch-all Redirect for unauthenticated users */}
+        {/* Protected Admin Routes */}
+        {renderRoutes({ path: "admin", component: <AdminLayout /> }, [
+          { path: "dashboard", element: <Dashboard /> },
+          { path: "superdistributor", element: <SuperDistributor /> },
+          { path: "superdistributor/:action/:any", element: <SuperDistributor /> },
+          { path: "distributor", element: <Distributor /> },
+          { path: "distributor/:action/:any", element: <Distributor /> },
+          { path: "retailer", element: <Retailer /> },
+          { path: "retailer/:action/:any", element: <Retailer /> },
+          { path: "users", element: <Users /> },
+          { path: "users/:action/:any", element: <Users /> },
+          { path: "onlineplayers", element: <OnlinePlayers /> },
+          { path: "gamehistory", element: <GameHistory /> },
+          { path: "winpercentage", element: <WinPercentage /> },
+          { path: "turnoverreport", element: <TurnOverReport /> },
+          { path: "transactionreport", element: <TransactionReport /> },
+          { path: "commissionpayoutReport", element: <CommissionPayout /> },
+          { path: "admincommissionreport", element: <AdminCommissionReport /> },
+          { path: "logactivities", element: <LogActivities /> },
+          { path: "profile", element: <Profile /> },
+          { path: "*", element: <Navigate to="/admin/dashboard" /> },
+        ])}
+        {/* Protected Super Distributer Rotes */}
+        {renderRoutes({ path: "superdistributor", component: <SuperDistributorLayout /> }, [
+          { path: "dashboard", element: <Dashboard /> },
+          { path: "distributor", element: <Distributor /> },
+          { path: "distributor/:action/:any", element: <Distributor /> },
+          { path: "retailer", element: <Retailer /> },
+          { path: "retailer/:action/:any", element: <Retailer /> },
+          { path: "users", element: <Users /> },
+          { path: "users/:action/:any", element: <Users /> },
+          { path: "onlineplayers", element: <OnlinePlayers /> },
+          { path: "gamehistory", element: <GameHistory /> },
+          { path: "winpercentage", element: <WinPercentage /> },
+          { path: "turnoverreport", element: <TurnOverReport /> },
+          { path: "transactionreport", element: <TransactionReport /> },
+          { path: "commissionpayoutReport", element: <CommissionPayout /> },
+          { path: "admincommissionreport", element: <AdminCommissionReport /> },
+          { path: "logactivities", element: <LogActivities /> },
+          { path: "profile", element: <Profile /> },
+          { path: "*", element: <Navigate to="/superdistributor/dashboard" /> },
+        ])}
+        {/* Protected Distributor Routes */}
+        {renderRoutes({ path: "distributor", component: <DistributorLayout /> }, [
+          { path: "dashboard", element: <Dashboard /> },
+          { path: "retailer", element: <Retailer /> },
+          { path: "retailer/:action/:any", element: <Retailer /> },
+          { path: "users", element: <Users /> },
+          { path: "users/:action/:any", element: <Users /> },
+          { path: "onlineplayers", element: <OnlinePlayers /> },
+          { path: "gamehistory", element: <GameHistory /> },
+          { path: "winpercentage", element: <WinPercentage /> },
+          { path: "turnoverreport", element: <TurnOverReport /> },
+          { path: "transactionreport", element: <TransactionReport /> },
+          { path: "commissionpayoutReport", element: <CommissionPayout /> },
+          { path: "admincommissionreport", element: <AdminCommissionReport /> },
+          { path: "logactivities", element: <LogActivities /> },
+          { path: "profile", element: <Profile /> },
+          { path: "*", element: <Navigate to="/distributor/dashboard" /> },
+        ])}
+        {/* Protected Retailer Routes */}
+        {renderRoutes({ path: "retailer", component: <RetailerLayout /> }, [
+          { path: "dashboard", element: <Dashboard /> },
+          { path: "users", element: <Users /> },
+          { path: "users/:action/:any", element: <Users /> },
+          { path: "onlineplayers", element: <OnlinePlayers /> },
+          { path: "gamehistory", element: <GameHistory /> },
+          { path: "winpercentage", element: <WinPercentage /> },
+          { path: "turnoverreport", element: <TurnOverReport /> },
+          { path: "transactionreport", element: <TransactionReport /> },
+          { path: "commissionpayoutReport", element: <CommissionPayout /> },
+          { path: "admincommissionreport", element: <AdminCommissionReport /> },
+          { path: "logactivities", element: <LogActivities /> },
+          { path: "profile", element: <Profile /> },
+          { path: "*", element: <Navigate to="/retailer/dashboard" /> },
+        ])}
         <Route
           path="*"
           element={<Navigate to={isLoggedIn ? "/admin/dashboard" : "/auth/login"} />}

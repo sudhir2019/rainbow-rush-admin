@@ -21,6 +21,10 @@ const WalletSchema = new Schema({
       default: [],
     },
   ],
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
   created_at: {
     type: Date,
     default: Date.now,
@@ -36,7 +40,17 @@ WalletSchema.pre("save", function (next) {
   this.updated_at = Date.now();
   next();
 });
+// Method to perform soft delete
+WalletSchema.methods.softDelete = async function () {
+  this.isDeleted = true;
+  this.deletedAt = new Date();
+  await this.save();
+};
 
+// Static method to find non-deleted Wallete by default
+WalletSchema.statics.findNonDeleted = function () {
+  return this.find({ isDeleted: { $ne: true } });
+};
 const Wallet = mongoose.model("Wallet", WalletSchema);
 
 module.exports = Wallet;
