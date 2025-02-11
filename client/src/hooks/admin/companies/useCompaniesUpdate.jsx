@@ -4,16 +4,20 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
 import { updateCompanyById } from "../../../stores/actions/companieAction";
+import { useFetchGames } from '../games/useFetchGames';
 
 export const useCompaniesUpdate = () => {
     const { any: companyId } = useParams(); // Get company ID from URL
     const navigate = useNavigate();
     const dispatch = useDispatch();
-
+    const { games, isLoading, fetchAllGames } = useFetchGames();
     const { companies, companiesLoading, companiesError } = useSelector((state) => state.companies);
-    const { games, gamesLoading } = useSelector((state) => state.games); // Fetching games from Redux store
+    const { gamesLoading } = useSelector((state) => state.games); // Fetching games from Redux store
     const [company, setCompany] = useState(null);
-
+    // Fetch games on mount
+    useEffect(() => {
+        fetchAllGames();
+    }, []);
     const {
         register,
         handleSubmit,
@@ -34,8 +38,13 @@ export const useCompaniesUpdate = () => {
     }, [companyId, companies, setValue]);
 
     const onSubmit = async (data) => {
+        const maindata = {
+            name: data.name,
+            games: data.games,
+            note: data.note
+        }
         try {
-            await dispatch(updateCompanyById({ id: companyId, ...data })).unwrap();
+            await dispatch(updateCompanyById({ companyId, maindata })).unwrap();
         } catch (error) {
             console.error("Error updating company:", error);
         }

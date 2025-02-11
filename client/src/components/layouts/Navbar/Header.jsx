@@ -1,21 +1,40 @@
 import { useEffect, useState } from "react";
-import feather from "feather-icons"; // Import feather icons for SVG replacement
-import ClipboardJS from "clipboard"; // Import ClipboardJS
+import feather from "feather-icons";
+import ClipboardJS from "clipboard";
 import { Tooltip } from "bootstrap";
-import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap CSS
-import "bootstrap/dist/js/bootstrap.bundle.min.js"; // Import Bootstrap JS
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import favicon from "../../../assets/favicon.ico";
 import { NavLink } from "react-router-dom";
 import useLogout from "../../../hooks/Authentication/useLogout ";
-// Import the useLogout hook
-
-function Navbar({ user, profileLink }) {
+import { useDispatch } from "react-redux";
+import { setSelectedCompany } from "../../../stores/slices/companieSlice";
+import { useSelector } from "react-redux";
+function Header({ user, profileLink, company }) {
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const handleLogout = useLogout(); // Get the logout handler from the hook
+    const [selectedCompany, setSelectedCompanyState] = useState(""); // Local state for selected company
+    const handleLogout = useLogout();
+    const dispatch = useDispatch();
+    const { companiesLoading, selectedCompanyId } = useSelector((state) => state.companies)
     // Initialize Feather Icons
     useEffect(() => {
         feather.replace();
     }, []);
+
+    // Set the first company as the selected one on component mount
+    useEffect(() => {
+        if (company.length > 0) {
+            setSelectedCompanyState(company[0]._id); // Set local state
+            dispatch(setSelectedCompany(company[0]._id)); // Dispatch to Redux
+        }
+    }, [company, dispatch]); // Runs when `company` data is available
+
+    // Handle change event for the select dropdown
+
+    const handleCompanyChange = (e) => {
+        const companyId = e.target.value;
+        dispatch(setSelectedCompany(companyId)); // Update Redux state
+    };
 
     // Handle Dropdown toggle
     const toggleDropdown = () => {
@@ -39,7 +58,7 @@ function Navbar({ user, profileLink }) {
         });
 
         return () => {
-            clipboard.destroy(); // Cleanup ClipboardJS instance
+            clipboard.destroy();
         };
     }, []);
 
@@ -49,6 +68,33 @@ function Navbar({ user, profileLink }) {
                 <i data-feather="menu"></i>
             </NavLink>
             <div className="navbar-content">
+                {/* Company Dropdown */}
+                <div className="mt-2">
+                    {companiesLoading ? (
+                        <div className="flex items-center justify-center space-x-2">
+                            <svg className="w-6 h-6 text-blue-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0116 0"></path>
+                            </svg>
+                            <span className="text-gray-500 text-sm">Loading companies...</span>
+                        </div>
+                    ) : (
+                        <select
+                            className="block w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-crimson-500"
+                            value={selectedCompanyId || ""}
+                            onChange={handleCompanyChange}
+                        >
+                            <option value="" disabled>Select a company</option>
+                            {company.map((comp) => (
+                                <option key={comp?._id || "1"} value={comp?._id || "loding"}>
+                                    {comp?.name || "Loding..."}
+                                </option>
+                            ))}
+                        </select>
+                    )}
+                </div>
+
+
                 <ul className="navbar-nav">
                     <li className="nav-item dropdown nav-profile">
                         <NavLink
@@ -72,7 +118,6 @@ function Navbar({ user, profileLink }) {
                                     </div>
                                     <div className="info text-center">
                                         <p className="name font-weight-bold mb-0">{user.username}</p>
-                                        {/* <p className="email text-muted mb-3">{user.email}</p> */}
                                     </div>
                                 </div>
                                 <div className="dropdown-body">
@@ -89,7 +134,7 @@ function Navbar({ user, profileLink }) {
                                                 className="nav-link"
                                                 onClick={(e) => {
                                                     e.preventDefault();
-                                                    handleLogout(user._id); // Call the logout function from the hook
+                                                    handleLogout(user._id);
                                                 }}
                                             >
                                                 <i data-feather="log-out"></i>
@@ -107,4 +152,4 @@ function Navbar({ user, profileLink }) {
     );
 }
 
-export default Navbar;
+export default Header;

@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
  * @returns {Object} Game creation functions and states
  */
 export const useCreateGame = () => {
+    const { authUser } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const { gamesLoading, gamesError, gamesMessage } = useSelector((state) => state.games);
     const {
@@ -21,7 +22,7 @@ export const useCreateGame = () => {
             gameName: "",
             gameDescription: "",
             releaseDate: "",
-            publisher: "",
+            publisher: authUser?.username || "",
             nodigit: 0,
             gameStatus: "active",
         },

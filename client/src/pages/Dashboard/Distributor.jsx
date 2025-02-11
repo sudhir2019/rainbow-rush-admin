@@ -76,7 +76,7 @@ export default function Distributor() {
                     <div className="card">
                         <div className="card-header d-flex justify-content-between mb-2">
                             <b>Distributer</b>
-                            <Link to={`create/distributer`} className="btn btn-primary btn-md">
+                            <Link to={`create`} className="btn btn-primary btn-md">
                                 Add Distributer
                             </Link>
                         </div>

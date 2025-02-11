@@ -40,12 +40,14 @@ export const createCompany = createAsyncThunk(
 
 export const updateCompanyById = createAsyncThunk(
     "companies/updateCompanyById",
-    async ({ id, updatedData }, { getState, rejectWithValue }) => {
+    async ({ companyId, maindata }, { getState, rejectWithValue }) => {
+        console.log("action", companyId, maindata)
         try {
             const state = getState();  // Log the entire state to confirm it's accessible
             const { token } = state.auth;
-            const { response, json } = await PUT(`companies/${id}`, updatedData, token);
-            if (response.status === 201) {
+            const { response, json } = await PUT(`companies/${companyId}`, maindata, token);
+            console.log(json)
+            if (response.status === 200) {
                 return json;
             }
             return rejectWithValue(handleError(json));

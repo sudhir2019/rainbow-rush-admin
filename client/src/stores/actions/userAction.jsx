@@ -21,6 +21,25 @@ export const fetchAllUsersAsync = createAsyncThunk(
         }
     }
 );
+export const fetchUsersByCompanieIdAsync = createAsyncThunk(
+    'users/fetchAllUSerByCompanieId',
+    async (companieId, { getState, rejectWithValue }) => {
+        try {
+            // Log the full state to check the structure
+            const state = getState();  // Log the entire state to confirm it's accessible
+            const { token } = state.auth;
+            const { response, json } = await GET(`users/companie/:${companieId}`, token);
+            // Successful response
+            if (response.status === 200) {
+                return json;
+            }
+            return rejectWithValue(handleError(json));
+        } catch (error) {
+            return rejectWithValue(handleError(error));
+        }
+    }
+);
+
 export const fetchUserByIdAsync = createAsyncThunk(
     'users/fetchById',
     async (userId, { getState, rejectWithValue }) => {

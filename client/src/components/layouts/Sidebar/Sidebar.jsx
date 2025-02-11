@@ -5,7 +5,7 @@ import ClipboardJS from "clipboard";
 import feather from "feather-icons";
 import { Tooltip } from "bootstrap";
 
-function Sidebar({menuItems}) {
+function Sidebar({ menuItems }) {
     const [activeMenu, setActiveMenu] = useState(null);
     useEffect(() => {
         // Enable feather icons

@@ -3,6 +3,7 @@ const multer = require("multer");
 const router = require("express").Router();
 
 const {
+  getUsersByCompanieId,
   getAllUsers,
   getUserById,
   createUser,
@@ -13,12 +14,12 @@ const {
   toggleUserStatus,
 } = require("../controllers/users.controller");
 
-const { verifyToken, isAdmin } = require("../middlewares/authJwt");
+const { verifyToken } = require("../middlewares/authJwt");
 const {
   checkDuplicatedEmail,
   checkRolesExisted,
 } = require("../middlewares/verifySignUp");
-const {checkIsValidUser} = require("../middlewares/userValidator");
+const { checkIsValidUser } = require("../middlewares/userValidator");
 
 // Multer configuration for handling file uploads
 const storageProduct = multer.diskStorage({
@@ -57,6 +58,9 @@ const uploadProduct = multer({
   fileFilter: fileFilter,
 });
 
+// Define routes
+router.get("/companie/:companieId", [verifyToken], getUsersByCompanieId);
+
 router.get("/", [verifyToken], getAllUsers);
 
 router.get("/:id", [verifyToken], getUserById);
@@ -68,25 +72,15 @@ router.put(
 );
 router.put("/admin/:id", [verifyToken], updateUserByIdDashboard);
 
-router.put(
-  "/role/:id",
-  [verifyToken, isAdmin, checkRolesExisted],
-  updateUserRoleById
-);
+router.put("/role/:id", [verifyToken, checkRolesExisted], updateUserRoleById);
 
 router.post(
   "/",
-  [
-    verifyToken,
-    isAdmin,
-    checkDuplicatedEmail,
-    checkRolesExisted,
-    checkIsValidUser,
-  ],
+  [verifyToken, checkDuplicatedEmail, checkRolesExisted, checkIsValidUser],
   createUser
 );
 
-router.delete("/:id", [verifyToken, isAdmin], deleteUserById);
+router.delete("/:id", [verifyToken], deleteUserById);
 
 router.put("/:id/:action", [verifyToken], toggleUserStatus);
 

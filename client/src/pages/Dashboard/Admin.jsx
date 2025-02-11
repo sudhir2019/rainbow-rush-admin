@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ScaleLoader } from "react-spinners"
@@ -9,16 +9,19 @@ import CreditAdjust from "../../components/ActionModel/CreditAdjust";
 import Modal from "../../components/ActionModel/Modal";
 import useActivateUser from '../../hooks/admin/users/useActivateUser';
 import useDeleteUser from '../../hooks/admin/users/useDeleteUser';
-export default function Users() {
+import useFetchAllWallets from '../../hooks/admin/wallets/useFetchAllWallets';
+export default function Admin() {
     const { action, any } = useParams();
-    const { user, retailers, isLoading } = useSelector((state) => state.users);
-    const { wallets } = useSelector((state) => state.wallets);
+    const { admins, superadmins, isLoading } = useSelector((state) => state.users);
+    const { isWalletLoading, wallets } = useSelector((state) => state.wallets);
     const { activateUser } = useActivateUser();
     const { deleteUser } = useDeleteUser();
     const [modalVisible, setModalVisible] = useState(false);
     const [modalContent, setModalContent] = useState(null);
     const [modalTitle, setModalTitle] = useState("");
     const [onConfirmAction, setOnConfirmAction] = useState(null);
+
+    const { fetchAllWallets } = useFetchAllWallets();
     const openModal = (content, title, onConfirm) => {
         setModalContent(content);
         setModalTitle(title);
@@ -41,6 +44,25 @@ export default function Users() {
             closeModal();
         }
     };
+    // useEffect(() => {
+    //     let load = true;
+    //     if (load) {
+    //         fetchAllWallets();
+    //         load = false;
+    //     }
+    // }, [fetchAllWallets]);
+    // useEffect(() => {
+    //     const fetchData = async () => {
+    //         try {
+    //             console.log("Fetching wallets...");
+    // fetchAllWallets();
+    //         } catch (error) {
+    //             console.error("Error fetching wallets:", error);
+    //         }
+    //     };
+
+    //     // fetchData();
+    // }, [wallets, fetchAllWallets]);
 
 
     const handleDelete = async (userId) => {
@@ -54,18 +76,19 @@ export default function Users() {
     };
 
     if (action === "edit") {
-        return <Edit userType={"User"} userDetails={any} refe={retailers} />;
+        return <Edit userType={"Admin"} userDetails={any} refe={superadmins} />;
     }
     if (action === "credittransfer") {
-        return <CreditTransfer userType={"User"} userDetails={any} />;
+        return <CreditTransfer userType={"Admin"} userDetails={any} />;
     }
     if (action === "creditadjust") {
-        return <CreditAdjust userType={"User"} userDetails={any} />;
+        return <CreditAdjust userType={"Admin"} userDetails={any} />;
     }
 
     if (action === "create") {
-        return <Add userType={"User"} refe={retailers} />;
+        return <Add userType={"Admin"} refe={superadmins} backroll={`superadmins/admin/`} />;
     }
+
     if (action === undefined || action === null) {
         return (
 
@@ -73,9 +96,9 @@ export default function Users() {
                 <div className="col-md-12 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-header d-flex justify-content-between mb-2">
-                            <b>Users</b>
+                            <b>Admin</b>
                             <Link to={`create`} className="btn btn-primary btn-md">
-                                Add User
+                                Add Admin
                             </Link>
                         </div>
                         <div className="card-body">
@@ -88,71 +111,75 @@ export default function Users() {
                                             <th>Refer ID</th>
                                             <th>Unique Id</th>
                                             <th>Points</th>
-                                            <th>Is Online</th>
-                                            <th>Last Login</th>
+                                            <th>Date & Time</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {user.map((use, index) => {
-                                            const hasUsersRole = use.roles.some(
-                                                (role) => role.name === "user"
+                                        {admins.map((admin, index) => {
+                                            const hasAdminsRole = admin.roles.some(
+                                                (role) => role.name === "admin"
                                             );
-                                            if (hasUsersRole) {
+                                            if (hasAdminsRole) {
                                                 return (
                                                     <tr key={index}>
                                                         <th scope="row">{index + 1}</th>
-                                                        <td>{use.username}</td>
-                                                        <td>{use.refId}</td>
-                                                        <td>{use.username}</td>
-                                                        {use.wallet.map((point, walletIndex) => {
-                                                          const matchingWallet = wallets.find((wallet) => wallet._id === point._id); // Find the matching wallet
-                                                          if (matchingWallet) {
-                                                              return (
-                                                                  <td className="p-2" key={`${walletIndex}-${matchingWallet._id}`}>
-                                                                      {matchingWallet.individualCredit}
-                                                                  </td>
-                                                              );
-                                                          }
-                                                          return 0.0//return null if no matching wallet is found
-                                                      })}
-
-                                                        {use.isLoggedIn ? (
-                                                            <td><span className="badge text-white bg-success">Online</span></td>
+                                                        <td>{admin.username}</td>
+                                                        <td>{admin.refId}</td>
+                                                        <td>{admin.username}</td>
+                                                        {isWalletLoading ? (
+                                                            <td className="p-2" colSpan="100%">Loading wallets...</td>
                                                         ) : (
-                                                            <td><span className="badge text-white bg-danger">Offline</span></td>
+                                                            admin.wallet.map((point, walletIndex) => {
+                                                                const matchingWallet = wallets?.find((wallet) => wallet._id === point._id) || false; // Find the matching wallet
+                                                                if (matchingWallet) {
+                                                                    return (
+                                                                        <td className="p-2" key={`${walletIndex}-${matchingWallet._id}`}>
+                                                                            {matchingWallet.individualCredit}
+                                                                        </td>
+                                                                    );
+                                                                }
+                                                                return (
+                                                                    <td className="p-2" key={`${walletIndex}-empty`}>
+                                                                        0.0
+                                                                    </td>
+                                                                );
+                                                            })
                                                         )}
-                                                        <td>{new Date(use.createdAt).toLocaleString()}</td>
+
+
+                                                        <td>{new Date(admin.createdAt).toLocaleString()}</td>
                                                         <td>
                                                             <div className="btn-group">
-                                                                <Link to={`edit/${use._id}`}
+                                                                <Link to={`edit/${admin._id}`}
                                                                     type="button"
                                                                     className="btn btn-outline-info" >
                                                                     <i className="fas fa-edit"></i>
                                                                 </Link>
-                                                                <Link to={`credittransfer/${use._id}`}
+                                                                <Link to={`credittransfer/${admin._id}`}
                                                                     type="button"
                                                                     className="btn btn-outline-success"  >
                                                                     <i className="fas fa-arrow-up"></i>
                                                                 </Link>
 
-                                                                <Link to={`creditadjust/${use._id}`}
+                                                                <Link to={`creditadjust/${admin._id}`}
                                                                     type="button"
                                                                     className="btn btn-outline-warning"
                                                                 >
                                                                     <i className="fas fa-arrow-down"></i>
                                                                 </Link>
 
-                                                                {use.userStatus ? (
+
+                                                                {admin.userStatus ? (
                                                                     // Render Deactivate Link if userStatus is true (active)
                                                                     <Link
                                                                         to="#"
                                                                         className="btn btn-outline-secondary"
                                                                         onClick={() =>
                                                                             openModal(
-                                                                                `Are you sure you want to deactivate ${use.username}?`,
+                                                                                `Are you sure you want to deactivate ${admin.username}?`,
                                                                                 'Deactivate Confirmation',
-                                                                                () => handleActivateDeactivate(use._id, true)
+                                                                                () => handleActivateDeactivate(admin._id, true)
                                                                             )
                                                                         }
                                                                     >
@@ -165,9 +192,9 @@ export default function Users() {
                                                                         className="btn btn-outline-primary"
                                                                         onClick={() =>
                                                                             openModal(
-                                                                                `Are you sure you want to activate ${use.username}?`,
+                                                                                `Are you sure you want to activate ${admin.username}?`,
                                                                                 'Activate Confirmation',
-                                                                                () => handleActivateDeactivate(use._id, false)
+                                                                                () => handleActivateDeactivate(admin._id, false)
                                                                             )
                                                                         }
                                                                     >
@@ -179,9 +206,9 @@ export default function Users() {
                                                                     className="btn btn-outline-danger delete-confirm"
                                                                     onClick={() =>
                                                                         openModal(
-                                                                            `Are you sure you want to  Delete ${use.username}?`,
+                                                                            `Are you sure you want to  Delete ${admin.username}?`,
                                                                             'Delete Confirmation',
-                                                                            () => handleDelete(use._id)
+                                                                            () => handleDelete(admin._id)
                                                                         )
                                                                     }
                                                                 >

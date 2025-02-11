@@ -7,6 +7,7 @@ import {
     deleteUserAsync,
     updateUserDashboardAsync,
     activateUserAsync,
+    fetchUsersByCompanieIdAsync
 } from "../actions/userAction";
 
 
@@ -19,9 +20,9 @@ let initialState = {
     retailers: [],
     users: [],
     user: [],
+    superadmins: [],
     error: null,
     message: null,
-    
 };
 
 
@@ -49,6 +50,7 @@ const usersSlice = createSlice({
                 // Categorize users by their roles
                 // Categorize the users by their roles
                 // Categorize users by their roles using `name` inside `roles` array
+                state.superadmins = data.filter(user => user.roles.some(role => role.name === 'superadmin'));
                 state.admins = data.filter(user => user.roles.some(role => role.name === 'admin'));
                 state.superdistributers = data.filter(user => user.roles.some(role => role.name === 'superdistributer'));
                 state.distributers = data.filter(user => user.roles.some(role => role.name === 'distributer'));
@@ -62,7 +64,30 @@ const usersSlice = createSlice({
                 state.isLoading = false;
                 state.error = action.payload;
             });
-
+        builder
+            .addCase(fetchUsersByCompanieIdAsync.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(fetchUsersByCompanieIdAsync.fulfilled, (state, action) => {
+                const { data } = action.payload;
+                state.isLoading = false;
+                // Categorize users by their roles
+                // Categorize the users by their roles
+                // Categorize users by their roles using `name` inside `roles` array
+                state.superadmins = data.filter(user => user.roles.some(role => role.name === 'superadmin'));
+                state.admins = data.filter(user => user.roles.some(role => role.name === 'admin'));
+                state.superdistributers = data.filter(user => user.roles.some(role => role.name === 'superdistributer'));
+                state.distributers = data.filter(user => user.roles.some(role => role.name === 'distributer'));
+                state.retailers = data.filter(user => user.roles.some(role => role.name === 'retailer'));
+                state.user = data.filter(user => user.roles.some(role => role.name === 'user')); // Filter users with 'user' role
+                state.users = data;  // All users
+                // Optionally, keep all users in a general list as well
+                state.error = null;
+            })
+            .addCase(fetchUsersByCompanieIdAsync.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+            });
         // Fetch user by ID
         builder
             .addCase(fetchUserByIdAsync.pending, (state) => {
@@ -86,6 +111,7 @@ const usersSlice = createSlice({
             .addCase(createUserAsync.fulfilled, (state, action) => {
                 const { data } = action.payload;
                 state.isLoading = false;
+                state.superadmins = data.filter(user => user.roles.some(role => role.name === 'superadmin'));
                 state.admins = data.filter(user => user.roles.some(role => role.name === 'admin'));
                 state.superdistributers = data.filter(user => user.roles.some(role => role.name === 'superdistributer'));
                 state.distributers = data.filter(user => user.roles.some(role => role.name === 'distributer'));
@@ -109,6 +135,7 @@ const usersSlice = createSlice({
                 const { data } = action.payload;
                 state.isLoading = false;
                 state.message = 'Profile updated successfully';
+                state.superadmins = data.filter(user => user.roles.some(role => role.name === 'superadmin'));
                 state.admins = data.filter(user => user.roles.some(role => role.name === 'admin'));
                 state.superdistributers = data.filter(user => user.roles.some(role => role.name === 'superdistributer'));
                 state.distributers = data.filter(user => user.roles.some(role => role.name === 'distributer'));
@@ -144,6 +171,7 @@ const usersSlice = createSlice({
             .addCase(deleteUserAsync.fulfilled, (state, action) => {
                 const { data } = action.payload;
                 state.isLoading = false;
+                state.superadmins = data.filter(user => user.roles.some(role => role.name === 'superadmin'));
                 state.admins = data.filter(user => user.roles.some(role => role.name === 'admin'));
                 state.superdistributers = data.filter(user => user.roles.some(role => role.name === 'superdistributer'));
                 state.distributers = data.filter(user => user.roles.some(role => role.name === 'distributer'));
@@ -166,6 +194,7 @@ const usersSlice = createSlice({
             .addCase(activateUserAsync.fulfilled, (state, action) => {
                 const { data } = action.payload;
                 state.isLoading = false;
+                state.superadmins = data.filter(user => user.roles.some(role => role.name === 'superadmin'));
                 state.admins = data.filter(user => user.roles.some(role => role.name === 'admin'));
                 state.superdistributers = data.filter(user => user.roles.some(role => role.name === 'superdistributer'));
                 state.distributers = data.filter(user => user.roles.some(role => role.name === 'distributer'));

@@ -95,29 +95,29 @@ const Company = () => {
                                     </thead>
                                     <tbody>
                                         {companies.map((company, index) => (
-                                            <tr key={company._id}>
+                                            <tr key={company?._id || "data Loding.."}>
                                                 <th scope="row">{index + 1}</th>
-                                                <td>{company.name}</td>
-                                                <td>{company.uniqueId}</td>
-                                                <td>{company.games.map(game => game.gameName).join(", ")}</td>
-                                                <td>{new Date(company.createdAt).toLocaleString()}</td>
+                                                <td>{company?.name || "data Loding.."}</td>
+                                                <td>{company?.uniqueId || "data Loding.."}</td>
+                                                <td>{company?.games.map(game => game.gameName).join(", ") || "data Loding.."}</td>
+                                                <td>{new Date(company?.createdAt).toLocaleString() || "data Loding.."}</td>
                                                 <td>
                                                     <div className="btn-group">
-                                                        <Link to={`edit/${company._id}`} className="btn btn-outline-info">
+                                                        <Link to={`edit/${company?._id || "data Loding.."}`} className="btn btn-outline-info">
                                                             <i className="fas fa-edit"></i>
                                                         </Link>
-                                                        {console.log(company.status)}
 
-                                                        {company.status === "active" ? (
+                                                        {company?.status === "active" ? (
                                                             // Render Deactivate Link if userStatus is true (active)
+
                                                             <Link
                                                                 to="#"
                                                                 className="btn btn-outline-secondary"
                                                                 onClick={() =>
                                                                     openModal(
-                                                                        `Are you sure you want to deactivate ${company.name}?`,
+                                                                        `Are you sure you want to deactivate ${company?.name || "data Loding.."}?`,
                                                                         'Deactivate Confirmation',
-                                                                        () => handleActivateDeactivate(company._id, true)
+                                                                        () => handleActivateDeactivate(company?._id || "data Loding..", true)
                                                                     )
                                                                 }
                                                             >
@@ -130,9 +130,9 @@ const Company = () => {
                                                                 className="btn btn-outline-primary"
                                                                 onClick={() =>
                                                                     openModal(
-                                                                        `Are you sure you want to activate ${company.name}?`,
+                                                                        `Are you sure you want to activate ${company?.name || "data Loding.."}?`,
                                                                         'Activate Confirmation',
-                                                                        () => handleActivateDeactivate(company._id, false)
+                                                                        () => handleActivateDeactivate(company?._id || "data Loding..", false)
                                                                     )
                                                                 }
                                                             >
@@ -144,9 +144,9 @@ const Company = () => {
                                                             className="btn btn-outline-danger delete-confirm"
                                                             onClick={() =>
                                                                 openModal(
-                                                                    `Are you sure you want to  Delete ${company.name}?`,
+                                                                    `Are you sure you want to  Delete ${company?.name || "data Loding.."}?`,
                                                                     'Delete Confirmation',
-                                                                    () => handleDelete(company._id)
+                                                                    () => handleDelete(company?._id || "data Loding..")
                                                                 )
                                                             }
                                                         >

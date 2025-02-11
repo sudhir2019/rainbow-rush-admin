@@ -8,6 +8,86 @@ const { cloudinary } = require("../configs/cloudinary");
 const Companie = require("../models/companie.model");
 const { SuperAdmin } = require("../models/superAdmin.model");
 const path = require("path");
+
+// Get all users by companie
+async function getUsersByCompanieId(req, res) {
+  const companieId = req.params.companieId?.replace(/^:/, "");
+  const { search, page = 1, limit = 10, role } = req.query;
+
+  try {
+    // Validate if the company exists
+    const company = await Companie.findById(companieId);
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: "Company not found.",
+      });
+    }
+
+    let query = { isDeleted: { $ne: true }, companie: companieId };
+
+    // Search by username
+    if (search) {
+      query.username = { $regex: search, $options: "i" };
+    }
+
+    // Filter by role
+    if (role) {
+      const roleDocument = await Role.findOne({ name: role });
+      if (!roleDocument) {
+        return res.status(404).json({
+          success: false,
+          message: `Role "${role}" not found.`,
+        });
+      }
+      query.roles = roleDocument._id;
+    }
+
+    const skip = (page - 1) * limit;
+
+    // Fetch users and populate related fields
+    const users = await User.find(query)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate("roles")
+      .populate("wallet")
+      .populate("userLogs")
+      .exec();
+
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No users found for the given company.",
+      });
+    }
+
+    // Get total count of users
+    const totalCount = await User.countDocuments(query);
+
+    return res.status(200).json({
+      success: true,
+      data: users,
+      company: {
+        id: company._id,
+        name: company.name,
+        uniqueId: company.uniqueId,
+        status: company.status,
+      },
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: totalCount,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching users by company:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error. Could not fetch users.",
+    });
+  }
+}
+
 // Get all users
 async function getAllUsers(req, res) {
   const { search, page = 1, limit = 10, role } = req.query;
@@ -124,6 +204,7 @@ async function updateUserRoleById(req, res) {
   }
 }
 
+// Update user's wallet balance by ID
 const createUser = async (req, res) => {
   try {
     const {
@@ -136,83 +217,49 @@ const createUser = async (req, res) => {
       note,
     } = req.body;
 
-    if (!username || !password) {
+    if (!companieId || !username || !password) {
       return res.status(400).json({
         success: false,
-        message: "Username and password are required.",
+        message: "Company ID, username, and password are required.",
       });
     }
 
-    // Ensure roles is an array
-    const userRoles = [].concat(roles || []);
-
-    // Check for existing username
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: "Username already taken. Please choose a different one.",
-      });
+      return res
+        .status(400)
+        .json({ success: false, message: "Username already taken." });
     }
 
-    // Find roles in the database
+    const userRoles = [].concat(roles || []);
     const rolesFound = await Role.find({ name: { $in: userRoles } });
     if (!rolesFound.length) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid roles provided.",
-      });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid roles provided." });
     }
     const roleIds = rolesFound.map((role) => role._id);
 
-    const isAdmin = userRoles.includes("admin");
-    let companie = null;
-
-    if (!isAdmin) {
-      if (!companieId) {
-        return res.status(400).json({
-          success: false,
-          message: "Company ID is required for non-admin users.",
-        });
-      }
-
-      companie = await Companie.findById(companieId);
-      if (!companie) {
-        return res.status(404).json({
-          success: false,
-          message: "Company not found.",
-        });
-      }
+    const company = await Companie.findById(companieId);
+    if (!company) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Company not found." });
     }
 
-    // Encrypt the password
     const hashedPassword = await User.encryptPassword(password);
-    if (!hashedPassword) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid password.",
-      });
-    }
-
     let referrer = null;
     if (refId) {
-      const referrerQuery = isAdmin
-        ? { refId, isDeleted: { $ne: true } }
-        : { refId, isDeleted: { $ne: true } };
-
-      referrer = await (isAdmin
-        ? SuperAdmin.findOne(referrerQuery)
-        : User.findOne(referrerQuery));
-
+      referrer =
+        (await SuperAdmin.findOne({ refId, isDeleted: { $ne: true } })) ||
+        (await User.findOne({ refId, isDeleted: { $ne: true } }));
       if (!referrer) {
-        return res.status(404).json({
-          success: false,
-          message: "Referrer not found. Please check the referral code.",
-        });
+        return res
+          .status(404)
+          .json({ success: false, message: "Referrer not found." });
       }
     }
 
-    // Create user
     const user = new User({
       username,
       password: hashedPassword,
@@ -220,30 +267,14 @@ const createUser = async (req, res) => {
       referredBy: refId,
       note,
       Commission: commissionAmount,
-      companie: companie ? companie._id : null,
+      companie: company._id,
     });
 
     const savedUser = await user.save();
     const wallet = await Wallet.create({ userId: savedUser._id });
-
     savedUser.wallet = wallet._id;
     await savedUser.save();
 
-    // Assign user to correct role array in `companie`
-    if (!isAdmin && companie) {
-      rolesFound.forEach((role) => {
-        if (
-          Array.isArray(companie[role.name]) &&
-          !companie[role.name].includes(savedUser._id)
-        ) {
-          companie[role.name].push(savedUser._id);
-        }
-      });
-
-      await companie.save();
-    }
-
-    // Handle referral logic
     if (refId) {
       const referralTransaction = await ReferTransaction.create({
         referredUser: savedUser._id,
@@ -252,7 +283,6 @@ const createUser = async (req, res) => {
         commissionAmount,
         status: "paid",
       });
-
       referrer.referralTransaction.push(referralTransaction._id);
       referrer.users.push(savedUser._id);
       await referrer.save();
@@ -261,14 +291,21 @@ const createUser = async (req, res) => {
       await savedUser.save();
     }
 
-    // Fetch updated user list
+    rolesFound.forEach((role) => {
+      if (
+        Array.isArray(company[role.name]) &&
+        !company[role.name].includes(savedUser._id)
+      ) {
+        company[role.name].push(savedUser._id);
+      }
+    });
+    await company.save();
+
     const users = await User.find({
       isDeleted: { $ne: true },
       companie: companieId,
     })
-      .populate("roles")
-      .populate("wallet")
-      .populate("userLogs")
+      .populate("roles wallet userLogs")
       .populate({
         path: "companie",
         match: { _id: companieId },
@@ -282,15 +319,14 @@ const createUser = async (req, res) => {
         id: savedUser._id,
         username: savedUser.username,
         roles: savedUser.roles,
-        company: companie ? companie.name : null,
+        company: company.name,
       },
     });
   } catch (error) {
     console.error("Error creating user:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Something went wrong, failed to create user.",
-    });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error." });
   }
 };
 
@@ -548,6 +584,7 @@ async function toggleUserStatus(req, res) {
 }
 
 module.exports = {
+  getUsersByCompanieId,
   getAllUsers,
   getUserById,
   createUser,

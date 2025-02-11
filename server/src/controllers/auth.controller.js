@@ -79,11 +79,15 @@ async function signUp(req, res) {
     newUser.emailToken = token;
 
     // Generate confirmation URL
-    const url = `${process.env.HOST || "http://localhost:3000"}/authentication/confirmation/${token}`;
+    const url = `${
+      process.env.HOST || "http://localhost:3000"
+    }/authentication/confirmation/${token}`;
 
     // Handle referral bonus
     if (referredBy) {
-      const referrer = await User.findOne({ refId: referredBy }) || await SuperAdmin.findOne({ refId: referredBy });
+      const referrer =
+        (await User.findOne({ refId: referredBy })) ||
+        (await SuperAdmin.findOne({ refId: referredBy }));
       if (!referrer) {
         return res.status(404).json({
           successful: false,
@@ -125,7 +129,10 @@ async function signUp(req, res) {
 // Send confirmation email
 async function sendConfirmationEmail(req, res) {
   try {
-    const userFound = await User.findOne({ username: req.body.username, isDeleted: { $ne: true } });
+    const userFound = await User.findOne({
+      username: req.body.username,
+      isDeleted: { $ne: true },
+    });
 
     if (!userFound) {
       await logUserActivity(
@@ -138,7 +145,9 @@ async function sendConfirmationEmail(req, res) {
     }
 
     const token = userFound.emailToken;
-    const url = `${process.env.HOST || "localhost:7000"}/api/auth/verification/${token}`;
+    const url = `${
+      process.env.HOST || "localhost:7000"
+    }/api/auth/verification/${token}`;
 
     await sendConfirmationEmailFunction(url, userFound.username);
     await logUserActivity(req, userFound._id, "Email Confirmation Sent");
@@ -155,19 +164,23 @@ async function sendConfirmationEmail(req, res) {
 // Get session
 async function getSession(req, res) {
   try {
+    // Get the session token from cookies
     let cookieToken = getCookieValueByName(
       req.cookies,
       process.env.SESSION_TOKEN || "session-token"
     );
-    
+
     if (!cookieToken) {
-      return res.status(404).json({ 
-        successful: false, 
-        message: "No session token was found" 
+      return res.status(404).json({
+        successful: false,
+        message: "No session token was found",
       });
     }
 
+    // Decode the JWT
     const decoded = jwt.verify(cookieToken, process.env.JWT_SECRET_KEY);
+
+    // Find user (excluding deleted users and excluding password field)
     const user = await User.findOne(
       { _id: decoded.id, isDeleted: { $ne: true } },
       { password: 0 }
@@ -177,14 +190,39 @@ async function getSession(req, res) {
       .populate("userLogs")
       .exec();
 
-    if (!user) {
-      return res.status(404).json({ message: "No user found" });
+    // Find super admin (excluding deleted users and excluding password field)
+    const superAdmin = await SuperAdmin.findOne(
+      { _id: decoded.id, isDeleted: { $ne: true } },
+      { password: 0 }
+    )
+      .populate("roles")
+      .populate("wallet")
+      .populate("userLogs")
+      .exec();
+
+    // Determine the logged-in user
+    let onlineUser = user || superAdmin;
+
+    // If neither user nor superAdmin is found, return an error
+    if (!onlineUser) {
+      return res
+        .status(404)
+        .json({ successful: false, message: "No user found" });
     }
 
-    await logUserActivity(req, user._id, "Session Retrieved Successfully");
+    // Log user activity (only if a valid user exists)
+    await logUserActivity(
+      req,
+      onlineUser._id,
+      "Session Retrieved Successfully"
+    );
 
-    return res.status(200).json({ successful: true, user, token: cookieToken });
+    // Return the user session data
+    return res
+      .status(200)
+      .json({ successful: true, user: onlineUser, token: cookieToken });
   } catch (error) {
+    console.error("Session retrieval error:", error);
     return res.status(401).json({ successful: false, message: "Unauthorized" });
   }
 }
@@ -278,11 +316,13 @@ async function createWallet(user, tempUser) {
 // Handle Referral Logic
 async function handleReferralLogic(newUser, tempUser, wallet) {
   if (!tempUser.referredBy) return;
-  
+
   try {
     const referredBy = tempUser.referredBy;
-    const referUser = await User.findOne({ refId: referredBy, isDeleted: { $ne: true } })
-      .populate("wallet");
+    const referUser = await User.findOne({
+      refId: referredBy,
+      isDeleted: { $ne: true },
+    }).populate("wallet");
 
     if (referUser && referUser.wallet) {
       const referUserWallet = await Wallet.findById(referUser.wallet);
@@ -346,7 +386,10 @@ async function login(req, res) {
       .exec();
 
     if (!userFound) {
-      userFound = await SuperAdmin.findOne({ username, isDeleted: { $ne: true } })
+      userFound = await SuperAdmin.findOne({
+        username,
+        isDeleted: { $ne: true },
+      })
         .populate("roles")
         .populate("wallet")
         .populate("userLogs")
@@ -358,9 +401,17 @@ async function login(req, res) {
     }
 
     // Check password
-    const matchPassword = await User.comparePassword(password, userFound.password);
+    const matchPassword = await User.comparePassword(
+      password,
+      userFound.password
+    );
     if (!matchPassword) {
-      await logUserActivity(req, userFound._id, "Login Attempt Failed", "Invalid Password");
+      await logUserActivity(
+        req,
+        userFound._id,
+        "Login Attempt Failed",
+        "Invalid Password"
+      );
       return res.status(401).json({
         token: null,
         message: "Invalid Password",
@@ -448,7 +499,10 @@ async function logout(req, res) {
 // Send reset password email
 async function sendResetPasswordEmail(req, res) {
   try {
-    const userFound = await User.findOne({ username: req.body.username, isDeleted: { $ne: true } });
+    const userFound = await User.findOne({
+      username: req.body.username,
+      isDeleted: { $ne: true },
+    });
     if (!userFound) {
       return res.status(422).json({
         successful: false,
@@ -464,11 +518,23 @@ async function sendResetPasswordEmail(req, res) {
       process.env.JWT_RESET_FORGOTTEN_PASSWORD_KEY
     );
 
-    await logUserActivity(req, userFound._id, "Reset Password Token Generated", null);
+    await logUserActivity(
+      req,
+      userFound._id,
+      "Reset Password Token Generated",
+      null
+    );
 
-    const url = `${process.env.HOST || "localhost:3000"}/authentication/resetPassword/${token}`;
+    const url = `${
+      process.env.HOST || "localhost:3000"
+    }/authentication/resetPassword/${token}`;
     await sendResetPasswordEmailFunction(url, userFound.username);
-    await logUserActivity(req, userFound._id, "Reset Password Email Sent", null);
+    await logUserActivity(
+      req,
+      userFound._id,
+      "Reset Password Email Sent",
+      null
+    );
 
     return res.status(200).json({
       success: true,
@@ -489,36 +555,68 @@ async function resetPassword(req, res) {
     const token = req.params.token;
 
     if (!token) {
-      return res.status(403).json({ success: false, message: "No token provided" });
+      return res
+        .status(403)
+        .json({ success: false, message: "No token provided" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_RESET_FORGOTTEN_PASSWORD_KEY);
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_RESET_FORGOTTEN_PASSWORD_KEY
+    );
     if (!decoded) {
       return res.status(401).json({ message: "Invalid token" });
     }
 
     if (Date.now() > decoded.expiration) {
-      await logUserActivity(req, decoded.id, "Password Reset Failed", "Token expired");
+      await logUserActivity(
+        req,
+        decoded.id,
+        "Password Reset Failed",
+        "Token expired"
+      );
       return res.status(422).json({
         successful: false,
         message: "Time to reset password exceeded",
       });
     }
 
-    const userFound = await User.findOne({ _id: decoded.id, isDeleted: { $ne: true } });
+    const userFound = await User.findOne({
+      _id: decoded.id,
+      isDeleted: { $ne: true },
+    });
     if (!userFound) {
-      await logUserActivity(req, decoded.id, "Password Reset Failed", "User not found");
+      await logUserActivity(
+        req,
+        decoded.id,
+        "Password Reset Failed",
+        "User not found"
+      );
       return res.status(404).json({ message: "User not found" });
     }
 
     if (newPassword !== confirmPassword) {
-      await logUserActivity(req, decoded.id, "Password Reset Failed", "Passwords do not match");
-      return res.status(400).json({ successful: false, message: "Passwords don't match" });
+      await logUserActivity(
+        req,
+        decoded.id,
+        "Password Reset Failed",
+        "Passwords do not match"
+      );
+      return res
+        .status(400)
+        .json({ successful: false, message: "Passwords don't match" });
     }
 
     if (newPassword.length < 5) {
-      await logUserActivity(req, decoded.id, "Password Reset Failed", "Password length less than 5 characters");
-      return res.status(400).json({ successful: false, message: "Password min length is 5" });
+      await logUserActivity(
+        req,
+        decoded.id,
+        "Password Reset Failed",
+        "Password length less than 5 characters"
+      );
+      return res
+        .status(400)
+        .json({ successful: false, message: "Password min length is 5" });
     }
 
     userFound.password = await User.encryptPassword(newPassword);
@@ -526,7 +624,9 @@ async function resetPassword(req, res) {
 
     await logUserActivity(req, decoded.id, "Password Reset Successful", null);
 
-    return res.status(200).json({ success: true, message: "Password updated successfully" });
+    return res
+      .status(200)
+      .json({ success: true, message: "Password updated successfully" });
   } catch (err) {
     return res.status(500).json({
       successful: false,

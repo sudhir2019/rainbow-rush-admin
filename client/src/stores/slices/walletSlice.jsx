@@ -58,8 +58,9 @@ const walletSlice = createSlice({
             })
             .addCase(creditTransferAsync.fulfilled, (state, action) => {
                 const { data } = action.payload
+                console.log(data.wallets)
                 state.isWalletLoading = false;
-                state.wallets = data.wallets;
+                state.wallets = action.payload.data.wallets;
                 state.wallet = data.receiverWallet;
                 state.walletMessage = 'Credit transfer successful';
                 state.walletError = null;
@@ -76,8 +77,9 @@ const walletSlice = createSlice({
             })
             .addCase(creditAdjustAsync.fulfilled, (state, action) => {
                 const { data } = action.payload
+                console.log(data.wallets)
                 state.isWalletLoading = false;
-                state.wallets = data.wallets;
+                state.wallets = action.payload.data.wallets;
                 state.wallet = data.receiverWallet;
                 state.walletMessage = 'Credit transfer successful';
                 state.walletError = null;
@@ -95,6 +97,7 @@ const walletSlice = createSlice({
             .addCase(updateWallet.fulfilled, (state, action) => {
                 state.isWalletLoading = false;
                 state.walletMessage = "Wallet updated successfully!";
+                state.wallets = action.payload.wallets;
                 const index = state.wallets.findIndex((wallet) => wallet._id === action.payload._id);
                 if (index !== -1) {
                     state.wallets[index] = action.payload;
@@ -136,6 +139,6 @@ const walletSlice = createSlice({
             });
     },
 });
-export const { clearwalletMessage, clearwalletError } = walletSlice.actions;
+export const { clearWalletMessage, clearWalletError } = walletSlice.actions;
 
 export default walletSlice.reducer;

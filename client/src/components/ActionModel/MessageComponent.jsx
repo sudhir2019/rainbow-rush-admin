@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { clearMessage, clearError } from "../../stores/slices/userSlice";
-import { clearwalletMessage, clearwalletError } from "../../stores/slices/walletSlice";
+import { clearWalletMessage, clearWalletError } from "../../stores/slices/walletSlice";
+
+
 const MessageComponent = () => {
     const dispatch = useDispatch();
     const { message, error } = useSelector((state) => state.users);
@@ -11,7 +13,7 @@ const MessageComponent = () => {
             const timeout = setTimeout(() => {
                 dispatch(clearMessage());
                 dispatch(clearError());
-            }, 3000);
+            }, 2000);
             return () => clearTimeout(timeout); // Cleanup timeout
         }
     }, [message, error, walletError, walletMessage, dispatch]);
@@ -19,9 +21,9 @@ const MessageComponent = () => {
     useEffect(() => {
         if (walletMessage || walletError) {
             const timeout = setTimeout(() => {
-                dispatch(clearwalletMessage());
-                dispatch(clearwalletError());
-            }, 3000);
+                dispatch(clearWalletMessage());
+                dispatch(clearWalletError());
+            }, 2000);
             return () => clearTimeout(timeout); // Cleanup timeout
         }
     }, [walletError, walletMessage, dispatch]);

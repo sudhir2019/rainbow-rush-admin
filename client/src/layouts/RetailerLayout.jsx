@@ -3,37 +3,45 @@ import Footer from '../components/layouts/Footer/Footer';
 import Navbar from '../components/layouts/Navbar/Navbar';
 import Loader from '../components/Loader/Loader';
 import Sidebar from '../components/layouts/Sidebar/Sidebar';
-import { useSelector } from "react-redux";
 import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
-import useFetchAllUsers from '../hooks/admin/users/useFetchAllUsers';
+import { useDispatch, useSelector } from "react-redux";
+import { setSelectedCompany } from "../stores/slices/companieSlice";
+import useFetchCompanieIdUsers from '../hooks/admin/users/useFetchCompanieIdUsers';
 import useFetchAllWallets from '../hooks/admin/wallets/useFetchAllWallets';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { useEffect, useState } from 'react';
 
 function SuperAdminLayout() {
+    const dispatch = useDispatch();
     const { isLoadingSession, authUser } = useSelector((state) => state.auth);
-    const { fetchAllUsers } = useFetchAllUsers();
+    const { selectedCompanyId } = useSelector((state) => state.companies)
+    const { fetchCompanieIdUsers } = useFetchCompanieIdUsers();
     const { fetchAllWallets } = useFetchAllWallets();
-
     const [hasFetchedUsers, setHasFetchedUsers] = useState(false); // State to track if the API has been called
+    // Set the first company as the selected one on component mount
+    useEffect(() => {
+        dispatch(setSelectedCompany(authUser.companie)); // Dispatch to Redux
+    }, [authUser, dispatch]); // Runs when `company` data is available
 
     // Fetch users data when the component mounts and isLoadingSession is false (only once)
     useEffect(() => {
         if (isLoadingSession) {
-            setHasFetchedUsers(false)
+            setHasFetchedUsers(false);
         }
-        if (!isLoadingSession && !hasFetchedUsers) {
-            fetchAllUsers();
+
+        if (!isLoadingSession && !hasFetchedUsers && selectedCompanyId) {
+            fetchCompanieIdUsers(selectedCompanyId); // Pass the selected company ID
             fetchAllWallets();
-            setHasFetchedUsers(true); // Set flag to true after fetching
+            setHasFetchedUsers(true);
         }
-    }, [isLoadingSession, hasFetchedUsers, fetchAllUsers, fetchAllWallets]);
+    }, [isLoadingSession, selectedCompanyId, fetchCompanieIdUsers, fetchAllWallets]); // Track selectedCompanyId changes
+
     const menuItems = [
         { category: "Main", links: [{ to: "/retailer/dashboard", icon: "box", label: "Dashboard" }] },
         {
             category: "Management",
             links: [
-                { to: "/retailer/users", icon: "users", label: "Users" },
+                { to: "/retailer/user", icon: "users", label: "Users" },
                 { to: "/retailer/onlineplayers", icon: "log-in", label: "Online Players" },
             ],
         },
@@ -75,7 +83,7 @@ function SuperAdminLayout() {
         <div className="main-wrapper h-screen" id="app">
             <Sidebar menuItems={menuItems} />
             <div className="page-wrapper">
-                <Navbar user={authUser} />
+                <Navbar user={authUser} profileLink={"/retailer/profile"} />
                 <div className="page-content overflow-auto">
                     {isLoadingSession ? (
                         <div className="flex justify-center items-center h-full">

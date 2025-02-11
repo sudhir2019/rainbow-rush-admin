@@ -8,12 +8,12 @@ export const useCompanyActions = () => {
     const dispatch = useDispatch();
     const { companiesLoading, companiesError, companiesMessage } = useSelector((state) => state.companies);
     const { games, isLoading, fetchAllGames } = useFetchGames();
-
+    const { authUser } = useSelector((state) => state.auth);
     // Fetch games on mount
     useEffect(() => {
         fetchAllGames();
     }, []);
-1
+
     // Initialize react-hook-form
     const {
         register,
@@ -23,10 +23,14 @@ export const useCompanyActions = () => {
         formState: { errors },
     } = useForm({
         defaultValues: {
+            username: "",
+            password: "",
+            commissionAmount: "",
             name: "",
             note: "",
             status: "true",
             games: [],
+            refId: authUser?.refId || "Super Admin Not Available",
         },
     });
 

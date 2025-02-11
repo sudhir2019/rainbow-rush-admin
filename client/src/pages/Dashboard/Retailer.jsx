@@ -75,7 +75,7 @@ export default function Retailer() {
                     <div className="card">
                         <div className="card-header d-flex justify-content-between mb-2">
                             <b>Retailers</b>
-                            <Link to={`create/retailer`} className="btn btn-primary btn-md">
+                            <Link to={`create`} className="btn btn-primary btn-md">
                                 Add Retailer
                             </Link>
                         </div>

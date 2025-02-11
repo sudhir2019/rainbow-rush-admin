@@ -28,7 +28,6 @@ export default function useLogin() {
             setSuccessMessage("Login successful!");
             reset();
 
-            // Navigate based on roles
             setTimeout(() => {
                 const rolePathMap = {
                     superadmin: "/superadmin/dashboard",
@@ -39,14 +38,34 @@ export default function useLogin() {
                     user: "/",
                 };
 
-                const userRole = response.roles.find(role => rolePathMap[role.name]);
-                console.log(userRole);
+                // Ensure response.roles exists and is an array
+                if (!response || !response.roles || !Array.isArray(response.roles)) {
+                    console.error("Roles data is missing or invalid:", response?.roles);
+                    navigate("/auth/login");
+                    return;
+                }
+
+                // Debugging: Log roles received
+                console.log("Received roles:", response.roles);
+
+                // Find the first valid role that exists in rolePathMap
+                const userRole = response.roles.find(role => {
+                    if (!role || !role.name) return false; // Ensure role and name exist
+                    const lowerCaseRole = role.name.toLowerCase();
+                    return Object.prototype.hasOwnProperty.call(rolePathMap, lowerCaseRole);
+                });
+
+                console.log("User Role Found:", userRole);
+
                 if (userRole) {
-                    navigate(rolePathMap[userRole.name]);
+                    navigate(rolePathMap[userRole.name.toLowerCase()]);
                 } else {
+                    console.warn("No valid role found, navigating to login.");
                     navigate("/auth/login");
                 }
             }, 1000);
+
+
         } catch (error) {
             setError(error.message || "An error occurred during login.");
         }

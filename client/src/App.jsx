@@ -1,13 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import useSession from "./hooks/Authentication/useSession";
-
-// Components
-import Home from "./pages/Home/Home";
-import Dashboard from "./pages/Dashboard/Dashboard";
-import Login from "./pages/Authentication/Login";
-import Signup from "./pages/Authentication/Signup";
-
-// Layouts
 import MainLayout from "./layouts/MainLayout";
 import AuthLayout from "./layouts/AuthLayout";
 import SuperAdminLayout from "./layouts/SuperAdminLayout";
@@ -15,196 +7,103 @@ import AdminLayout from "./layouts/AdminLayout";
 import SuperDistributorLayout from "./layouts/SuperDistributorLayout";
 import DistributorLayout from "./layouts/DistributorLayout";
 import RetailerLayout from "./layouts/RetailerLayout";
-
-// Admin Components
-import SuperDistributor from "./pages/Dashboard/SuperDistributor";
-import Distributor from "./pages/Dashboard/Distributor";
-import Retailer from "./pages/Dashboard/Retailer";
-import Users from "./pages/Dashboard/Users";
-import GameMaster from "./pages/Dashboard/GameMaster";
-import Company from "./pages/Dashboard/Company";
-import OnlinePlayers from "./pages/Dashboard/OnlinePlayers";
-import GameHistory from "./pages/Dashboard/GameHistory";
-import WinPercentage from "./pages/Dashboard/WinPercentage";
-import TurnOverReport from "./pages/Dashboard/TurnOverReport";
-import TransactionReport from "./pages/Dashboard/TransactionReport";
-import CommissionPayout from "./pages/Dashboard/CommissionPayout";
-import AdminCommissionReport from "./pages/Dashboard/AdminCommissionReport";
-import LogActivities from "./pages/Dashboard/LogActivities";
-import Profile from "./pages/Dashboard/Profile";
-
-// Other Components
-import ToastContainers from "./components/Toast/ToastContainer";
 import Loader from "./components/Loader/Loader";
+import ToastContainers from "./components/Toast/ToastContainer";
+import roleBasedRoutes from "./routesConfig";
+import Home from "./pages/Home/Home";
+import Login from "./pages/Authentication/Login";
+import Signup from "./pages/Authentication/Signup";
 
-// const ProtectedRoute = ({ element, redirectTo = "/auth/login" }) => {
-//   const { isAdmin, isUser, isSuperdistributers, isRetailers, isDistributers, isLoggedIn, isLoading } = useSession();
-
-//   // While session is loading, show a loader
-// if (isLoading) {
-//   return <Loader />;
-// }
-
-// If user is logged in, render the protected route element
-// return isLoggedIn ? element : <Navigate to={redirectTo} />;
-// };
 // Protected Route Component
-// const ProtectedRoute = ({ element, redirectTo = "/auth/login", requiredRoles = [], accessDeniedPath = "/access-denied" }) => {
-//   const { isAdmin, isUser, isSuperdistributers, isRetailers, isDistributers, isLoggedIn, isLoadingSession } = useSession();
+const ProtectedRoute = ({ element, requiredRoles = [], redirectTo = "/auth/login" }) => {
+    const { role, isLoggedIn, isLoadingSession } = useSession();
 
+    if (isLoadingSession) return <Loader />;
 
-//   if (isLoadingSession) return <Loader />;
+    if (!isLoggedIn || (requiredRoles.length && !requiredRoles.includes(role))) {
+        return <Navigate to={redirectTo} />;
+    }
 
-//   if (isLoggedIn) return <Navigate to={redirectTo} />;
+    return element;
+};
 
-//   return element;
+// Function to Render Routes for Different Roles
+// const renderRoleRoutes = (role, layout) => {
+//     console.log("Rendering role routes for:", role);
+
+//     // Prevents crashing if the role is undefined or not in the config
+//     if (!role || !roleBasedRoutes[role]) {
+//         console.error(`No routes found for role: ${role}`);
+//         return null;
+//     }
+
+//     return (
+//         <Route path={role} element={layout}>
+//             {roleBasedRoutes[role].map((route) => (
+//                 <Route
+//                     key={route.path}
+//                     path={route.path}
+//                     element={<ProtectedRoute element={route.element} requiredRoles={[role]} />}
+//                 />
+//             ))}
+//             <Route path="*" element={<Navigate to={`/${role}/dashboard`} />} />
+//         </Route>
+//     );
 // };
 
+const renderRoleRoutes = (role, layout) => {
+    // console.log("Rendering role routes for:", role);
+
+    // Prevents crashing if the role is undefined or not in the config
+    if (!role || !roleBasedRoutes[role]) {
+        // console.error(`No routes found for role: ${role}`);
+        return null;
+    }
+
+    return (
+        <Route path={role} element={layout}>
+            {roleBasedRoutes[role].map((route) => (
+                <Route
+                    key={route.path}
+                    path={route.path}
+                    element={route.element} // Removed ProtectedRoute
+                />
+            ))}
+            <Route path="*" element={<Navigate to={`/${role}/dashboard`} />} />
+        </Route>
+    );
+};
 
 export default function App() {
-  const { isLoadingSession, isLoggedIn } = useSession();
+    const { isLoadingSession, isLoggedIn } = useSession();
 
-  if (isLoadingSession) {
+    if (isLoadingSession) return <Loader />;
 
-    return <Loader />;
-  }
-  // console.log(isLoggedIn);
+    return (
+        <BrowserRouter>
+            <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<MainLayout />}>
+                    <Route index element={<Home />} />
+                </Route>
 
-  // Function to render routes
-  const renderRoutes = (layout, routes) => (
-    <Route path={layout.path} element={layout.component}>
-      {routes.map((route) => (
-        <Route key={route.path} path={route.path} element={route.element} />
-      ))}
-      <Route index element={<Navigate to={routes[0]?.path} />} />
-    </Route>
-  );
+                <Route path="auth" element={<AuthLayout />}>
+                    <Route path="login" element={<Login />} />
+                    <Route path="signup" element={<Signup />} />
+                </Route>
 
-  return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public Routes */}
-        {renderRoutes({ path: "", component: <MainLayout /> }, [
-          { path: "/", element: <Home /> },
-        ])}
+                {/* Protected Role-Based Routes */}
+                {renderRoleRoutes("superadmin", <SuperAdminLayout />)}
+                {renderRoleRoutes("admin", <AdminLayout />)}
+                {renderRoleRoutes("superdistributer", <SuperDistributorLayout />)}
+                {renderRoleRoutes("distributer", <DistributorLayout />)}
+                {renderRoleRoutes("retailer", <RetailerLayout />)}
 
-        {renderRoutes({ path: "auth", component: <AuthLayout /> }, [
-          { path: "login", element: <Login /> },
-          { path: "logout", element: <Login /> },
-          { path: "signup", element: <Signup /> },
-        ])}
+                {/* Redirect Unknown Paths */}
+                <Route path="*" element={<Navigate to={isLoggedIn ? "/dashboard" : "/auth/login"} replace />} />
+            </Routes>
 
-        {/* Protected Super Admin Routes */}
-        {renderRoutes({ path: "superadmin", component: <SuperAdminLayout /> }, [
-          { path: "dashboard", element: <Dashboard /> },
-          { path: "gamemaster", element: <GameMaster /> },
-          { path: "gamemaster/:action", element: <GameMaster /> },
-          { path: "gamemaster/:action/:any", element: <GameMaster /> },
-          { path: "company", element: <Company /> },
-          { path: "company/:action", element: <Company /> },
-          { path: "company/:action/:any", element: <Company /> },
-          { path: "superdistributor", element: <SuperDistributor /> },
-          { path: "superdistributor/:action/:any", element: <SuperDistributor /> },
-          { path: "distributor", element: <Distributor /> },
-          { path: "distributor/:action/:any", element: <Distributor /> },
-          { path: "retailer", element: <Retailer /> },
-          { path: "retailer/:action/:any", element: <Retailer /> },
-          { path: "users", element: <Users /> },
-          { path: "users/:action/:any", element: <Users /> },
-          { path: "onlineplayers", element: <OnlinePlayers /> },
-          { path: "gamehistory", element: <GameHistory /> },
-          { path: "winpercentage", element: <WinPercentage /> },
-          { path: "turnoverreport", element: <TurnOverReport /> },
-          { path: "transactionreport", element: <TransactionReport /> },
-          { path: "commissionpayoutReport", element: <CommissionPayout /> },
-          { path: "admincommissionreport", element: <AdminCommissionReport /> },
-          { path: "logactivities", element: <LogActivities /> },
-          { path: "profile", element: <Profile /> },
-          { path: "*", element: <Navigate to="/admin/dashboard" /> },
-        ])}
-
-        {/* Protected Admin Routes */}
-        {renderRoutes({ path: "admin", component: <AdminLayout /> }, [
-          { path: "dashboard", element: <Dashboard /> },
-          { path: "superdistributor", element: <SuperDistributor /> },
-          { path: "superdistributor/:action/:any", element: <SuperDistributor /> },
-          { path: "distributor", element: <Distributor /> },
-          { path: "distributor/:action/:any", element: <Distributor /> },
-          { path: "retailer", element: <Retailer /> },
-          { path: "retailer/:action/:any", element: <Retailer /> },
-          { path: "users", element: <Users /> },
-          { path: "users/:action/:any", element: <Users /> },
-          { path: "onlineplayers", element: <OnlinePlayers /> },
-          { path: "gamehistory", element: <GameHistory /> },
-          { path: "winpercentage", element: <WinPercentage /> },
-          { path: "turnoverreport", element: <TurnOverReport /> },
-          { path: "transactionreport", element: <TransactionReport /> },
-          { path: "commissionpayoutReport", element: <CommissionPayout /> },
-          { path: "admincommissionreport", element: <AdminCommissionReport /> },
-          { path: "logactivities", element: <LogActivities /> },
-          { path: "profile", element: <Profile /> },
-          { path: "*", element: <Navigate to="/admin/dashboard" /> },
-        ])}
-        {/* Protected Super Distributer Rotes */}
-        {renderRoutes({ path: "superdistributor", component: <SuperDistributorLayout /> }, [
-          { path: "dashboard", element: <Dashboard /> },
-          { path: "distributor", element: <Distributor /> },
-          { path: "distributor/:action/:any", element: <Distributor /> },
-          { path: "retailer", element: <Retailer /> },
-          { path: "retailer/:action/:any", element: <Retailer /> },
-          { path: "users", element: <Users /> },
-          { path: "users/:action/:any", element: <Users /> },
-          { path: "onlineplayers", element: <OnlinePlayers /> },
-          { path: "gamehistory", element: <GameHistory /> },
-          { path: "winpercentage", element: <WinPercentage /> },
-          { path: "turnoverreport", element: <TurnOverReport /> },
-          { path: "transactionreport", element: <TransactionReport /> },
-          { path: "commissionpayoutReport", element: <CommissionPayout /> },
-          { path: "admincommissionreport", element: <AdminCommissionReport /> },
-          { path: "logactivities", element: <LogActivities /> },
-          { path: "profile", element: <Profile /> },
-          { path: "*", element: <Navigate to="/superdistributor/dashboard" /> },
-        ])}
-        {/* Protected Distributor Routes */}
-        {renderRoutes({ path: "distributor", component: <DistributorLayout /> }, [
-          { path: "dashboard", element: <Dashboard /> },
-          { path: "retailer", element: <Retailer /> },
-          { path: "retailer/:action/:any", element: <Retailer /> },
-          { path: "users", element: <Users /> },
-          { path: "users/:action/:any", element: <Users /> },
-          { path: "onlineplayers", element: <OnlinePlayers /> },
-          { path: "gamehistory", element: <GameHistory /> },
-          { path: "winpercentage", element: <WinPercentage /> },
-          { path: "turnoverreport", element: <TurnOverReport /> },
-          { path: "transactionreport", element: <TransactionReport /> },
-          { path: "commissionpayoutReport", element: <CommissionPayout /> },
-          { path: "admincommissionreport", element: <AdminCommissionReport /> },
-          { path: "logactivities", element: <LogActivities /> },
-          { path: "profile", element: <Profile /> },
-          { path: "*", element: <Navigate to="/distributor/dashboard" /> },
-        ])}
-        {/* Protected Retailer Routes */}
-        {renderRoutes({ path: "retailer", component: <RetailerLayout /> }, [
-          { path: "dashboard", element: <Dashboard /> },
-          { path: "users", element: <Users /> },
-          { path: "users/:action/:any", element: <Users /> },
-          { path: "onlineplayers", element: <OnlinePlayers /> },
-          { path: "gamehistory", element: <GameHistory /> },
-          { path: "winpercentage", element: <WinPercentage /> },
-          { path: "turnoverreport", element: <TurnOverReport /> },
-          { path: "transactionreport", element: <TransactionReport /> },
-          { path: "commissionpayoutReport", element: <CommissionPayout /> },
-          { path: "admincommissionreport", element: <AdminCommissionReport /> },
-          { path: "logactivities", element: <LogActivities /> },
-          { path: "profile", element: <Profile /> },
-          { path: "*", element: <Navigate to="/retailer/dashboard" /> },
-        ])}
-        <Route
-          path="*"
-          element={<Navigate to={isLoggedIn ? "/admin/dashboard" : "/auth/login"} />}
-        />
-      </Routes>
-      <ToastContainers />
-    </BrowserRouter>
-  );
+            <ToastContainers />
+        </BrowserRouter>
+    );
 }

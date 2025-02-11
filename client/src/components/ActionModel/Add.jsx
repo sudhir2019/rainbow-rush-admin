@@ -87,32 +87,32 @@ export default function Add({ userType, refe }) {
                                         )}
                                     </div>
                                 </div>
-                                {(userType === "Distributer" ||
-                                    userType === "Retailer" ||
-                                    userType === "User") && (
-                                        <div className="col-sm-6">
-                                            <div className="form-group">
-                                                <label>Reference:</label>
-                                                <select
-                                                    className="form-control"
-                                                    {...register("refId", { required: "Reference is required" })}
-                                                    disabled={loading}
-                                                >
-                                                    <option value="">Select Reference</option>
-                                                    {refe.map((ref, index) => (
-                                                        <option key={index} value={ref.refId}>
-                                                            {ref.username}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                {errors.reference && (
-                                                    <p className="text-danger">{errors.reference.message}</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
+                                {/* Referrer ID */}
+                                <div className="col-sm-6">
+                                    <div className="form-group">
+                                        <label>Referrer ID:</label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            {...register("refId")}
+                                            readOnly
+                                        />
+                                    </div>
+                                </div>
+                                {/* Company ID */}
+                                <div className="col-sm-6">
+                                    <div className="form-group">
+                                        <label>Company  ID:</label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            {...register("companieId")}
+                                            readOnly
+                                        />
+                                    </div>
+                                </div>
                                 {/* Status */}
-                                <div className="col-sm-6 pt-9 ">
+                                <div className="col-sm-6 pt-3 ">
                                     <div className="form-group">
                                         <div className="flex text-center items-center gap-[30px]">
                                             <label>Status:</label>
@@ -144,7 +144,7 @@ export default function Add({ userType, refe }) {
                                     </div>
                                 </div>
                                 {/* Buttons */}
-                                <div className="col-sm-6">
+                                <div className="col-sm-6 pt-1">
                                     <div className="form-group">
                                         <button
                                             type="submit"

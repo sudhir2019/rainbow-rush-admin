@@ -75,7 +75,7 @@ const SuperDistributor = () => {
                     <div className="card">
                         <div className="card-header d-flex justify-content-between mb-2">
                             <b>Super Distributor</b>
-                            <Link to={`create/superDistributer`} className="btn btn-primary btn-md">
+                            <Link to={`create`} className="btn btn-primary btn-md">
                                 Add Super Distributor
                             </Link>
                         </div>

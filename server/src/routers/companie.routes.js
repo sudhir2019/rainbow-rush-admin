@@ -10,7 +10,7 @@ const {
   deleteCompanie,
   addGameToCompanie,
   removeGameFromCompanie,
-  toggleCompanieStatus
+  toggleCompanieStatus,
 } = require("../controllers/companie.controller");
 
 // Validation middleware
@@ -24,15 +24,7 @@ const validateCompanie = [
 ];
 
 // Routes with authentication and validation
-router.post(
-  "/", 
-  [
-    verifyToken,
-    isAdmin,
-    ...validateCompanie
-  ],
-  createCompanie
-);
+router.post("/", [verifyToken, ...validateCompanie], createCompanie);
 
 // Get all companies (public route)
 router.get("/", getAllCompanies);
@@ -41,34 +33,18 @@ router.get("/", getAllCompanies);
 router.get("/:id", getCompanieById);
 
 // Update company
-router.put(
-  "/:id",
-  [
-    verifyToken,
-    isAdmin,
-    ...validateCompanie
-  ],
-  updateCompanie
-);
+router.put("/:id", [verifyToken, ...validateCompanie], updateCompanie);
 
 // Delete company
-router.delete(
-  "/:id",
-  [
-    verifyToken,
-    isAdmin
-  ],
-  deleteCompanie
-);
+router.delete("/:id", [verifyToken], deleteCompanie);
 
 // Game management routes
 router.post(
   "/:companieId/games/:gameId",
   [
     verifyToken,
-    isAdmin,
     check("companieId").isMongoId().withMessage("Invalid company ID"),
-    check("gameId").isMongoId().withMessage("Invalid game ID")
+    check("gameId").isMongoId().withMessage("Invalid game ID"),
   ],
   addGameToCompanie
 );
@@ -77,13 +53,12 @@ router.delete(
   "/:companieId/games/:gameId",
   [
     verifyToken,
-    isAdmin,
     check("companieId").isMongoId().withMessage("Invalid company ID"),
-    check("gameId").isMongoId().withMessage("Invalid game ID")
+    check("gameId").isMongoId().withMessage("Invalid game ID"),
   ],
   removeGameFromCompanie
 );
 // PUT: Status toggle a game by gameId
-router.put('/:companieId/:action', toggleCompanieStatus);
+router.put("/:companieId/:action", toggleCompanieStatus);
 
 module.exports = router;

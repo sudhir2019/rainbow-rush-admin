@@ -6,6 +6,9 @@ const useCreateUser = (userType = "User") => {
     const userRole = userType ? userType.replace(/\s+/g, '').toLowerCase() : "user";
     const dispatch = useDispatch();
     const { loading, message, error } = useSelector((state) => state.users);
+    const { selectedCompanyId } = useSelector((state) => state.companies)
+    const { authUser } = useSelector((state) => state.auth);
+    console.log("Selected Company ID:", selectedCompanyId);
     // Initialize useForm with validation rules
     const {
         register,
@@ -15,9 +18,10 @@ const useCreateUser = (userType = "User") => {
         formState: { errors },
     } = useForm({
         defaultValues: {
+            companieId: selectedCompanyId,
             username: "",
             password: "",
-            refId: "",
+            refId: authUser?.refId || "not Login",
             commissionAmount: 0,
             roles: userRole,
             note: "add notes",

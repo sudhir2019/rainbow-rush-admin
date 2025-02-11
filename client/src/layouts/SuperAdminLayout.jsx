@@ -1,20 +1,29 @@
 import { Outlet } from 'react-router-dom';
 import Footer from '../components/layouts/Footer/Footer';
-import Navbar from '../components/layouts/Navbar/Navbar';
+import Header from '../components/layouts/Navbar/Header';
 import Loader from '../components/Loader/Loader';
 import Sidebar from '../components/layouts/Sidebar/Sidebar';
 import { useSelector } from "react-redux";
 import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
-import useFetchAllUsers from '../hooks/admin/users/useFetchAllUsers';
+import useFetchCompanieIdUsers from '../hooks/admin/users/useFetchCompanieIdUsers';
 import useFetchAllWallets from '../hooks/admin/wallets/useFetchAllWallets';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { useEffect, useState } from 'react';
+import { useFetchCompanies } from '../hooks/admin/companies/useFetchCompanies';
 
 function SuperAdminLayout() {
+    const [loadData, setLoadData] = useState(true);
     const { isLoadingSession, authUser } = useSelector((state) => state.auth);
-    const { fetchAllUsers } = useFetchAllUsers();
+    const { fetchCompanieIdUsers } = useFetchCompanieIdUsers();
     const { fetchAllWallets } = useFetchAllWallets();
-
+    const { companies, fetchAllCompanies } = useFetchCompanies();
+    useEffect(() => {
+        if (loadData) {
+            fetchAllCompanies();
+            setLoadData(false);
+        }
+    }, [loadData]);
+    // fetchAllCompanies();
     const [hasFetchedUsers, setHasFetchedUsers] = useState(false); // State to track if the API has been called
     const menuItems = [
         { category: "Main", links: [{ to: "/superadmin/dashboard", icon: "box", label: "Dashboard" }] },
@@ -23,10 +32,11 @@ function SuperAdminLayout() {
             links: [
                 { to: "/superadmin/gamemaster", icon: "users", label: "GameMaster" },
                 { to: "/superadmin/company", icon: "users", label: "Company" },
-                { to: "/superadmin/superdistributor", icon: "users", label: "SuperDistributer" },
-                { to: "/superadmin/distributor", icon: "users", label: "Distributor" },
+                { to: "/superadmin/admin", icon: "users", label: "Admin" },
+                { to: "/superadmin/superdistributer", icon: "users", label: "SuperDistributer" },
+                { to: "/superadmin/distributer", icon: "users", label: "Distributor" },
                 { to: "/superadmin/retailer", icon: "users", label: "Retailer" },
-                { to: "/superadmin/users", icon: "users", label: "Users" },
+                { to: "/superadmin/user", icon: "users", label: "Users" },
                 { to: "/superadmin/onlineplayers", icon: "log-in", label: "Online Players" },
             ],
         },
@@ -69,18 +79,18 @@ function SuperAdminLayout() {
             setHasFetchedUsers(false)
         }
         if (!isLoadingSession && !hasFetchedUsers) {
-            fetchAllUsers();
+            fetchCompanieIdUsers();
             fetchAllWallets();
             setHasFetchedUsers(true); // Set flag to true after fetching
         }
-    }, [isLoadingSession, hasFetchedUsers, fetchAllUsers, fetchAllWallets]);
+    }, [isLoadingSession, hasFetchedUsers, fetchCompanieIdUsers, fetchAllWallets]);
 
     // Combine both loading states (session and users loading)
     return (
         <div className="main-wrapper h-screen" id="app">
             <Sidebar menuItems={menuItems} />
             <div className="page-wrapper">
-                <Navbar user={authUser} />
+                <Header user={authUser} profileLink={"/superadmin/profile"} company={companies} />
                 <div className="page-content overflow-auto">
                     {isLoadingSession ? (
                         <div className="flex justify-center items-center h-full">

@@ -24,6 +24,7 @@ const initialState = {
     serverError: null,
     redirectUrl: "",
     isAdmin: false,
+    isSuperAdmin: false,
     isSuperdistributers: false,
     isDistributers: false,
     isRetailers: false,
@@ -75,6 +76,7 @@ const authSlice = createSlice({
                 state.token = token;
                 state.authUser = user;
                 state.roles = roles;
+                state.isSuperAdmin = state.roles.includes("superadmin");
                 state.isAdmin = state.roles.includes("admin");
                 state.isUser = state.roles.includes("user");
                 state.isSuperdistributers = state.roles.includes("superdistributer");
@@ -97,11 +99,12 @@ const authSlice = createSlice({
                 state.token = token;
                 state.authUser = user;
                 state.roles = user.roles.map((role) => role.name);
+                state.isSuperAdmin = state.roles.includes("superadmin");
                 state.isAdmin = state.roles.includes("admin");
-                state.isUser = state.roles.includes("user");
                 state.isSuperdistributers = state.roles.includes("superdistributer");
                 state.isDistributers = state.roles.includes("distributer");
                 state.isRetailers = state.roles.includes("retailer");
+                state.isUser = state.roles.includes("user");
 
             })
             .addCase(getSessionAsync.rejected, (state) => {

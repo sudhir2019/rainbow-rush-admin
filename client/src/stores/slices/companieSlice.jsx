@@ -11,6 +11,7 @@ import {
 
 const initialState = {
     companies: [],
+    selectedCompanyId: "",
     companiesLoading: false,
     companiesError: null,
     companiesMessage: null,
@@ -30,6 +31,9 @@ const companieSlice = createSlice({
         },
         setCompaniesDeleted: (state) => {
             state.companieDeleted = true;
+        },
+        setSelectedCompany: (state, action) => {
+            state.selectedCompanyId = action.payload;
         },
     },
     extraReducers: (builder) => {
@@ -55,7 +59,9 @@ const companieSlice = createSlice({
                 state.companiesError = null;
             })
             .addCase(createCompany.fulfilled, (state, action) => {
+                console.log(action.payload)
                 state.companiesLoading = false;
+                state.companies = action.payload.dataCompanies;
                 state.companies.push(action.payload.company);
                 state.companiesMessage = "Company created successfully";
             })
@@ -71,13 +77,6 @@ const companieSlice = createSlice({
             })
             .addCase(updateCompanyById.fulfilled, (state, action) => {
                 state.companiesLoading = false;
-                const updatedCompany = action.payload.company;
-                const index = state.companies.findIndex(
-                    (company) => company._id === updatedCompany._id
-                );
-                if (index !== -1) {
-                    state.companies[index] = updatedCompany;
-                }
                 state.companiesMessage = "Company updated successfully";
             })
             .addCase(updateCompanyById.rejected, (state, action) => {
@@ -158,5 +157,5 @@ const companieSlice = createSlice({
     },
 });
 
-export const { clearCompaniesError, clearCompaniesMessage, setCompaniesDeleted } = companieSlice.actions;
+export const { clearCompaniesError, setSelectedCompany, clearCompaniesMessage, setCompaniesDeleted } = companieSlice.actions;
 export default companieSlice.reducer;

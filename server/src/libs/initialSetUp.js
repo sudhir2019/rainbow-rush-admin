@@ -89,9 +89,14 @@ const createSuperAdmin = async () => {
       Commission: 0,
     });
 
+    const superAdminWallet = new Wallet({
+      userId: superAdmin._id,
+      individualCredit: 100000000,
+      hierarchyCredit: 100000000,
+    });
     // Create wallet and link it to SuperAdmin
-    const wallet = await Wallet.create({ userId: superAdmin._id });
-    superAdmin.wallet = [wallet._id];
+    await superAdminWallet.save();
+    superAdmin.wallet = [superAdminWallet._id];
 
     await superAdmin.save();
     console.log("SuperAdmin created successfully");
@@ -153,7 +158,6 @@ const createCompany = async (superAdmin, game) => {
     console.error("Error creating company:", err.message);
   }
 };
-
 
 const createAdmin = async (superAdmin, companie) => {
   try {

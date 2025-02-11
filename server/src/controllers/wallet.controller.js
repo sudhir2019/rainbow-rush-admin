@@ -3,7 +3,7 @@ const { User } = require("../models/user.model");
 const Wallet = require("../models/wallet.model");
 const UserTransaction = require("../models/userTransaction.model");
 const bcrypt = require("bcryptjs");
-
+const { SuperAdmin } = require("../models/superAdmin.model");
 // Get all wallets
 const getAllWallets = async (req, res) => {
   try {
@@ -41,12 +41,9 @@ const getWalletByUserId = async (req, res) => {
 };
 
 async function creditTransfer(req, res) {
-  const { userId, password, transferAmount, toUserId, transactionMessage } =
-    req.body;
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  const { userId, password, transferAmount, toUserId } = req.body;
+
   try {
-    // Ensure transferAmount is positive
     if (transferAmount <= 0) {
       return res.status(400).json({
         success: false,
@@ -54,115 +51,104 @@ async function creditTransfer(req, res) {
       });
     }
 
-    // Verify that user exists
-    const user = await User.findById(userId);
+    // Fetch sender (User or SuperAdmin)
+    let user = await User.findById(userId);
+    let isSuperAdmin = false;
+
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+      user = await SuperAdmin.findById(userId);
+      isSuperAdmin = true;
     }
 
-    // Fetch the receiver's user data to get the receiver's name
-    const receiver = await User.findById(toUserId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Fetch receiver (User or SuperAdmin)
+    let receiver = await User.findById(toUserId);
+    if (!receiver) receiver = await SuperAdmin.findById(toUserId);
+
     if (!receiver) {
-      return res.status(404).json({
-        success: false,
-        message: "Receiver not found",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Receiver not found" });
     }
-
-    // Get the username of the sender (for the transaction message)
-    const senderUsername = user.username;
-    const receiverName = receiver.name;
 
     // Verify password
-    const isPasswordValid = await User.comparePassword(password, user.password);
+    let isPasswordValid = false;
+
+    if (isSuperAdmin && typeof SuperAdmin.comparePassword === "function") {
+      isPasswordValid = await SuperAdmin.comparePassword(
+        password,
+        user.password
+      );
+    } else if (!isSuperAdmin && typeof User.comparePassword === "function") {
+      isPasswordValid = await User.comparePassword(password, user.password);
+    }
+
     if (!isPasswordValid) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid password",
-      });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid password" });
     }
 
-    // Find the wallets of both the sender and receiver
-    const senderWallet = await Wallet.findOne({ userId: userId }).session(
-      session
-    );
-    const receiverWallet = await Wallet.findOne({ userId: toUserId }).session(
-      session
-    );
+    // Fetch wallets
+    const senderWallet = await Wallet.findOne({ userId });
+    const receiverWallet = await Wallet.findOne({ userId: toUserId });
 
-    if (!senderWallet) {
+    if (!senderWallet || !receiverWallet) {
       return res.status(404).json({
         success: false,
-        message: "Sender wallet not found",
+        message: "Sender or receiver wallet not found",
       });
     }
 
-    if (!receiverWallet) {
-      return res.status(404).json({
-        success: false,
-        message: "Receiver wallet not found",
-      });
-    }
-
-    // Check if sender has sufficient funds
+    // Check balance
     if (senderWallet.individualCredit < transferAmount) {
-      return res.status(400).json({
-        success: false,
-        message: "Insufficient balance",
-      });
+      return res
+        .status(400)
+        .json({ success: false, message: "Insufficient balance" });
     }
 
-    // Perform the credit transfer
+    // Perform credit transfer without using transactions
     senderWallet.individualCredit -= transferAmount;
     receiverWallet.individualCredit += transferAmount;
-
-    // Adjust hierarchyCredit if needed
-    // senderWallet.hierarchyCredit -= transferAmount;
     receiverWallet.hierarchyCredit += transferAmount;
-    // Create a new transaction for the sender
+
+    // Record transactions
     const senderTransaction = new UserTransaction({
-      userId: userId,
-      toUserId: toUserId,
+      userId,
+      toUserId,
       amount: -transferAmount,
       transactionType: "transfer",
       status: "completed",
-      transactionMessage: `User ${senderUsername} transferred ${transferAmount} to User ${receiverName}`, // Corrected message format
+      transactionMessage: `User ${user.username} transferred ${transferAmount} to User ${receiver.name}`,
     });
 
-    // Create a new transaction for the receiver
     const receiverTransaction = new UserTransaction({
       userId: toUserId,
       toUserId: userId,
       amount: transferAmount,
       transactionType: "transfer",
       status: "completed",
-      transactionMessage: `User ${senderUsername} received ${transferAmount} from User ${receiverName}`, // Corrected message format
+      transactionMessage: `User ${receiver.name} received ${transferAmount} from User ${user.username}`,
     });
 
-    // Save both transactions and update wallets within the transaction session
-    await senderTransaction.save({ session });
-    await receiverTransaction.save({ session });
+    // Save everything
+    await senderTransaction.save();
+    await receiverTransaction.save();
 
     senderWallet.transactionId.push(senderTransaction._id);
     receiverWallet.transactionId.push(receiverTransaction._id);
-    await senderWallet.save({ session });
-    await receiverWallet.save({ session });
-    // Commit the transaction if everything goes well
-    await session.commitTransaction();
-    session.endSession();
-    // Find all wallets
-    const wallets = await Wallet.find().populate("transactionId");
 
-    if (!wallets.length) {
-      return res.status(404).json({ message: "No wallets found" });
-    }
-    // Return success response
+    await senderWallet.save();
+    await receiverWallet.save();
+    const wallets = await Wallet.find().populate("transactionId");
     return res.status(200).json({
       success: true,
-      message: `Successfully transferred ${transferAmount} to User ${receiverName}`,
+      message: `Successfully transferred ${transferAmount} to User ${receiver.name}`,
       data: {
         wallets,
         senderWallet,
@@ -172,15 +158,13 @@ async function creditTransfer(req, res) {
       },
     });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
     console.error("Error during credit transfer:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 }
+
 async function creditAdjust(req, res) {
   const {
     userId,
@@ -191,53 +175,59 @@ async function creditAdjust(req, res) {
     transactionMessage,
   } = req.body;
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
-    // Fetch sender and receiver user details
-    const sender = await User.findById(userId);
-    const receiver = await User.findById(toUserId);
+    // Fetch sender (either User or SuperAdmin)
+    let sender = await User.findById(userId);
+    let isSuperAdmin = false;
 
-    if (!sender || !receiver) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(404).json({
-        success: false,
-        message: "Sender or receiver not found",
-      });
+    if (!sender) {
+      sender = await SuperAdmin.findById(userId);
+      isSuperAdmin = true;
+    }
+
+    if (!sender) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Fetch receiver (either User or SuperAdmin)
+    let receiver = await User.findById(toUserId);
+    if (!receiver) receiver = await SuperAdmin.findById(toUserId);
+
+    if (!receiver) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Receiver not found" });
     }
 
     const senderUsername = sender.username;
     const receiverName = receiver.name;
 
-    // Validate sender's password
+    // Validate sender's password (only if provided)
     if (password) {
-      const isPasswordValid = await User.comparePassword(
-        password,
-        sender.password
-      );
+      let isPasswordValid = false;
+      if (isSuperAdmin && typeof SuperAdmin.comparePassword === "function") {
+        isPasswordValid = await SuperAdmin.comparePassword(
+          password,
+          sender.password
+        );
+      } else if (!isSuperAdmin && typeof User.comparePassword === "function") {
+        isPasswordValid = await User.comparePassword(password, sender.password);
+      }
+
       if (!isPasswordValid) {
-        await session.abortTransaction();
-        session.endSession();
-        return res.status(400).json({
-          success: false,
-          message: "Invalid password",
-        });
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid password" });
       }
     }
 
     // Find wallets of sender and receiver
-    const senderWallet = await Wallet.findOne({ userId: userId }).session(
-      session
-    );
-    const receiverWallet = await Wallet.findOne({ userId: toUserId }).session(
-      session
-    );
+    const senderWallet = await Wallet.findOne({ userId: userId });
+    const receiverWallet = await Wallet.findOne({ userId: toUserId });
 
     if (!senderWallet || !receiverWallet) {
-      await session.abortTransaction();
-      session.endSession();
       return res.status(404).json({
         success: false,
         message: "Sender or receiver wallet not found",
@@ -247,8 +237,6 @@ async function creditAdjust(req, res) {
     // Validate transaction type and amounts
     if (transactionType === "debit") {
       if (senderWallet.individualCredit < adjustAmount) {
-        await session.abortTransaction();
-        session.endSession();
         return res.status(400).json({
           success: false,
           message: "Insufficient balance in sender's wallet",
@@ -259,8 +247,6 @@ async function creditAdjust(req, res) {
       receiverWallet.hierarchyCredit += adjustAmount;
     } else if (transactionType === "credit") {
       if (receiverWallet.individualCredit < adjustAmount) {
-        await session.abortTransaction();
-        session.endSession();
         return res.status(400).json({
           success: false,
           message: "Insufficient balance in receiver's wallet",
@@ -270,13 +256,14 @@ async function creditAdjust(req, res) {
       senderWallet.hierarchyCredit += adjustAmount;
       receiverWallet.individualCredit -= adjustAmount;
     } else {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).json({
-        success: false,
-        message: "Invalid transaction type",
-      });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid transaction type" });
     }
+
+    // Save the updated wallets
+    await senderWallet.save();
+    await receiverWallet.save();
 
     // Create a new transaction record
     const transaction = new UserTransaction({
@@ -290,38 +277,25 @@ async function creditAdjust(req, res) {
         `Transferred ${adjustAmount} ${transactionType} from ${senderUsername} to ${receiverName}`,
     });
 
-    await transaction.save({ session });
+    await transaction.save();
+
     senderWallet.transactionId.push(transaction._id);
     receiverWallet.transactionId.push(transaction._id);
 
-    await senderWallet.save({ session });
-    await receiverWallet.save({ session });
-
-    // Commit the transaction
-    await session.commitTransaction();
-    session.endSession();
-
+    await senderWallet.save();
+    await receiverWallet.save();
+    const wallets = await Wallet.find().populate("transactionId");
     // Return success response
     return res.status(200).json({
       success: true,
       message: `Successfully adjusted ${adjustAmount} from ${senderUsername} to ${receiverName}`,
-      data: {
-        senderWallet,
-        receiverWallet,
-        transaction,
-      },
+      data: { wallets, senderWallet, receiverWallet, transaction },
     });
   } catch (error) {
-    // Roll back the transaction if it hasn't been committed yet
-    if (session.inTransaction()) {
-      await session.abortTransaction();
-    }
-    session.endSession();
     console.error("Error during credit adjustment:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 }
 
