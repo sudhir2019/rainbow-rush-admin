@@ -30,18 +30,28 @@ app.use(cookieParser());
 const isDevelopment = process.env.NODE_ENV === "development";
 
 // Define allowed origins
-const allowedOrigins = isDevelopment
-  ? [process.env.ACCESS_CONTROL_ALLOW_ORIGIN || "http://localhost:5173"]
-  : ["http://localhost:8080"]; // Replace with your production domain
+// const allowedOrigins = isDevelopment
+//   ? [process.env.ACCESS_CONTROL_ALLOW_ORIGIN || "http://localhost:5173"]
+//   : ["http://localhost:8080"]; // Replace with your production domain
 
 // Configure CORS middleware
+// const corsOptions = {
+//   origin: "http://localhost:5173",
+//   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+//   allowedHeaders: ["Content-Type", "Authorization"],
+//   exposedHeaders: ["Cookie", "Authorization"],
+//   credentials: true,
+// };
+// Configure CORS middleware
 const corsOptions = {
-  origin: "http://localhost:5173",
+  origin: "http://82.118.230.97",
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
   exposedHeaders: ["Cookie", "Authorization"],
-  credentials: true,
+  credentials: true, // Allow credentials (cookies, Authorization headers, etc.)
 };
+
+
 
 app.use("*", cors(corsOptions));
 // HTTP request logger middleware (Morgan) with "tiny" format

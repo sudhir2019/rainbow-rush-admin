@@ -1,0 +1,153 @@
+
+
+
+
+enterprisesp531gmail.com
+kWx~Ziug5UWc
+
+
+
+akashserver
+alpha-746cca9656
+df66c971732942aa649c
+
+Congratulations! Installed successfully!
+==================================================================
+aaPanel Internet Address: https://82.118.230.97:11899/09ea255a
+aaPanel Internal Address: https://82.118.230.97:11899/09ea255a
+username: u9se6xvk
+password: ebc789e8
+Warning:
+If you cannot access the panel,
+release the following port (11899|888|80|443|20|21) in the security group
+==================================================================
+
+
+
+1. Find Your Ubuntu Server's IP Address
+Run the following command to check your server’s IP:
+
+bash
+Copy
+Edit
+ip a
+Look for an IP under eth0 or ensXXX (e.g., 192.168.1.100 for local network or a public IP if cloud-hosted).
+
+2. Modify Your Express app.js to Bind to Your IP
+Edit your app.js file and update app.listen():
+
+javascript
+Copy
+Edit
+const express = require("express");
+const app = express();
+
+const PORT = 3000; // Set the port
+const HOST = "0.0.0.0"; // Bind to all available IPs
+
+app.get("/", (req, res) => {
+    res.send("Hello from my Ubuntu server! 🚀");
+});
+
+// Start the server
+app.listen(PORT, HOST, () => {
+    console.log(`🚀 Server running on http://${HOST}:${PORT}`);
+});
+Why Use 0.0.0.0?
+✅ Allows access from any IP (local and external).
+✅ Ensures it's reachable from your network or the internet (if firewall rules allow).
+
+3. Open Firewall Port (If Needed)
+If you're using UFW (Uncomplicated Firewall), allow traffic on port 3000:
+
+bash
+Copy
+Edit
+sudo ufw allow 3000/tcp
+Check UFW status:
+
+bash
+Copy
+Edit
+sudo ufw status
+4. Start Your Express App
+Run your app:
+
+bash
+Copy
+Edit
+node app.js
+5. Access Your App from Another Device
+From your Ubuntu server:
+👉 Open http://localhost:3000
+From another device on the same network:
+👉 Open http://your-server-ip:3000
+Example: http://192.168.1.100:3000
+From the public internet:
+👉 Open http://your-public-ip:3000 (if properly configured)
+🔹 Extra: Running Express in the Background
+If you close the terminal, the server will stop. To keep it running:
+
+bash
+Copy
+Edit
+nohup node app.js > output.log 2>&1 &
+Or use PM2 (Recommended for production):
+
+bash
+Copy
+Edit
+npm install -g pm2
+pm2 start app.js
+pm2 save
+pm2 startup
+
+
+
+
+
+For LAMP (Apache Installed via APT)
+1️⃣ Open Terminal (Ctrl + Alt + T)
+2️⃣ Enable mod_rewrite
+Run the following command:
+
+sh
+Copy
+Edit
+sudo a2enmod rewrite
+3️⃣ Restart Apache
+
+sh
+Copy
+Edit
+sudo systemctl restart apache2
+4️⃣ Edit Apache Configuration (If Needed)
+Open the Apache configuration file:
+
+sh
+Copy
+Edit
+sudo nano /etc/apache2/apache2.conf
+Find this block:
+
+apache
+Copy
+Edit
+<Directory /var/www/>
+    AllowOverride None
+</Directory>
+Change None to All:
+
+apache
+Copy
+Edit
+<Directory /var/www/>
+    AllowOverride All
+</Directory>
+Save the file (Ctrl + X, then Y, then Enter).
+5️⃣ Restart Apache Again
+
+sh
+Copy
+Edit
+sudo systemctl restart apache2
