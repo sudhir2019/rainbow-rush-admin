@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import useUpdateUserDashboard from "../../hooks/admin/users/useUpdateUserDashboard";
 import MessageComponent from "./MessageComponent";
-
+import { ScaleLoader } from "react-spinners"
 export default function Edit({ userType, refe }) {
     const { users, loading, error } = useSelector((state) => state.users);
     const [user, setUser] = useState({});
@@ -184,6 +184,12 @@ export default function Edit({ userType, refe }) {
                     </div>
                 </div>
             </div>
+            {isLoading && (
+                <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <ScaleLoader />
+                </div>
+            )
+            }
         </div>
     );
 }

@@ -1,6 +1,6 @@
 import { useCreateGame } from "../../hooks/admin/games/useCreateGame";
 import MessageComponent from "./MessageComponent";
-
+import { ScaleLoader } from "react-spinners"
 export default function GameAdd() {
     const {
         gamesLoading: loading,
@@ -47,7 +47,7 @@ export default function GameAdd() {
                                         <input
                                             type="number"
                                             className="form-control"
-                                            {...register("nodigit", { 
+                                            {...register("nodigit", {
                                                 required: "Number of digits is required",
                                                 min: { value: 1, message: "Must be at least 1" }
                                             })}
@@ -74,7 +74,7 @@ export default function GameAdd() {
                                     </div>
                                 </div>
 
-                               
+
 
                                 {/* Release Date */}
                                 <div className="col-sm-6">
@@ -106,8 +106,8 @@ export default function GameAdd() {
                                         </select>
                                     </div>
                                 </div>
- {/* Description */}
- <div className="col-sm-12">
+                                {/* Description */}
+                                <div className="col-sm-12">
                                     <div className="form-group">
                                         <label>Description:</label>
                                         <textarea
@@ -143,9 +143,18 @@ export default function GameAdd() {
                             </div>
                         </form>
                         <MessageComponent message={message} error={error} />
+                        <div className="p-1">
+                            {message && <p className="text-success">{message}</p>}
+                            {error && <p className="text-danger">{error}</p>}
+                        </div>
                     </div>
                 </div>
             </div>
+            {loading && (
+                <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <ScaleLoader />
+                </div>
+            )}
         </div>
     );
 }

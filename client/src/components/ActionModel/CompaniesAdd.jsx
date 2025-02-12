@@ -1,4 +1,5 @@
 import { useCompanyActions } from '../../hooks/admin/companies/useCreateCompany'; // Import your custom hook
+import { ScaleLoader } from "react-spinners"
 
 export default function CompaniesAdd() {
     const {
@@ -178,6 +179,11 @@ export default function CompaniesAdd() {
                     </div>
                 </div>
             </div>
+            {isLoading && (
+                <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <ScaleLoader />
+                </div>
+            )}
         </div>
     );
 }

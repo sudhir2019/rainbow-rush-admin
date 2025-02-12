@@ -1,5 +1,4 @@
-// pages/CompaniesEdit.js
-import React from "react";
+import { ScaleLoader } from "react-spinners"
 import { useCompaniesUpdate } from "../../hooks/admin/companies/useCompaniesUpdate";
 import MessageComponent from "./MessageComponent";
 const CompaniesEdit = () => {
@@ -117,6 +116,11 @@ const CompaniesEdit = () => {
                     </div>
                 </div>
             </div>
+            {gamesLoading && (
+                <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <ScaleLoader />
+                </div>
+            )}
         </div>
     );
 };

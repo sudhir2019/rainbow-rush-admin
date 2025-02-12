@@ -13,7 +13,7 @@ import useDeleteUser from '../../hooks/admin/users/useDeleteUser';
 const SuperDistributor = () => {
     const { action, any } = useParams();
     const { superdistributers, admins, isLoading } = useSelector((state) => state.users);
-    const { wallets } = useSelector((state) => state.wallets);
+    const { wallets, isWalletLoading } = useSelector((state) => state.wallets);
     const { activateUser } = useActivateUser();
     const { deleteUser } = useDeleteUser();
     const [modalVisible, setModalVisible] = useState(false);
@@ -105,17 +105,37 @@ const SuperDistributor = () => {
                                                         <td>{superDistributer.username}</td>
                                                         <td>{superDistributer.refId}</td>
                                                         <td>{superDistributer.username}</td>
-                                                        {superDistributer.wallet.map((point, walletIndex) => {
-                                                            const matchingWallet = wallets.find((wallet) => wallet._id === point._id); // Find the matching wallet
-                                                            if (matchingWallet) {
+                                                        {isWalletLoading ? (
+
+                                                            <td colSpan="100%">
+
+                                                                {/* <div className="flex items-center justify-center space-x-2"> */}
+                                                                <svg className="w-6 h-6 text-blue-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0116 0"></path>
+                                                                </svg>
+
+                                                                {/* </div> */}
+                                                            </td>
+
+                                                        ) : (
+                                                            superDistributer.wallet.map((point, walletIndex) => {
+                                                                const matchingWallet = wallets?.find((wallet) => wallet._id === point._id) || false; // Find the matching wallet
+                                                                if (matchingWallet) {
+                                                                    return (
+                                                                        <td className="p-2" key={`${walletIndex}-${matchingWallet._id}`}>
+                                                                            {matchingWallet.individualCredit}
+                                                                        </td>
+                                                                    );
+                                                                }
                                                                 return (
-                                                                    <td className="p-2" key={`${walletIndex}-${matchingWallet._id}`}>
-                                                                        {matchingWallet.individualCredit}
+                                                                    <td className="p-2" key={`${walletIndex}-empty`}>
+                                                                        0.0
                                                                     </td>
                                                                 );
-                                                            }
-                                                            return 0.0//return null if no matching wallet is found
-                                                        })}
+                                                            })
+                                                        )}
+
 
 
                                                         <td>{new Date(superDistributer.createdAt).toLocaleString()}</td>

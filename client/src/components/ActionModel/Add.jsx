@@ -1,6 +1,6 @@
-import React from "react";
 import useCreateUser from "../../hooks/admin/users/useCreateUser";
 import MessageComponent from "./MessageComponent";
+import { ScaleLoader } from "react-spinners"
 
 export default function Add({ userType, refe }) {
     const userTypeTitle = userType || "User";
@@ -168,6 +168,11 @@ export default function Add({ userType, refe }) {
                     </div>
                 </div>
             </div>
+            {loading && (
+                <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <ScaleLoader />
+                </div>
+            )}
         </div>
     );
 }

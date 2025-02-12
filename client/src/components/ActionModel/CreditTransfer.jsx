@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import useCreditTransfer from "../../hooks/admin/wallets/useCreditTransfer"; // Adjust path as necessary
 import useFetchWalletById from "../../hooks/admin/wallets/useFetchWalletById";
 import MessageComponent from "./MessageComponent";
+import { ScaleLoader } from "react-spinners"
 export default function CreditTransfer({ userType }) {
     const { users, loading, error } = useSelector((state) => state.users);
     const [user, setUser] = useState({});
@@ -103,6 +104,12 @@ export default function CreditTransfer({ userType }) {
                     </div>
                 </div>
             </div>
+            {isLoading && (
+                <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <ScaleLoader />
+                </div>
+            )
+            }
         </div>
     );
 }

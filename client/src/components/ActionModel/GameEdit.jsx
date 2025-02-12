@@ -2,6 +2,7 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useUpdateGame } from "../../hooks/admin/games/useUpdateGame"; // Adjust the path
+import { ScaleLoader } from "react-spinners"
 
 export default function GameEdit() {
     const { any } = useParams();
@@ -97,6 +98,11 @@ export default function GameEdit() {
                     </div>
                 </div>
             </div>
+            {gamesLoading && (
+                <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <ScaleLoader />
+                </div>
+            )}
         </div>
     );
 }

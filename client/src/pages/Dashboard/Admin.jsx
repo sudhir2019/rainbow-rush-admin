@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ScaleLoader } from "react-spinners"
@@ -121,14 +121,25 @@ export default function Admin() {
                                                 (role) => role.name === "admin"
                                             );
                                             if (hasAdminsRole) {
-                                                return (
+                                              return (
                                                     <tr key={index}>
                                                         <th scope="row">{index + 1}</th>
                                                         <td>{admin.username}</td>
                                                         <td>{admin.refId}</td>
                                                         <td>{admin.username}</td>
                                                         {isWalletLoading ? (
-                                                            <td className="p-2" colSpan="100%">Loading wallets...</td>
+
+                                                            <td  colSpan="100%">
+
+                                                                {/* <div className="flex items-center justify-center space-x-2"> */}
+                                                                <svg className="w-6 h-6 text-blue-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0116 0"></path>
+                                                                </svg>
+
+                                                                {/* </div> */}
+                                                            </td>
+
                                                         ) : (
                                                             admin.wallet.map((point, walletIndex) => {
                                                                 const matchingWallet = wallets?.find((wallet) => wallet._id === point._id) || false; // Find the matching wallet

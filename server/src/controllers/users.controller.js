@@ -385,13 +385,22 @@ async function updateProfileById(req, res) {
       profilePicture_id: profilePicture_id,
     };
 
-    const updatedUser = await User.findByIdAndUpdate(id, updatedUserFields, {
-      new: true,
-    });
+    const companieId = userFound.companie;
+
+    const users = await User.find({
+      isDeleted: { $ne: true },
+      companie: companieId,
+    })
+      .populate("roles wallet userLogs")
+      .populate({
+        path: "companie",
+        match: { _id: companieId },
+        select: "name address",
+      });
 
     return res.status(200).json({
       success: true,
-      user: updatedUser,
+      data: users,
       message: "User updated successfully.",
     });
   } catch (error) {
@@ -516,11 +525,18 @@ async function deleteUserById(req, res) {
     ]);
 
     // Fetch updated user list (excluding deleted users)
-    const users = await User.find({ isDeleted: { $ne: true } })
-      .populate("roles")
-      .populate("wallet")
-      .populate("userLogs")
-      .exec();
+    const companieId = user.companie;
+
+    const users = await User.find({
+      isDeleted: { $ne: true },
+      companie: companieId,
+    })
+      .populate("roles wallet userLogs")
+      .populate({
+        path: "companie",
+        match: { _id: companieId },
+        select: "name address",
+      });
 
     return res.status(200).json({
       success: true,
@@ -560,14 +576,19 @@ async function toggleUserStatus(req, res) {
         message: "Invalid action. Use 'activate' or 'deactivate'.",
       });
     }
-
     await user.save();
+    const companieId = user.companie;
 
-    const users = await User.findNonDeleted()
-      .populate("roles")
-      .populate("wallet")
-      .populate("userLogs")
-      .exec();
+    const users = await User.find({
+      isDeleted: { $ne: true },
+      companie: companieId,
+    })
+      .populate("roles wallet userLogs")
+      .populate({
+        path: "companie",
+        match: { _id: companieId },
+        select: "name address",
+      });
 
     return res.status(200).json({
       success: true,
