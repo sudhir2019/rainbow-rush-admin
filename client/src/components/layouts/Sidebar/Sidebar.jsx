@@ -5,12 +5,7 @@ import ClipboardJS from "clipboard";
 import feather from "feather-icons";
 import { Tooltip } from "bootstrap";
 
-<<<<<<< HEAD
 function Sidebar({ menuItems }) {
-=======
-function Sidebar({menuItems}) {
-
->>>>>>> 5e569af709ecc053a91c6d9b0c473461e828ef8b
     const [activeMenu, setActiveMenu] = useState(null);
     useEffect(() => {
         // Enable feather icons
@@ -41,7 +36,7 @@ function Sidebar({menuItems}) {
         const sidebarToggler = document.querySelector(".sidebar-toggler");
 
         const toggleSidebar = () => {
-           // console.log("ok")
+            // console.log("ok")
             if (window.matchMedia("(min-width: 900px)").matches) {
                 body.classList.toggle("sidebar-folded");
             } else {
@@ -62,9 +57,9 @@ function Sidebar({menuItems}) {
     const toggleSubmenu = (menuId) => {
         setActiveMenu(activeMenu === menuId ? null : menuId); // Toggle visibility of submenu
     };
-// console.log(isMenuOpen);
+    // console.log(isMenuOpen);
     return (
-        <nav  className="sidebar">
+        <nav className="sidebar">
             <div className="sidebar-header">
                 <a href="#" className="sidebar-brand"><span>RainbowRush</span></a>
                 <div className="sidebar-toggler not-active">

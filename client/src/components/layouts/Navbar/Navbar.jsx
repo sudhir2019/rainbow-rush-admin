@@ -10,63 +10,13 @@ import useLogout from "../../../hooks/Authentication/useLogout ";
 import PerfectScrollbar from "perfect-scrollbar";
 
 // Import the useLogout hook
-const menuItems = [
-    { category: "Main", links: [{ to: "/admin/dashboard", icon: "box", label: "Dashboard" }] },
-    {
-        category: "Management",
-        links: [
-            { to: "/admin/gamemaster", icon: "users", label: "GameMaster" },
-            { to: "/admin/company", icon: "users", label: "Company" },
-            { to: "/admin/superdistributor", icon: "users", label: "SuperDistributer" },
-            { to: "/admin/distributor", icon: "users", label: "Distributor" },
-            { to: "/admin/retailer", icon: "users", label: "Retailer" },
-            { to: "/admin/users", icon: "users", label: "Users" },
-            { to: "/admin/onlineplayers", icon: "log-in", label: "Online Players" },
-        ],
-    },
-    {
-        category: "Game",
-        links: [
-            { to: "/admin/gamehistory", icon: "inbox", label: "Game History" },
-            { to: "/admin/winpercentage", icon: "inbox", label: "Win Percentage" },
-        ],
-    },
-    {
-        category: "Reports",
-        links: [
-            { to: "/admin/turnoverreport", icon: "inbox", label: "TurnOver Report" },
-            { to: "/admin/transactionreport", icon: "briefcase", label: "Transaction Report" },
-            { to: "/admin/commissionpayoutReport", icon: "briefcase", label: "Commission Payout Report" },
-            { to: "/admin/admincommissionreport", icon: "briefcase", label: "Admin Commission Report" },
-        ],
-    },
-    {
-        category: "Live Reports",
-        links: [
-            {
-                to: "#", icon: "download", label: "Live Result", submenu: [
-                    { href: "/admin/liveResult/LiveResult12one", label: "Lucky 12 one" },
-                    { href: "/admin/liveResult/LiveResult12two", label: "Lucky 12 two" },
-                    { href: "/admin/liveResult/LiveResult12three", label: "Lucky 12 coupon" },
-                    { href: "/admin/liveResult/LiveResult16", label: "Lucky 16" },
-                    { href: "/admin/liveResult/LiveResultTripleChanse", label: "Triple Chance" },
-                    { href: "/admin/liveResult/LiveResultRoulette", label: "GK Roulette-36" },
-                ]
-            },
-        ],
-    },
-    { category: "Logs Activity", links: [{ to: "/admin/logactivities", icon: "inbox", label: "Logs" }] },
-];
 
-<<<<<<< HEAD
 function Navbar({ user, profileLink }) {
-=======
-function Navbar({ user }) {
     const [activeMenu, setActiveMenu] = useState(null);
->>>>>>> 5e569af709ecc053a91c6d9b0c473461e828ef8b
+
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const handleLogout = useLogout(); // Get the logout handler from the hook
-    const[isToggle,setIsToggle] = useState(false);
+    const [isToggle, setIsToggle] = useState(false);
 
     // Initialize Feather Icons
     useEffect(() => {
@@ -108,56 +58,56 @@ function Navbar({ user }) {
         e.preventDefault();
         setIsToggle(!isToggle);
         const body = document.body;
-        if(isToggle){
+        if (isToggle) {
             scroll();
             body.classList.toggle("sidebar-dark");
             body.classList.toggle("loaded");
-            body.classList.toggle("sidebar-open");    
+            body.classList.toggle("sidebar-open");
             const sidebarBody = document.querySelector(".sidebar-body");
             sidebarBody.classList.remove("ps");
             //sidebarBody.style['overflow'] = "scroll";
-        }else{
+        } else {
             body.classList.toggle("sidebar-dark");
             body.classList.toggle("loaded");
         }
-        
-      };
-    
-      // Initialize PerfectScrollbar after the component mounts
-      useEffect(() => {
-        const sidebarBody = document.querySelector(".sidebar-body");
-        if (sidebarBody) {
-          new PerfectScrollbar(sidebarBody);
-        }
-    
-        return () => {
-          // Cleanup PerfectScrollbar instance
-          const sidebarBody = document.querySelector(".sidebar-body");
-          if (sidebarBody) {
-            sidebarBody.PS && sidebarBody.PS.destroy();
-          }
-        };
-      }, []);
 
-      const scroll = ()=>{
+    };
+
+    // Initialize PerfectScrollbar after the component mounts
+    useEffect(() => {
         const sidebarBody = document.querySelector(".sidebar-body");
         if (sidebarBody) {
-           
-          new PerfectScrollbar(sidebarBody);
+            new PerfectScrollbar(sidebarBody);
         }
-    
+
         return () => {
-          // Cleanup PerfectScrollbar instance
-          const sidebarBody = document.querySelector(".sidebar-body");
-          if (sidebarBody) {
-            sidebarBody.PS && sidebarBody.PS.destroy();
-          }
+            // Cleanup PerfectScrollbar instance
+            const sidebarBody = document.querySelector(".sidebar-body");
+            if (sidebarBody) {
+                sidebarBody.PS && sidebarBody.PS.destroy();
+            }
         };
-      }
-    
+    }, []);
+
+    const scroll = () => {
+        const sidebarBody = document.querySelector(".sidebar-body");
+        if (sidebarBody) {
+
+            new PerfectScrollbar(sidebarBody);
+        }
+
+        return () => {
+            // Cleanup PerfectScrollbar instance
+            const sidebarBody = document.querySelector(".sidebar-body");
+            if (sidebarBody) {
+                sidebarBody.PS && sidebarBody.PS.destroy();
+            }
+        };
+    }
+
     return (
         <nav className="navbar dark">
-            <NavLink to="#" className="sidebar-toggler" onClick={(e)=>toggleMenus(e)}>
+            <NavLink to="#" className="sidebar-toggler" onClick={(e) => toggleMenus(e)}>
                 <i data-feather="menu"></i>
             </NavLink>
             <div className="navbar-content">
@@ -215,7 +165,7 @@ function Navbar({ user }) {
                     </li>
                 </ul>
             </div>
-           
+
         </nav>
     );
 }

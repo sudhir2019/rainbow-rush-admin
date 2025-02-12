@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ScaleLoader } from "react-spinners";
-import { useFetchCompanies } from "../../hooks/admin/companies/useFetchCompanies"; 
+import { useFetchCompanies } from "../../hooks/admin/companies/useFetchCompanies";
 import CompaniesAdd from "../../components/ActionModel/CompaniesAdd";
 import Modal from "../../components/ActionModel/Modal";
 import CompaniesEdit from "../../components/ActionModel/CompaniesEdit";
@@ -16,7 +16,7 @@ const Company = () => {
     const [modalTitle, setModalTitle] = useState("");
     const [onConfirmAction, setOnConfirmAction] = useState(null);
     const { companies } = useSelector((state) => state.companies);
-    const { companiesLoading, fetchAllCompanies } = useFetchCompanies(); 
+    const { companiesLoading, fetchAllCompanies } = useFetchCompanies();
     const { removeCompanies } = useDeleteCompanies();
     const { activateCompany } = useActivateCompanies();
 
@@ -27,7 +27,7 @@ const Company = () => {
         }
 
     }, [action]); // Dependency on action to re-trigger when action changes
-    
+
 
     const openModal = (content, title, onConfirm) => {
         setModalContent(content);
@@ -72,7 +72,7 @@ const Company = () => {
     }
 
     if (action === undefined || action === null) {
-      
+
         return (
             <div className="row relative">
                 <div className="col-md-12 grid-margin stretch-card">
@@ -96,7 +96,6 @@ const Company = () => {
                                     </thead>
                                     <tbody>
                                         {companies.map((company, index) => (
-<<<<<<< HEAD
                                             <tr key={company?._id || "data Loding.."}>
                                                 <th scope="row">{index + 1}</th>
                                                 <td>{company?.name || "data Loding.."}</td>
@@ -112,69 +111,20 @@ const Company = () => {
                                                         {company?.status === "active" ? (
                                                             // Render Deactivate Link if userStatus is true (active)
 
-=======
-                                            company ? (
-                                                <tr key={company._id}>
-                                                    <th scope="row">{index + 1}</th>
-                                                    <td>{company.name}</td>
-                                                    <td>{company.uniqueId}</td>
-                                                    <td>{company.games.map(game => game.gameName).join(", ")}</td>
-                                                    <td>{new Date(company.createdAt).toLocaleString()}</td>
-                                                    <td>
-                                                        <div className="btn-group">
-                                                            <Link to={`edit/${company._id}`} className="btn btn-outline-info">
-                                                                <i className="fas fa-edit"></i>
-                                                            </Link>
-                                                            {company.status === "active" ? (
-                                                                <Link
-                                                                    to="#"
-                                                                    className="btn btn-outline-secondary"
-                                                                    onClick={() =>
-                                                                        openModal(
-                                                                            `Are you sure you want to deactivate ${company.name}?`,
-                                                                            'Deactivate Confirmation',
-                                                                            () => handleActivateDeactivate(company._id, true)
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <i className="fa fa-toggle-off"></i>
-                                                                </Link>
-                                                            ) : (
-                                                                <Link
-                                                                    to="#"
-                                                                    className="btn btn-outline-primary"
-                                                                    onClick={() =>
-                                                                        openModal(
-                                                                            `Are you sure you want to activate ${company.name}?`,
-                                                                            'Activate Confirmation',
-                                                                            () => handleActivateDeactivate(company._id, false)
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <i className="fas fa-toggle-on"></i>
-                                                                </Link>
-                                                            )}
->>>>>>> 5e569af709ecc053a91c6d9b0c473461e828ef8b
                                                             <Link
                                                                 to="#"
-                                                                className="btn btn-outline-danger delete-confirm"
+
+                                                                className=" btn btn-outline-secondary"
                                                                 onClick={() =>
                                                                     openModal(
-<<<<<<< HEAD
                                                                         `Are you sure you want to deactivate ${company?.name || "data Loding.."}?`,
                                                                         'Deactivate Confirmation',
                                                                         () => handleActivateDeactivate(company?._id || "data Loding..", true)
-=======
-                                                                        `Are you sure you want to delete ${company.name}?`,
-                                                                        'Delete Confirmation',
-                                                                        () => handleDelete(company._id)
->>>>>>> 5e569af709ecc053a91c6d9b0c473461e828ef8b
                                                                     )
                                                                 }
                                                             >
-                                                                <i className="fas fa-trash"></i>
+                                                                <i className="fas fa-toggle-off"></i>
                                                             </Link>
-<<<<<<< HEAD
                                                         ) : (
                                                             // Render Activate Link if userStatus is false (inactive)
                                                             <Link
@@ -207,12 +157,6 @@ const Company = () => {
                                                     </div>
                                                 </td>
                                             </tr>
-=======
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ) : null
->>>>>>> 5e569af709ecc053a91c6d9b0c473461e828ef8b
                                         ))}
                                     </tbody>
                                 </table>
