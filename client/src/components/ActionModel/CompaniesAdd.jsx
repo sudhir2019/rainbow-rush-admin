@@ -1,7 +1,9 @@
+import { useNavigate } from 'react-router-dom';
 import { useCompanyActions } from '../../hooks/admin/companies/useCreateCompany'; // Import your custom hook
 import { ScaleLoader } from "react-spinners"
 
 export default function CompaniesAdd() {
+    const navigate = useNavigate();
     const {
         register,
         handleSubmit,
@@ -167,7 +169,7 @@ export default function CompaniesAdd() {
                                         <button type="submit" className="btn btn-primary mr-2" disabled={companiesLoading}>
                                             {companiesLoading ? "Submitting..." : "Submit"}
                                         </button>
-                                        <button type="button" onClick={() => window.history.back()} className="btn btn-light">
+                                        <button type="button" onClick={() => navigate("/admin/company")} className="btn btn-light">
                                             Cancel
                                         </button>
                                     </div>

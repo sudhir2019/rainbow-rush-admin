@@ -58,12 +58,8 @@ const menuItems = [
     { category: "Logs Activity", links: [{ to: "/admin/logactivities", icon: "inbox", label: "Logs" }] },
 ];
 
-<<<<<<< HEAD
-function Navbar({ user, profileLink }) {
-=======
 function Navbar({ user }) {
     const [activeMenu, setActiveMenu] = useState(null);
->>>>>>> 5e569af709ecc053a91c6d9b0c473461e828ef8b
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const handleLogout = useLogout(); // Get the logout handler from the hook
     const[isToggle,setIsToggle] = useState(false);
@@ -184,13 +180,13 @@ function Navbar({ user }) {
                                     </div>
                                     <div className="info text-center">
                                         <p className="name font-weight-bold mb-0">{user.username}</p>
-                                        {/* <p className="email text-muted mb-3">{user.email}</p> */}
+                                        <p className="email text-muted mb-3">{user.email}</p>
                                     </div>
                                 </div>
                                 <div className="dropdown-body">
                                     <ul className="profile-nav p-0 pt-3">
                                         <li className="nav-item">
-                                            <NavLink to={profileLink} className="nav-link">
+                                            <NavLink to="/admin/profile" className="nav-link">
                                                 <i data-feather="edit"></i>
                                                 <span>Edit Profile</span>
                                             </NavLink>
